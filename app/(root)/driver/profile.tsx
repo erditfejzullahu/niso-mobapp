@@ -1,11 +1,9 @@
+import { Redirect } from 'expo-router'
 import React from 'react'
-import { Text, View } from 'react-native'
 
 const Profile = () => {
   return (
-    <View>
-      <Text>Profile</Text>
-    </View>
+    <Redirect href={'/driver/section/profile'}/>
   )
 }
 

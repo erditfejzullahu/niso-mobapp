@@ -1,9 +1,11 @@
-import { Redirect } from 'expo-router'
 import React from 'react'
+import { Text, View } from 'react-native'
 
 const ActiveRoutes = () => {
   return (
-    <Redirect href={'/(root)/driver/section/active-routes'}/>
+    <View>
+      <Text>ActiveRoutes</Text>
+    </View>
   )
 }
 

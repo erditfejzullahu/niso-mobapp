@@ -1,9 +1,11 @@
-import { Redirect } from 'expo-router'
 import React from 'react'
+import { Text, View } from 'react-native'
 
 const AddFixedTarif = () => {
   return (
-    <Redirect href={'/driver/section/add-fixed-tarif'}/>
+    <View>
+      <Text>AddFixedTarif</Text>
+    </View>
   )
 }
 

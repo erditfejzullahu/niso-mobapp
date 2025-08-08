@@ -1,9 +1,11 @@
-import { Redirect } from 'expo-router'
 import React from 'react'
+import { Text, View } from 'react-native'
 
 const RegularClients = () => {
   return (
-    <Redirect href={'/driver/section/regular-clients'}/>
+    <View>
+      <Text>RegularClients</Text>
+    </View>
   )
 }
 

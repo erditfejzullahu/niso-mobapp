@@ -1,9 +1,11 @@
-import { Redirect } from 'expo-router'
 import React from 'react'
+import { Text, View } from 'react-native'
 
 const Statistics = () => {
   return (
-    <Redirect href={'/driver/section/statistics'}/>
+    <View>
+      <Text>Statistics</Text>
+    </View>
   )
 }
 
