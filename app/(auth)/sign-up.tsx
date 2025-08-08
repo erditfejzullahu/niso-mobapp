@@ -1,4 +1,5 @@
 import AntDesign from '@expo/vector-icons/AntDesign';
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { Link } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Dimensions, ImageBackground, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -20,6 +21,7 @@ const NisoSignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [accountType, setAccountType] = useState(0) //0 for CLIENT, 1 for DRIVER
 
   const scrollY = useSharedValue(0);
   const titleColor = useSharedValue(0);
@@ -96,7 +98,7 @@ const NisoSignUp = () => {
       <ScrollView className="flex-1" onScroll={handleScroll} scrollEventThrottle={16}>
         <View className="h-64" /> {/* Spacer */}
 
-        <View className="bg-white mx-6 rounded-3xl p-8 shadow-lg border border-gray-100">
+        <View className="bg-white mx-6 rounded-3xl p-8 shadow-md shadow-black/15 border border-gray-100">
           {/* Title */}
           <View className="items-center mb-10">
             <Animated.Text className="text-5xl font-bold mb-1 pt-1" style={animatedTitleStyle}>
@@ -128,6 +130,16 @@ const NisoSignUp = () => {
               placeholderTextColor="#9CA3AF"
               value={email}
               onChangeText={setEmail}
+            />
+          </View>
+
+          {/* role */}
+          <View className='mb-6 border-gray-200'>
+            <Text className='text-gray-700 mb-1'>Lloji i llogarise</Text>
+            <SegmentedControl 
+                values={['Client', 'Driver']}
+                selectedIndex={accountType}
+                onChange={(event) => {setAccountType(event.nativeEvent.selectedSegmentIndex)}}
             />
           </View>
 

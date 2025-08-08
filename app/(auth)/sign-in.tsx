@@ -3,14 +3,14 @@ import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import { Dimensions, ImageBackground, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, {
-    Easing,
-    Extrapolation,
-    interpolate,
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withSpring,
-    withTiming
+  Easing,
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSpring,
+  withTiming
 } from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
@@ -109,9 +109,10 @@ const NisoLogin = () => {
       >
         <View className="h-64" /> {/* Spacer for parallax */}
 
-        <View className="bg-white mx-6 rounded-3xl p-8 shadow-sm">
+        <View className="bg-white mx-6 rounded-3xl p-8 shadow-md shadow-black/15">
           {/* Animated "Niso" Title */}
           <View className="items-center mb-10">
+            <Link href={'/_sitemap'}>Sitemap</Link>
             <Animated.Text 
               className="text-5xl font-bold mb-1 pt-1"
               style={animatedTitleStyle}
