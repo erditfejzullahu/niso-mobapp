@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Image, Text, View } from 'react-native';
 
 const HeaderComponent = ({title, subtitle}: {title: string; subtitle?: string | null}) => {
   return (
-    <View className='my-2'>
+    <View>
         {subtitle && <Text className='text-[8px] font-pmedium text-gray-400'>{subtitle}</Text>}
         <View className='relative'>
             <View>
@@ -22,4 +22,4 @@ const HeaderComponent = ({title, subtitle}: {title: string; subtitle?: string | 
   )
 }
 
-export default HeaderComponent
+export default memo(HeaderComponent)
