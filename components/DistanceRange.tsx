@@ -5,7 +5,7 @@ import { Text, View } from 'react-native';
 interface DistanceRangeProps {
   minDistance?: number;
   maxDistance?: number;
-  initialDistance?: number;
+  initialDistance?: number | undefined;
   onDistanceChange?: (distance: number) => void;
   unit?: string;
 }
@@ -13,7 +13,7 @@ interface DistanceRangeProps {
 const DistanceRange: React.FC<DistanceRangeProps> = ({
   minDistance = 1,
   maxDistance = 100,
-  initialDistance = 10,
+  initialDistance,
   onDistanceChange,
   unit = 'km',
 }) => {
@@ -35,7 +35,7 @@ const DistanceRange: React.FC<DistanceRangeProps> = ({
       
       <View className="items-center mb-5">
         <Text className="text-lg font-pbold text-indigo-600">
-          Deri më {distance} {unit}
+          {!distance ? "Pa distancë te caktuar" : `Deri më ${distance} ${unit}`}
         </Text>
       </View>
       

@@ -179,11 +179,9 @@ const NisoLogin = () => {
           {/* Sign Up Link */}
           <View className="mt-8 items-center">
             <Text className="text-gray-600">Nuk keni llogari? </Text>
-            <TouchableOpacity>
-              <Link href={'/(auth)/sign-up'} >
-                <Text className="text-black font-semibold">Regjistrohuni</Text>
-              </Link>
-            </TouchableOpacity>
+            <Link href={'/(auth)/sign-up'} >
+              <Text className="text-black font-semibold">Regjistrohuni</Text>
+            </Link>
           </View>
         </View>
 

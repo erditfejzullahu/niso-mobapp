@@ -4,14 +4,14 @@ import { Link } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Dimensions, ImageBackground, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, {
-    Easing,
-    Extrapolation,
-    interpolate,
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withSpring,
-    withTiming
+  Easing,
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSpring,
+  withTiming
 } from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
@@ -196,11 +196,9 @@ const NisoSignUp = () => {
           {/* Login Link */}
           <View className="mt-8 items-center">
             <Text className="text-gray-600">Keni tashmë një llogari? </Text>
-            <TouchableOpacity>
-                <Link href={'/(auth)/sign-in'}>
-                    <Text className="text-black font-semibold">Kyçuni</Text>
-                </Link>
-            </TouchableOpacity>
+              <Link href={'/(auth)/sign-in'}>
+                  <Text className="text-black font-psemibold">Kyçuni</Text>
+              </Link>
           </View>
         </View>
 
