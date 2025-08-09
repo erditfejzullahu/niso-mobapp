@@ -23,10 +23,10 @@ const TopbarComponent = ({navigation}: {navigation: DrawerNavigationProp<ParamLi
     <SafeAreaView className='bg-white px-4 max-h-[83px] shadow-md shadow-black/10 rounded-b-[20px]'>
         <View className='flex-row items-center justify-between'>
             <View>
-                <Text className='font-psemibold text-3xl -mb-6 pt-2.5'>Niso<Text className='text-indigo-600 font-black text-6xl'>.</Text></Text>
+                <Text className='font-psemibold text-indigo-950 text-3xl -mb-6 pt-2.5'>Niso<Text className='text-indigo-600 font-black text-6xl'>.</Text></Text>
             </View>
             <View>
-                <AnimatedHamburger toggled={open} onToggle={handleToggle} color='#4f46e5'/>
+                <AnimatedHamburger toggled={open} onToggle={handleToggle} color='#1e1b4b'/>
             </View>
         </View>
     </SafeAreaView>

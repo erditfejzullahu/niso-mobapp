@@ -6,7 +6,7 @@ import { FlatList } from 'react-native-gesture-handler'
 
 const ActiveRoutes = () => {
   return (
-    <View className='flex-1 bg-white mt-2 shadow-lg shadow-black/15 m-2 rounded-[20px]'>
+    <View className='flex-1'>
       <FlatList 
         data={[]}
         className='p-4'
@@ -17,8 +17,10 @@ const ActiveRoutes = () => {
         )}
         ListHeaderComponent={() => (
           <>
+          <View className='gap-4'>
             <HeaderComponent title='Udhëtime në pritje' subtitle={"Këtu mund të kapni udhëtime në kohë reale. Shfrytëzoni filtrat e mëposhtëm për informacione më të specifikuara."}/>
             <ActiveRoutesFilterComponent />
+          </View>
           </>
         )}
       />

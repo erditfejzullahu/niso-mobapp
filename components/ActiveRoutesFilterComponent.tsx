@@ -7,9 +7,9 @@ import { Platform, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { Easing, FadeInLeft, FadeOutRight } from "react-native-reanimated";
 
 const routesFilterBy = [
-    {label: "Krijuar me", icon: <Fontisto name="date" size={20} color="black" />},
-    {label: "Urgjenca", icon: <MaterialCommunityIcons name="run-fast" size={20} color="black" />},
-    {label: "Distanca", icon: <MaterialCommunityIcons name="map-marker-distance" size={20} color="black" />}
+    {label: "Krijuar me", icon: <Fontisto name="date" size={20} color="#1e1b4b" />},
+    {label: "Urgjenca", icon: <MaterialCommunityIcons name="run-fast" size={20} color="#1e1b4b" />},
+    {label: "Distanca", icon: <MaterialCommunityIcons name="map-marker-distance" size={20} color="#1e1b4b" />}
 ]
 
 const ActiveRoutesFilterComponent = () => {
@@ -29,8 +29,11 @@ const ActiveRoutesFilterComponent = () => {
     };
 
     return (
-        <Animated.View entering={FadeInLeft.easing(Easing.bounce).duration(1000)} className="w-full">
-            <Text className='text-sm font-pregular text-right'>Filtro nga opsionet e meposhtme</Text>
+        <Animated.View entering={FadeInLeft.easing(Easing.bounce).duration(1000)} className={`w-full bg-white p-3 py-2 ${selectedFilter ? "pb-3" : "pb-1"} rounded-xl shadow-lg shadow-black/5`}>
+            <View className='flex-row items-center justify-end gap-1'>
+                <MaterialCommunityIcons name="filter" size={24} color="#1e1b4b" />
+                <Text className='text-sm font-pregular text-right'>Filtro nga opsionet e meposhtme</Text>
+            </View>
             <View className='flex flex-row flex-1 bg-white rounded-xl shadow-[0_5px_10px_rgba(0,0,0,0.1)] mt-2 mb-4'>
                 {routesFilterBy.map((item, idx) => (
                     <TouchableOpacity
