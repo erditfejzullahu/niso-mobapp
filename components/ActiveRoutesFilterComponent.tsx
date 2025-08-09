@@ -5,6 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
 import { Platform, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { Easing, FadeInLeft, FadeOutRight } from "react-native-reanimated";
+import DistanceRange from './DistanceRange';
 
 const routesFilterBy = [
     {label: "Krijuar me", icon: <Fontisto name="date" size={20} color="#1e1b4b" />},
@@ -17,6 +18,7 @@ const ActiveRoutesFilterComponent = () => {
     const [sortOrder, setSortOrder] = useState<'oldest' | 'latest'>('latest'); // 'latest' or 'oldest'
     const [fromDate, setFromDate] = useState<null | Date>(null);
     const [toDate, setToDate] = useState<null | Date>(null);
+    const [urgencyType, setUrgencyType] = useState<'urgent' | 'normal'>('normal')
     const [showPicker, setShowPicker] = useState<{show: boolean, target: null | string}>({ show: false, target: null });
 
     const [usedFilters, setUsedFilters] = useState({
@@ -43,6 +45,10 @@ const ActiveRoutesFilterComponent = () => {
         setFromDate(null)
         setToDate(null)
         setShowPicker({show: false, target: null})
+    }
+
+    const handleDistanceChange = (distance: number) => {
+        console.log(distance)
     }
 
     return (
@@ -141,17 +147,38 @@ const ActiveRoutesFilterComponent = () => {
 
             {/* You can fill the other filters here as you want */}
             {selectedFilter === "Urgjenca" && (
-                <View className='flex flex-row flex-1 bg-white rounded-lg shadow-[0_5px_10px_rgba(0,0,0,0.1)] p-4'>
+                <Animated.View exiting={FadeOutRight} entering={FadeInLeft.easing(Easing.in(Easing.ease)).duration(400)} className='p-4 bg-white rounded-xl shadow-[0_5px_10px_rgba(0,0,0,0.1)]'>
                     {/* Urgjenca filter UI */}
-                    <Text>Urgjenca filter content goes here</Text>
-                </View>
+                    <View className="justify-center flex-1 gap-2">
+                        <TouchableOpacity
+                            onPress={() => {setUrgencyType("urgent"); setUsedFilters((prev) => ({...prev, urgency: true, showFilter: true}))}}
+                            className={`px-4 py-2 w-full justify-center rounded-md border flex-row items-center gap-2 ${urgencyType === "urgent" ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-300'}`}
+                        >
+                            <MaterialCommunityIcons name="run-fast" size={16} color={urgencyType === 'urgent' ? "white" :"black"} />
+                            <Text className={`font-pmedium ${urgencyType === 'urgent' ? 'text-white' : 'text-black'}`}>Kërkesa urgjente</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => {setUrgencyType("normal"); setUsedFilters((prev) => ({...prev, urgency: true, showFilter: true}))}}
+                            className={`px-4 w-full py-2 justify-center rounded-md flex-row items-center gap-2 border  ${urgencyType === "normal" ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-300'}`}
+                        >
+                            <MaterialCommunityIcons name="walk" size={16} color={urgencyType === 'normal' ? "white" :"black"} />
+                            <Text className={`font-pmedium ${urgencyType === 'normal' ? 'text-white' : 'text-black'}`}>Kërkesa normale</Text>
+                        </TouchableOpacity>
+                    </View>
+                </Animated.View>
             )}
 
             {selectedFilter === "Distanca" && (
-                <View className='flex flex-row flex-1 bg-white rounded-lg shadow-[0_5px_10px_rgba(0,0,0,0.1)] p-4'>
+                <Animated.View exiting={FadeOutRight} entering={FadeInLeft.easing(Easing.in(Easing.ease)).duration(400)} className='p-4 bg-white rounded-xl shadow-[0_5px_10px_rgba(0,0,0,0.1)]'>
                     {/* Distanca filter UI */}
-                    <Text>Distanca filter content goes here</Text>
-                </View>
+                    <DistanceRange 
+                        minDistance={1}
+                        maxDistance={200}
+                        initialDistance={50}
+                        onDistanceChange={handleDistanceChange}
+                        unit='km'
+                    />
+                </Animated.View>
             )}
         </Animated.View>
     )
