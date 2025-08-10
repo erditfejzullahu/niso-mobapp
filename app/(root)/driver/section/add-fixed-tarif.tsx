@@ -1,12 +1,14 @@
+import HeaderComponent from "@/components/HeaderComponent";
 import { kosovoCities } from "@/data/kosovoCities";
 import { Picker } from '@react-native-picker/picker';
 import axios from "axios";
 import * as Location from "expo-location";
 import { debounce } from "lodash";
-import { Euro, MapPin } from "lucide-react-native";
+import { Euro, Link2, MapPin } from "lucide-react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import MapView, { MapPressEvent, Marker, UrlTile } from "react-native-maps";
+import Animated, { Easing, FadeInLeft } from "react-native-reanimated";
 
 export default function AddFixedTarif() {
   const [areaName, setAreaName] = useState("");
@@ -148,15 +150,21 @@ export default function AddFixedTarif() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <Text className="text-indigo-900 font-psemibold text-2xl mb-6">
-          Shto Tarifa të Fikse
-        </Text>
+        <View className="gap-4 mb-4">
+          <HeaderComponent title="Shto tarifa fikse" subtitle={"Këtu mund të shtoni tarifa fikse për zonën të cilën do t'a zgjidhni ju!"}/>
+          <Animated.View entering={FadeInLeft.easing(Easing.bounce).duration(1000)}>
+            <TouchableOpacity className="bg-white rounded-xl p-2 shadow-lg shadow-black/5 items-center justify-center flex-row gap-1">
+              <Text className="text-indigo-600 font-psemibold text-sm">Ridrejtohuni tek tarifat tuaja të krijuara!</Text>
+              <Link2 color={"#1e1b4b"}/>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
         <View className="mb-4">
           <Text className="mb-1 text-gray-700 font-pmedium">Qyteti</Text>
           <Picker
             selectedValue={city}
             onValueChange={onCityChange}
-            style={{backgroundColor: "white"}}
+            style={{backgroundColor: "white", borderRadius: 12, borderWidth: 1, borderColor: "#e5e7eb"}}
           >
             {kosovoCities.map((city) => (
               <Picker.Item key={city.label} label={city.label} value={city.label} />
