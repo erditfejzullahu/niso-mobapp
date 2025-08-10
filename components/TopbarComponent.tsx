@@ -20,7 +20,8 @@ const TopbarComponent = ({navigation}: {navigation: DrawerNavigationProp<ParamLi
     }
     
   return (
-    <SafeAreaView className='bg-white px-4 max-h-[83px] shadow-md shadow-black/10 rounded-b-[20px]'>
+    <SafeAreaView className='bg-gray-50 px-4 max-h-[83px] relative z-50'>
+      <View className='absolute top-0 left-0 right-0 h-[83px] bg-white rounded-b-[20px] shadow-md shadow-black/10'/>
         <View className='flex-row items-center justify-between'>
             <View>
                 <Text className='font-psemibold text-indigo-950 text-3xl -mb-6 pt-2.5'>Niso<Text className='text-indigo-600 font-black text-6xl'>.</Text></Text>

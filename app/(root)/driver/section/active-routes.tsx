@@ -105,7 +105,7 @@ const ActiveRoutes = () => {
   );
 
   return (
-    <View className='flex-1'>
+    <View className='flex-1 bg-gray-50'>
       <FlatList
         data={rideRequests}
         className='p-4 mb-20'

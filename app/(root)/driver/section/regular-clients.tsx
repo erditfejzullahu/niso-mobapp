@@ -53,7 +53,7 @@ const RegularClients = () => {
   };
 
   return (
-    <View className='flex-1'>
+    <View className='flex-1 bg-gray-50'>
       <FlatList 
         data={regularClients}
         className='p-4 mb-20'

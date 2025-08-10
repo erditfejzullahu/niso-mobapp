@@ -1,10 +1,11 @@
 import { MapPin } from 'lucide-react-native';
 import React, { memo } from 'react';
 import { Image, Text, View } from 'react-native';
+import Animated, { Easing, FadeInRight } from 'react-native-reanimated';
 
-const HeaderComponent = ({title, subtitle}: {title: string; subtitle?: string | null}) => {
+const HeaderComponent = ({title, subtitle, style}: {title: string; subtitle?: string | null, style?: string | null}) => {
   return (
-    <View className='bg-white p-3 rounded-xl shadow-lg shadow-black/5'>
+    <Animated.View entering={FadeInRight.easing(Easing.bounce).duration(1000)} className={`bg-white p-3 rounded-xl shadow-lg shadow-black/5 ${style}`}>
         {subtitle && (
         <View className="flex-row items-center mb-1">
           <MapPin size={12} color="#6366F1" style={{ marginRight: 4 }} />
@@ -26,7 +27,7 @@ const HeaderComponent = ({title, subtitle}: {title: string; subtitle?: string | 
                 />
             </View>
         </View>
-    </View>
+    </Animated.View>
   )
 }
 
