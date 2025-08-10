@@ -149,7 +149,7 @@ export default function AddFixedTarif() {
       style={{ flex: 1, backgroundColor: "#f9fafb" }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 80 }}>
         <View className="gap-4 mb-4">
           <HeaderComponent title="Shto tarifa fikse" subtitle={"Këtu mund të shtoni tarifa fikse për zonën të cilën do t'a zgjidhni ju!"}/>
           <Animated.View entering={FadeInLeft.easing(Easing.bounce).duration(1000)}>
