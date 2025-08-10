@@ -3,15 +3,21 @@ import { kosovoCities } from "@/data/kosovoCities";
 import { Picker } from '@react-native-picker/picker';
 import axios from "axios";
 import * as Location from "expo-location";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { debounce } from "lodash";
-import { Euro, Link2, MapPin } from "lucide-react-native";
+import { Euro, Link2, MapPin, X } from "lucide-react-native";
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import MapView, { MapPressEvent, Marker, UrlTile } from "react-native-maps";
 import Animated, { Easing, FadeInLeft } from "react-native-reanimated";
 
 export default function AddFixedTarif() {
+
+  const {tarif} = useLocalSearchParams();
+  console.log(tarif, ' tarif');
+  
+
   const [areaName, setAreaName] = useState("");
   
   const [price, setPrice] = useState("");
@@ -22,11 +28,30 @@ export default function AddFixedTarif() {
 
   const [areaData, setAreaData] = useState<any>(null)
   const [showAreaScroller, setShowAreaScroller] = useState(false)
+  const [zoneClicked, setZoneClicked] = useState(false)
 
   const [region, setRegion] = useState<{latitude: number, longitude: number, latitudeDelta: number, longitudeDelta: number} | null>(null)
 
   const [marker, setMarker] = useState<{ latitude: number; longitude: number } | null>(null);
 
+
+  useEffect(() => {
+    if(tarif){
+      try {
+        const parsedTarif = JSON.parse(tarif as string);
+        setAreaName(parsedTarif.areaName || "");
+        setPrice(parsedTarif.price?.toString() || "");
+        setDescription(parsedTarif.description || "");
+        setCity(parsedTarif.city || "");
+        if (parsedTarif.location) {
+          setLocation(parsedTarif.location);
+        }
+      } catch (error) {
+        console.error("Error parsing tarif data, ", tarif);
+      }
+    }
+  }, [tarif])
+  
 
   const handleMapPress = (event: MapPressEvent) => {
     const { coordinate } = event.nativeEvent;
@@ -35,6 +60,8 @@ export default function AddFixedTarif() {
   };
 
   const getAreaNameData = async (areaName: string) => {
+    console.log(region);
+    
     try {
       const response = await axios.get(`https://photon.komoot.io/api/?q=${areaName}&lat=${region?.latitude}&lon=${region?.longitude}&limit=10`)
       
@@ -42,7 +69,7 @@ export default function AddFixedTarif() {
       setAreaData(response.data || null)
       setShowAreaScroller(true)
     } catch (error: any) {
-      console.error(error.response.data);
+      console.error(error.response.status);
       setAreaData(null)
       setShowAreaScroller(false)
     }
@@ -55,10 +82,14 @@ export default function AddFixedTarif() {
   )
 
   useEffect(() => {
-    if(areaName.length > 0){
+    if(areaName.length > 3 && !zoneClicked){
       handleGetAreaData(areaName)
     }
-  }, [areaName])
+    if(areaName.length === 0){
+      setAreaData(null)
+      setShowAreaScroller(false)
+    }
+  }, [areaName, zoneClicked])
   
 
   useEffect(() => {
@@ -142,15 +173,15 @@ export default function AddFixedTarif() {
     )
   }
 
-
   const { latitude, longitude } = location.coords;
   
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: "#f9fafb" }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    <KeyboardAwareScrollView
+      contentContainerStyle={{ padding: 16, paddingBottom: 80 }}
+      enableOnAndroid={true}
+      extraScrollHeight={Platform.OS === 'ios' ? 20 : 30} // how much to push when focused
+      keyboardShouldPersistTaps="handled"
     >
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 80 }}>
         <View className="gap-4 mb-4">
           <HeaderComponent title="Shto tarifa fikse" subtitle={"Këtu mund të shtoni tarifa fikse për zonën të cilën do t'a zgjidhni ju!"}/>
           <Animated.View entering={FadeInLeft.easing(Easing.bounce).duration(1000)}>
@@ -180,11 +211,14 @@ export default function AddFixedTarif() {
             placeholder="Shembull: Bregu i Diellit"
             className={`bg-white rounded-2xl px-4 py-3 shadow-sm shadow-black/10 border border-gray-200 ${!city && "!bg-gray-200"}`}
             value={areaName}
-            onChangeText={setAreaName}
+            onChangeText={(e) => {setAreaName(e); setZoneClicked(false)}}
           />
-          {showAreaScroller && <ScrollView className="rounded-xl p-2 bg-white mt-2 max-w-[200px] max-h-[100px] border border-gray-200">
+          {showAreaScroller && <ScrollView className="rounded-xl p-2 bg-white mt-2 max-w-[200px] max-h-[100px] border border-gray-200 relative">
+            <TouchableOpacity className="absolute -right-2 -top-2 bg-indigo-100 shadow-lg shadow-black/20 rounded-md" onPress={() => {setAreaData(null); setShowAreaScroller(false); setZoneClicked(true)}}>
+              <X color={"#000"}/>
+            </TouchableOpacity>
             {areaData && areaData?.features?.map((item: any, idx: number) => (
-              <TouchableOpacity key={idx} onPress={() => {setRegion({latitude: item.geometry.coordinates[1], longitude: item.geometry.coordinates[0], longitudeDelta: 0.003, latitudeDelta: 0.003}); setAreaName(item.properties.name); setShowAreaScroller(false)}}>
+              <TouchableOpacity key={idx} onPress={() => {setRegion({latitude: item.geometry.coordinates[1], longitude: item.geometry.coordinates[0], longitudeDelta: 0.003, latitudeDelta: 0.003}); setAreaName(item.properties.name); setShowAreaScroller(false); setZoneClicked(true)}}>
                 <Text className="text-gray-500 py-1 border-b border-gray-200 font-pmedium text-sm">{item.properties.name}</Text>
               </TouchableOpacity>
             ))}
@@ -214,8 +248,8 @@ export default function AddFixedTarif() {
             className="bg-white rounded-2xl px-4 py-3 shadow-sm shadow-black/10 border border-gray-200"
             value={description}
             onChangeText={setDescription}
-            multiline
-            numberOfLines={3}
+            // multiline
+            // numberOfLines={3}
           />
         </View>
 
@@ -255,10 +289,9 @@ export default function AddFixedTarif() {
           className="bg-indigo-600 py-3 rounded-2xl shadow-md shadow-indigo-700/30 mt-6"
         >
           <Text className="text-white font-psemibold text-center text-lg">
-            Ruaj Tarifën
+            {tarif ? "Rifresko Tarifë" : "Ruaj Tarifën"}
           </Text>
         </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
   );
 }

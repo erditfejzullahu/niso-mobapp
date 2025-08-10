@@ -14,8 +14,8 @@ export default function ViewTarifs({ navigation }: any) {
     // For now: load dummy tariffs from local storage or test data
     setTimeout(() => {
       setTarifs([
-        { id: 1, areaName: "Bregu i Diellit", price: 5, description: "Shërbim ditor" },
-        { id: 2, areaName: "Qendra", price: 7.5, description: "Tarifë për qendër" },
+        { id: 1, areaName: "Bregu i Diellit", price: 5, description: "Shërbim ditor", city: "Gjakova" },
+        { id: 2, areaName: "Qendra", price: 7.5, description: "Tarifë për qendër", city: "Prishtina" },
       ]);
       setLoading(false);
     }, 1000);
@@ -38,7 +38,7 @@ export default function ViewTarifs({ navigation }: any) {
 
   const handleEdit = (tarif: any) => {
     // Navigate to AddFixedTarif with pre-filled data
-    router.push({pathname: "/(root)/driver/section/add-fixed-tarif", params: {tarif}})
+    router.push({pathname: "/(root)/driver/section/add-fixed-tarif", params: {tarif: JSON.stringify(tarif)}})
   };
 
   if (loading) {
@@ -70,19 +70,24 @@ export default function ViewTarifs({ navigation }: any) {
               <Text className="text-gray-500 text-sm">{tarif.description}</Text>
             ) : null}
 
-            <View className="flex-row justify-end mt-3">
-              <TouchableOpacity
-                onPress={() => handleEdit(tarif)}
-                className="bg-indigo-100 p-2 rounded-xl mr-2"
-              >
-                <Pencil size={18} color="#4338ca" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => handleDelete(tarif.id)}
-                className="bg-red-100 p-2 rounded-xl"
-              >
-                <Trash2 size={18} color="#dc2626" />
-              </TouchableOpacity>
+            <View className="flex-row justify-between items-center mt-3">
+                <View>
+                    <Text className="text-indigo-950 text-sm font-pregular bg-indigo-100 rounded-lg shadow-lg shadow-black/10 py-1 px-2">{tarif.city}</Text>
+                </View>
+                <View className="flex-row items-center ">
+                    <TouchableOpacity
+                        onPress={() => handleEdit(tarif)}
+                        className="bg-indigo-100 p-2 rounded-xl mr-2"
+                    >
+                        <Pencil size={18} color="#4338ca" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => handleDelete(tarif.id)}
+                        className="bg-red-100 p-2 rounded-xl"
+                    >
+                        <Trash2 size={18} color="#dc2626" />
+                    </TouchableOpacity>
+                </View>
             </View>
           </View>
         ))
