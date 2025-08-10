@@ -51,22 +51,22 @@ const Profile = () => {
       <View className="flex-row justify-between mt-4">
         <View className="flex-1 bg-white rounded-2xl p-4 mr-2 shadow shadow-black/5 items-center">
           <Text className="text-lg font-psemibold text-indigo-950">{user.totalDrives}</Text>
-          <Text className="text-xs text-gray-500">Udhetime</Text>
+          <Text className="text-xs text-gray-500 text-center font-pregular">Udhetime</Text>
         </View>
         <View className="flex-1 bg-white rounded-2xl p-4 mx-1 shadow shadow-black/5 items-center">
           <Text className="text-lg font-psemibold text-indigo-950">{user.regularClients}</Text>
-          <Text className="text-xs text-gray-500">Klientë të Rregullt</Text>
+          <Text className="text-xs text-gray-500 text-center font-pregular">Klientë të Rregullt</Text>
         </View>
         <View className="flex-1 bg-white rounded-2xl p-4 ml-2 shadow shadow-black/5 items-center">
           <Text className="text-lg font-psemibold text-indigo-950">€{user.totalEarnings.toFixed(2)}</Text>
-          <Text className="text-xs text-gray-500">Fitime</Text>
+          <Text className="text-xs text-gray-500 text-center font-pregular">Fitime</Text>
         </View>
       </View>
 
       {/* About Section */}
       <View className="bg-white rounded-2xl p-4 mt-4 shadow shadow-black/5">
-        <Text className="text-sm text-gray-500 mb-1">Anëtar që nga</Text>
-        <Text className="text-base font-pmedium text-indigo-950">
+        <Text className="text-sm text-gray-500 mb-1 font-pregular">Anëtar që nga</Text>
+        <Text className="text-base font-pmedium text-indigo-950 ">
           {dayjs(user.joinDate).format('D MMMM YYYY')}
         </Text>
       </View>
@@ -79,6 +79,14 @@ const Profile = () => {
         >
           <Ionicons name="wallet" size={20} color="#4338ca" />
           <Text className="ml-3 text-indigo-950 font-pmedium">Shiko Financat</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="flex-row items-center py-3 border-b border-gray-100"
+          onPress={() => router.push('/driver/section/view-tarifs')}
+        >
+          <Ionicons name="pricetags" size={20} color="#4338ca" />
+          <Text className="ml-3 text-indigo-950 font-pmedium">Shiko tarifat tua</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -106,19 +114,19 @@ const Profile = () => {
             <TextInput
               placeholder="Emri"
               defaultValue={user.name}
-              className="border border-gray-200 rounded-lg p-3 mb-3"
+              className="border border-gray-200 font-pregular rounded-lg p-3 mb-3"
             />
             <TextInput
               placeholder="Roli"
               defaultValue={user.role}
-              className="border border-gray-200 rounded-lg p-3 mb-3"
+              className="border border-gray-200 font-pregular rounded-lg p-3 mb-3"
             />
             <View className="flex-row justify-end">
               <TouchableOpacity onPress={() => setShowProfileModal(false)}>
-                <Text className="text-red-500 mr-4">Anulo</Text>
+                <Text className="text-red-500 mr-4 font-pregular">Anulo</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setShowProfileModal(false)}>
-                <Text className="text-indigo-600">Ruaj</Text>
+                <Text className="text-indigo-600 font-pregular">Ruaj</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -131,18 +139,18 @@ const Profile = () => {
           <View className="bg-white rounded-2xl p-5 w-11/12">
             <Text className="text-lg font-psemibold text-indigo-950 mb-3">Cilësimet</Text>
             <TouchableOpacity className="py-2 border-b border-gray-200">
-              <Text className="text-gray-700">Ndrysho fjalëkalimin</Text>
+              <Text className="text-gray-700 font-pregular">Ndrysho fjalëkalimin</Text>
             </TouchableOpacity>
             <TouchableOpacity className="py-2 border-b border-gray-200">
-              <Text className="text-gray-700">Njoftimet</Text>
+              <Text className="text-gray-700 font-pregular">Njoftimet</Text>
             </TouchableOpacity>
             <TouchableOpacity className="py-2">
-              <Text className="text-red-500">Dil nga llogaria</Text>
+              <Text className="text-red-500 font-pregular">Dil nga llogaria</Text>
             </TouchableOpacity>
 
             <View className="flex-row justify-end mt-3">
               <TouchableOpacity onPress={() => setShowSettingsModal(false)}>
-                <Text className="text-indigo-600">Mbyll</Text>
+                <Text className="text-indigo-600 font-pregular">Mbyll</Text>
               </TouchableOpacity>
             </View>
           </View>

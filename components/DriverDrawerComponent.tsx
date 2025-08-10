@@ -79,6 +79,13 @@ export default function DriverDrawerComponent(props: any) {
       ),
     },
     {
+      route: "view-tarifs",
+      label: "Shiko tarifat tua",
+      icon: (color: string, size: number) => (
+        <Ionicons name="pricetags" size={size} color={color} />
+      )
+    },
+    {
       route: "statistics",
       label: "Fitimet tua",
       icon: (color: string, size: number) => (

@@ -88,6 +88,8 @@ export default function Layout() {
 
       {/* Profile */}
       <Tabs.Screen name="profile" options={{tabBarLabel: "Profili"}}/>
+
+      <Tabs.Screen name="view-tarifs" options={{href: null}} />
     </Tabs>
   );
 }

@@ -3,6 +3,7 @@ import { kosovoCities } from "@/data/kosovoCities";
 import { Picker } from '@react-native-picker/picker';
 import axios from "axios";
 import * as Location from "expo-location";
+import { router } from "expo-router";
 import { debounce } from "lodash";
 import { Euro, Link2, MapPin } from "lucide-react-native";
 import React, { useCallback, useEffect, useState } from "react";
@@ -153,7 +154,7 @@ export default function AddFixedTarif() {
         <View className="gap-4 mb-4">
           <HeaderComponent title="Shto tarifa fikse" subtitle={"Këtu mund të shtoni tarifa fikse për zonën të cilën do t'a zgjidhni ju!"}/>
           <Animated.View entering={FadeInLeft.easing(Easing.bounce).duration(1000)}>
-            <TouchableOpacity className="bg-white rounded-xl p-2 shadow-lg shadow-black/5 items-center justify-center flex-row gap-1">
+            <TouchableOpacity onPress={() => router.push('/driver/section/view-tarifs')} className="bg-white rounded-xl p-2 shadow-lg shadow-black/5 items-center justify-center flex-row gap-1">
               <Text className="text-indigo-600 font-psemibold text-sm">Ridrejtohuni tek tarifat tuaja të krijuara!</Text>
               <Link2 color={"#1e1b4b"}/>
             </TouchableOpacity>

@@ -3,6 +3,7 @@ import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../assets/global.css";
 
 SplashScreen.preventAutoHideAsync();
@@ -31,8 +32,9 @@ export default function RootLayout() {
 
   return (
     <>
-      <Stack screenOptions={{headerShown: false}}/>
-
+    <GestureHandlerRootView style={{flex: 1}}>
+      <Stack screenOptions={{headerShown: false, gestureEnabled: true}}/>
+    </GestureHandlerRootView>
 
       <StatusBar style="dark"/>
     </>
