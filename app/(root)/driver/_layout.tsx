@@ -1,5 +1,6 @@
 // app/(drawer)/_layout.jsx
 import DriverDrawerComponent from "@/components/DriverDrawerComponent";
+import NotificationsComponent from "@/components/NotificationsComponent";
 import TopbarComponent from "@/components/TopbarComponent";
 import { Drawer } from "expo-router/drawer";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -36,6 +37,9 @@ export default function DrawerLayout() {
           }}
         />
       </Drawer>
+      <NotificationsComponent />
     </GestureHandlerRootView>
   );
 }
+
+
