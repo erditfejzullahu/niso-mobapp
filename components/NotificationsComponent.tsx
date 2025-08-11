@@ -38,6 +38,10 @@ const NotificationsComponent = () => {
         bottomSheetRef.current?.present();
     }
 
+    const handleSheetChange = () => {
+
+    }
+
   return (
     <BottomSheetModalProvider>
         <BottomSheetModal
@@ -47,6 +51,7 @@ const NotificationsComponent = () => {
           enableDynamicSizing={false}
           enablePanDownToClose={true}
           style={styles.bottomSheet}
+          onChange={(idx) => idx === -1 && setToggled(true)}
           backdropComponent={({ style }) => (
             <View 
               style={[style, { backgroundColor: 'rgba(0,0,0,0.5)' }]} 
