@@ -27,12 +27,16 @@ const fakeNotifications = [
 
 const NotificationsComponent = () => {
   const bottomSheetRef = useRef<BottomSheetModal>(null)
-    const {isOpened} = useToggleNotifications();
-    // console.log(isOpened);
+    const {isClosed, setToggled} = useToggleNotifications();
+    console.log(isClosed);
     const dateCreated = "2025-08-09T14:22:00Z";
     const clientPhoto ="https://randomuser.me/api/portraits/men/32.jpg";
 
-    if(isOpened) bottomSheetRef.current?.dismiss(); else bottomSheetRef.current?.present();
+    if (isClosed) {
+        bottomSheetRef.current?.dismiss();
+    } else {
+        bottomSheetRef.current?.present();
+    }
 
   return (
     <BottomSheetModalProvider>
@@ -46,7 +50,7 @@ const NotificationsComponent = () => {
           backdropComponent={({ style }) => (
             <View 
               style={[style, { backgroundColor: 'rgba(0,0,0,0.5)' }]} 
-              onTouchEnd={() => bottomSheetRef.current?.dismiss()}
+              onTouchEnd={() => setToggled(true)}
             />
           )}
         >

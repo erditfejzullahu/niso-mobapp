@@ -21,7 +21,7 @@ const TopbarComponent = ({navigation}: {navigation: DrawerNavigationProp<ParamLi
         else navigation.closeDrawer();
     }
 
-    const {setToggled} = useToggleNotifications();
+    const {setToggled, isClosed} = useToggleNotifications();
     
   return (
     <SafeAreaView className='bg-gray-50 px-4 max-h-[83px] relative z-50'>
@@ -32,7 +32,7 @@ const TopbarComponent = ({navigation}: {navigation: DrawerNavigationProp<ParamLi
             </View>
             <View className='flex-row items-center gap-3'>
                 <TouchableOpacity onPress={() => setToggled(false)}>
-                  <Bell color={"#1e1b4b"} size={22}/>
+                  <Bell color={!isClosed ? "#4f46e5" : "#1e1b4b"} size={22}/>
                 </TouchableOpacity>
                 <AnimatedHamburger toggled={open} onToggle={handleToggle} color='#1e1b4b'/>
             </View>
