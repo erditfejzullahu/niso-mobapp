@@ -17,6 +17,8 @@ const Profile = () => {
   const [confirmNewPassword, setConfirmNewPassword] = useState("")
   const [isChangingPassword, setIsChangingPassword] = useState(false)
 
+  const [isContactingSupport, setIsContactingSupport] = useState(false)
+
   const user = {
     name: 'Ardit Krasniqi',
     role: 'Driver',

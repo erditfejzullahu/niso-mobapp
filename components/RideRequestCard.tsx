@@ -1,8 +1,9 @@
 import dayjs from "dayjs";
 import "dayjs/locale/sq";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { AlertTriangle, ArrowRight, Clock, MapPin } from "lucide-react-native";
-import { Image, Text, View } from "react-native";
+import { AlertTriangle, ArrowRight, Clock, MapPin, MapPinCheck, X } from "lucide-react-native";
+import { useState } from "react";
+import { Image, Modal, Text, TouchableOpacity, View } from "react-native";
 
 dayjs.extend(relativeTime);
 dayjs.locale('sq')
@@ -28,8 +29,12 @@ export default function RideRequestCard({
   dateCreated,
   distanceKm,
 }: RideRequestCardProps) {
+
+  const [proceedModal, setProceedModal] = useState(false)
+
   return (
-    <View className="bg-white rounded-2xl p-4 shadow-md shadow-black/5 border-gray-100 mb-4">
+    <>
+    <TouchableOpacity onPress={() => setProceedModal(true)} className="bg-white rounded-2xl p-4 shadow-md shadow-black/5 border-gray-100 mb-4">
       {/* Top: Client info */}
       <View className="flex-row items-center mb-3">
         <Image
@@ -84,6 +89,26 @@ export default function RideRequestCard({
           </Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
+
+    <Modal visible={proceedModal} animationType="slide" transparent>
+      <View className="flex-1 bg-black/40 justify-center items-center">
+        <View className="bg-white rounded-xl p-5 w-11/12">
+          <Text className="text-lg font-psemibold text-indigo-950 mb-3">Njoftim mbi veprimin</Text>
+          <Text className="text-gray-700 text-xs font-pregular mb-3">Duke klikuar <Text className="text-indigo-600 font-psemibold">'Procedo'</Text>, ju pranoni përgjegjësinë për transportimin e personit në destinacion. Nëse dështoni në respektimin e <Text className="text-indigo-600 font-psemibold">Termave të Përdorimit</Text> të <Text className="text-indigo-600 font-psemibold">Niso</Text>, llogaria juaj do të vlerësohet negativisht deri në pezullim të përhershëm.</Text>
+          <View className="flex-row justify-between">
+            <TouchableOpacity onPress={() => setProceedModal(false)} className="px-4 py-1.5 rounded-lg flex-row items-center gap-1 bg-red-600">
+              <Text className="text-white font-pregular">Anulo</Text>
+              <X color={"white"} size={18}/>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setProceedModal(false)} className="bg-indigo-600 px-4 py-2 rounded-lg flex-row items-center gap-1">
+              <Text className="text-white font-pregular">Procedo</Text>
+              <MapPinCheck color={"white"} size={18}/>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+    </>
   );
 }

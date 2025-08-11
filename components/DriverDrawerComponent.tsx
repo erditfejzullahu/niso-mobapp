@@ -102,15 +102,15 @@ export default function DriverDrawerComponent(props: any) {
   ];
 
   return (
-    <SafeAreaView className="flex-1">
-      <View style={{ flex: 1 }} className="bg-indigo-8000">
+    <SafeAreaView className="flex-1 bg-gray-50">
+      <View style={{ flex: 1 }} >
         <DrawerContentScrollView
           {...props}
           contentContainerStyle={styles.scrollContent}
         >
           {/* User profile with gradient */}
           <LinearGradient
-            colors={["#1e1b4b", "#312e81", "#1e1b4b"]} // multiple indigo tones
+            colors={["#4f46e5", "#4f46e5", "#4f46e5"]} // multiple indigo tones
             start={{ x: 0, y: 1.5 }}
             end={{ x: 1, y: 1.5 }}
             style={styles.profileSection}
@@ -148,7 +148,7 @@ export default function DriverDrawerComponent(props: any) {
           <TouchableOpacity
             style={styles.logoutButton}
             onPress={handleLogout}
-            className="!bg-red-700"
+            className="!bg-red-600"
           >
             <Text style={styles.logoutText}>Shkycuni</Text>
             <AntDesign name="logout" size={24} color="white" />
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   activeDrawerItem: {
-    backgroundColor: "#1e1b4b",
+    backgroundColor: "#4f46e5",
   },
   iconContainer: {
     width: 30,
