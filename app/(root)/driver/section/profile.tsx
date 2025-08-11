@@ -1,3 +1,4 @@
+import SupportSection from '@/components/SupportSection';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 import 'dayjs/locale/sq';
@@ -115,7 +116,8 @@ const Profile = () => {
             <View className='mb-4'>
               <Text className='mb-1 text-gray-700 font-pmedium'>Fjalëkalimi i ri</Text>
               <TextInput
-                placeholder="Shembull: Bregu i Diellit"
+                secureTextEntry
+                placeholder="********"
                 className={`bg-white rounded-2xl px-4 py-3 shadow-sm shadow-black/10 border border-gray-200`}
                 value={newPassword}
                 onChangeText={setNewPassword}
@@ -124,7 +126,8 @@ const Profile = () => {
             <View >
               <Text className='mb-1 text-gray-700 font-pmedium'>Konfirmo fjalëkalimin e ri</Text>
               <TextInput
-                placeholder="Shembull: Bregu i Diellit"
+                secureTextEntry
+                placeholder="********"
                 className={`bg-white rounded-2xl px-4 py-3 shadow-sm shadow-black/10 border border-gray-200`}
                 value={confirmNewPassword}
                 onChangeText={setConfirmNewPassword}
@@ -134,12 +137,19 @@ const Profile = () => {
         </Animated.View></View>}
 
         <TouchableOpacity
-          className="flex-row items-center py-3"
-          onPress={() => {}}
+          className={`flex-row items-center py-3 ${isContactingSupport && "bg-indigo-200 px-4 rounded-lg"}`}
+          onPress={() => setIsContactingSupport(!isContactingSupport)}
         >
           <MaterialIcons name="support-agent" size={20} color="#4338ca" />
           <Text className="ml-3 text-indigo-950 font-pmedium">Mbështetja teknike</Text>
         </TouchableOpacity>
+        {isContactingSupport && (
+          <View className='overflow-hidden'>
+            <Animated.View entering={BounceInUp.easing(Easing.inOut(Easing.bounce))} className='p-4'>
+              <SupportSection />
+            </Animated.View>
+          </View>
+        )}
       </View>
 
       {/* Update Profile Modal */}
