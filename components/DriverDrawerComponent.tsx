@@ -103,16 +103,16 @@ export default function DriverDrawerComponent(props: any) {
 
   return (
     <SafeAreaView className="flex-1">
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1 }} className="bg-indigo-8000">
         <DrawerContentScrollView
           {...props}
           contentContainerStyle={styles.scrollContent}
         >
           {/* User profile with gradient */}
           <LinearGradient
-            colors={["#312e81", "#4f46e5", "#312e81"]} // multiple indigo tones
+            colors={["#1e1b4b", "#312e81", "#1e1b4b"]} // multiple indigo tones
             start={{ x: 0, y: 1.5 }}
-            end={{ x: 1, y: 1 }}
+            end={{ x: 1, y: 1.5 }}
             style={styles.profileSection}
           >
             <Image
@@ -120,6 +120,7 @@ export default function DriverDrawerComponent(props: any) {
               style={styles.profileImage}
             />
             <Text style={styles.profileName}>John Doe</Text>
+            <Text className="text-white font-pregular text-sm">Shofer</Text>
           </LinearGradient>
 
           {/* Custom Drawer Items */}
@@ -147,6 +148,7 @@ export default function DriverDrawerComponent(props: any) {
           <TouchableOpacity
             style={styles.logoutButton}
             onPress={handleLogout}
+            className="!bg-red-700"
           >
             <Text style={styles.logoutText}>Shkycuni</Text>
             <AntDesign name="logout" size={24} color="white" />
@@ -186,7 +188,7 @@ const styles = StyleSheet.create({
   profileName: {
     color: "#fff",
     fontSize: 22,
-    fontWeight: "bold",
+    fontFamily: "pbold"
   },
   drawerItemsContainer: {
     marginTop: 10,
@@ -201,7 +203,7 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   activeDrawerItem: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: "#1e1b4b",
   },
   iconContainer: {
     width: 30,
@@ -209,6 +211,7 @@ const styles = StyleSheet.create({
   },
   drawerLabel: {
     fontSize: 16,
+    fontFamily: "psemibold",
     fontWeight: "600",
     marginLeft: 15,
     color: "#94A3B8",
@@ -222,7 +225,6 @@ const styles = StyleSheet.create({
     borderColor: "#eee",
   },
   logoutButton: {
-    backgroundColor: "#dc2626",
     paddingVertical: 12,
     borderRadius: 10,
     flexDirection: "row",
@@ -232,7 +234,7 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: "#fff",
-    fontWeight: "700",
+    fontFamily: "pregular",
     fontSize: 16,
   },
 });

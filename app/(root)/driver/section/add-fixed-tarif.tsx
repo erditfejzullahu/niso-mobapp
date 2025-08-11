@@ -179,6 +179,7 @@ export default function AddFixedTarif() {
       enableOnAndroid={true}
       extraScrollHeight={Platform.OS === 'ios' ? 20 : 30} // how much to push when focused
       keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
     >
         <View className="gap-4 mb-4">
           <HeaderComponent title="Shto tarifa fikse" subtitle={"Këtu mund të shtoni tarifa fikse për zonën të cilën do t'a zgjidhni ju!"}/>

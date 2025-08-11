@@ -1,16 +1,21 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 import 'dayjs/locale/sq';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Image, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Animated, { BounceInUp, Easing } from 'react-native-reanimated';
 
 dayjs.locale('sq');
 
 const Profile = () => {
 
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
+
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmNewPassword, setConfirmNewPassword] = useState("")
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
 
   const user = {
     name: 'Ardit Krasniqi',
@@ -24,7 +29,7 @@ const Profile = () => {
   };
 
   return (
-    <ScrollView className="flex-1 bg-gray-50 p-4">
+    <KeyboardAwareScrollView extraScrollHeight={20} className="flex-1 bg-gray-50 p-4" showsVerticalScrollIndicator={false}>
       {/* Profile Header */}
       <View className="bg-white rounded-2xl p-4 shadow-lg shadow-black/5 items-center">
         <Image
@@ -98,11 +103,40 @@ const Profile = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          className="flex-row items-center py-3"
-          onPress={() => setShowSettingsModal(true)}
+          className={`flex-row items-center py-3 border-b border-gray-100 ${isChangingPassword && "bg-indigo-200 px-4 rounded-lg"}`}
+          onPress={() => setIsChangingPassword(!isChangingPassword)}
         >
-          <Ionicons name="settings" size={20} color="#4338ca" />
-          <Text className="ml-3 text-indigo-950 font-pmedium">Cilësimet</Text>
+          <MaterialIcons name="password" size={20} color="#4338ca" />
+          <Text className="ml-3 text-indigo-950 font-pmedium">Ndrysho fjalëkalimin</Text>
+        </TouchableOpacity>
+        {isChangingPassword && <View className='overflow-hidden'><Animated.View entering={BounceInUp.easing(Easing.inOut(Easing.bounce))} className='p-4'>
+            <View className='mb-4'>
+              <Text className='mb-1 text-gray-700 font-pmedium'>Fjalëkalimi i ri</Text>
+              <TextInput
+                placeholder="Shembull: Bregu i Diellit"
+                className={`bg-white rounded-2xl px-4 py-3 shadow-sm shadow-black/10 border border-gray-200`}
+                value={newPassword}
+                onChangeText={setNewPassword}
+              />
+            </View>
+            <View >
+              <Text className='mb-1 text-gray-700 font-pmedium'>Konfirmo fjalëkalimin e ri</Text>
+              <TextInput
+                placeholder="Shembull: Bregu i Diellit"
+                className={`bg-white rounded-2xl px-4 py-3 shadow-sm shadow-black/10 border border-gray-200`}
+                value={confirmNewPassword}
+                onChangeText={setConfirmNewPassword}
+              />
+            </View>
+            <TouchableOpacity disabled={((newPassword !== confirmNewPassword) || (!newPassword || !confirmNewPassword))} className={`rounded-2xl mt-2 bg-indigo-600 p-3 ${((newPassword !== confirmNewPassword) || (!newPassword || !confirmNewPassword)) && "opacity-50"}`}><Text className='font-pregular text-center text-white'>Ndryshoni fjalëkalimin</Text></TouchableOpacity>
+        </Animated.View></View>}
+
+        <TouchableOpacity
+          className="flex-row items-center py-3"
+          onPress={() => {}}
+        >
+          <MaterialIcons name="support-agent" size={20} color="#4338ca" />
+          <Text className="ml-3 text-indigo-950 font-pmedium">Mbështetja teknike</Text>
         </TouchableOpacity>
       </View>
 
@@ -133,30 +167,8 @@ const Profile = () => {
         </View>
       </Modal>
 
-      {/* Settings Modal */}
-      <Modal visible={showSettingsModal} animationType="slide" transparent>
-        <View className="flex-1 bg-black/40 justify-center items-center">
-          <View className="bg-white rounded-2xl p-5 w-11/12">
-            <Text className="text-lg font-psemibold text-indigo-950 mb-3">Cilësimet</Text>
-            <TouchableOpacity className="py-2 border-b border-gray-200">
-              <Text className="text-gray-700 font-pregular">Ndrysho fjalëkalimin</Text>
-            </TouchableOpacity>
-            <TouchableOpacity className="py-2 border-b border-gray-200">
-              <Text className="text-gray-700 font-pregular">Njoftimet</Text>
-            </TouchableOpacity>
-            <TouchableOpacity className="py-2">
-              <Text className="text-red-500 font-pregular">Dil nga llogaria</Text>
-            </TouchableOpacity>
-
-            <View className="flex-row justify-end mt-3">
-              <TouchableOpacity onPress={() => setShowSettingsModal(false)}>
-                <Text className="text-indigo-600 font-pregular">Mbyll</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </ScrollView>
+      <View className='pb-[80px]'/>
+    </KeyboardAwareScrollView>
   );
 };
 

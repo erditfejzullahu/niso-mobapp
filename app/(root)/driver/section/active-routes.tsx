@@ -107,6 +107,7 @@ const ActiveRoutes = () => {
   return (
     <View className='flex-1 bg-gray-50'>
       <FlatList
+        showsVerticalScrollIndicator={false}
         data={rideRequests}
         className='p-4 mb-20'
         keyExtractor={(item) => item.id}

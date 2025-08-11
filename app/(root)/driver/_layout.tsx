@@ -21,6 +21,7 @@ export default function DrawerLayout() {
             fontSize: 16,
             fontWeight: "600",
             marginLeft: -10,
+            fontFamily: "pblack"
           },
           drawerItemStyle: {
             borderRadius: 12,
