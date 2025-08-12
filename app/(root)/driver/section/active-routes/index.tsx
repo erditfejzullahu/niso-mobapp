@@ -8,7 +8,7 @@ import { FlatList } from 'react-native'
 
 export const rideRequests = [
   {
-    id: "1",
+    id: 1,
     clientName: "Arben Hoxha",
     clientPhoto: "https://randomuser.me/api/portraits/men/32.jpg",
     from: "Rruga Dëshmorët e Kombit, Tiranë",
@@ -19,7 +19,7 @@ export const rideRequests = [
     distanceKm: 3.2,
   },
   {
-    id: "2",
+    id: 2,
     clientName: "Elda Kola",
     clientPhoto: "https://randomuser.me/api/portraits/women/45.jpg",
     from: "Rruga e Elbasanit, Tiranë",
@@ -30,7 +30,7 @@ export const rideRequests = [
     distanceKm: 37.8,
   },
   {
-    id: "3",
+    id: 3,
     clientName: "Gentian Pasha",
     clientPhoto: "https://randomuser.me/api/portraits/men/21.jpg",
     from: "Rruga e Kavajës, Tiranë",
@@ -41,7 +41,7 @@ export const rideRequests = [
     distanceKm: 120,
   },
   {
-    id: "4",
+    id: 4,
     clientName: "Arta Dervishi",
     clientPhoto: "https://randomuser.me/api/portraits/women/12.jpg",
     from: "Airport Nënë Tereza, Rinas",
@@ -110,10 +110,11 @@ const ActiveRoutes = () => {
         showsVerticalScrollIndicator={false}
         data={rideRequests}
         className='p-4 mb-20'
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         // contentContainerStyle={{gap: 16}}
         renderItem={({item}) => (
           <RideRequestCard 
+            id={item.id}
             clientName={item.clientName}
             clientPhoto={item.clientPhoto}
             from={item.from}

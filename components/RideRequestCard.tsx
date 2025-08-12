@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import "dayjs/locale/sq";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { router } from "expo-router";
 import { AlertTriangle, ArrowRight, Clock, MapPin, MapPinCheck, X } from "lucide-react-native";
 import { useState } from "react";
 import { Image, Modal, Text, TouchableOpacity, View } from "react-native";
@@ -17,6 +18,7 @@ type RideRequestCardProps = {
   urgent?: boolean;
   dateCreated: string;
   distanceKm?: number; // new
+  id: number;
 };
 
 export default function RideRequestCard({
@@ -28,6 +30,7 @@ export default function RideRequestCard({
   urgent,
   dateCreated,
   distanceKm,
+  id
 }: RideRequestCardProps) {
 
   const [proceedModal, setProceedModal] = useState(false)
@@ -101,7 +104,7 @@ export default function RideRequestCard({
               <Text className="text-white font-pregular">Anulo</Text>
               <X color={"white"} size={18}/>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setProceedModal(false)} className="bg-indigo-600 px-4 py-2 rounded-lg flex-row items-center gap-1">
+            <TouchableOpacity onPress={() => {router.push(`/(root)/driver/section/active-routes/${id}`); setProceedModal(false)}} className="bg-indigo-600 px-4 py-2 rounded-lg flex-row items-center gap-1">
               <Text className="text-white font-pregular">Procedo</Text>
               <MapPinCheck color={"white"} size={18}/>
             </TouchableOpacity>
