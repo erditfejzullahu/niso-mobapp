@@ -1,0 +1,31 @@
+import { Activity, Car } from "lucide-react-native";
+import React from "react";
+import { Text, View } from "react-native";
+
+type ActiveRidesCountProps = {
+  count: number;
+};
+
+const ActiveRidesCount = ({ count }: ActiveRidesCountProps) => {
+  return (
+    <View className="bg-white rounded-2xl p-5 shadow-md shadow-black/5 border border-gray-100 items-center justify-center">
+      <View className="flex-row items-center mb-2">
+        <Car size={28} color="#4F46E5" />
+        <Text className="ml-2 text-lg font-psemibold text-indigo-950">
+          Transporte Aktive
+        </Text>
+      </View>
+
+      <Text className="text-4xl font-pbold text-indigo-600 mb-1">{count}</Text>
+
+      <View className="flex-row items-center">
+        <Activity size={16} color="#10B981" />
+        <Text className="ml-1 text-sm text-gray-500">
+          Duke u zhvilluar tani
+        </Text>
+      </View>
+    </View>
+  );
+};
+
+export default ActiveRidesCount;

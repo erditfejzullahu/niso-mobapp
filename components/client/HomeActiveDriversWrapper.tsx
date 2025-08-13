@@ -42,6 +42,10 @@ const HomeActiveDriversWrapper = ({activeDrivers}: {activeDrivers: ActiveDriverP
             {activeDrivers.map((item) => (
                 <ActiveDrivers key={item.id} driverActive={item}/>
             ))}
+            <TouchableOpacity onPress={() => router.push('/client/section/drivers')} className='bg-indigo-600 shadow-lg shadow-black/20 flex-row gap-1 rounded-2xl py-3 items-center justify-center'>
+                <Text className='text-white font-pregular'>Më shumë</Text>
+                <ArrowUpRight color={"white"} size={18}/>
+            </TouchableOpacity>
         </Animated.View>}
     </View>
   )
