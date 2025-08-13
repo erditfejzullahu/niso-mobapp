@@ -65,7 +65,7 @@ const ActiveTransports = () => {
     <>
       <TouchableOpacity
         onPress={() => setProceedModal(true)}
-        className="bg-white rounded-2xl p-4 shadow-md shadow-black/5 border-gray-100"
+        className="bg-white rounded-2xl p-4 shadow-md shadow-black/5 border-gray-100 animate-pulse"
       >
         <Text className="font-pregular text-xs text-indigo-600">{activeTransport.inProgress ? "Transporti aktiv..." : "Transporti në pritje..."}</Text>
         {/* Top: Driver & Passenger */}
