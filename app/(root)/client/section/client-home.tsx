@@ -9,6 +9,7 @@ import Animated, { Easing, FadeInLeft } from 'react-native-reanimated'
 import ActiveRidesCount from '@/components/ActiveRidesCount'
 import HomeActiveDriversWrapper from '@/components/client/HomeActiveDriversWrapper'
 import dayjs from "dayjs"
+import { router } from 'expo-router'
 
 
 
@@ -64,7 +65,7 @@ const ClientHome = () => {
           subtitle={"Këtu mund të ndërveproni me veçoritë kyçe të Niso."} imageStyle={"!-bottom-[15px]"}
         />
         <Animated.View entering={FadeInLeft.easing(Easing.bounce).duration(1000)}>
-          <TouchableOpacity className='bg-indigo-600 gap-2 flex-row py-2 items-center justify-center rounded-xl'>
+          <TouchableOpacity onPress={() => router.push('/(root)/client/section/create-transport')} className='bg-indigo-600 gap-2 flex-row py-2 items-center justify-center rounded-xl'>
             <Text className='font-pmedium text-white'>Kërkoni transport</Text>
             <Plus color={"white"}/>
           </TouchableOpacity>

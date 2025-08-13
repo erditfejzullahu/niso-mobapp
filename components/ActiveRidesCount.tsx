@@ -1,6 +1,7 @@
 import { Activity, Car } from "lucide-react-native";
 import React from "react";
 import { Text, View } from "react-native";
+import Animated, { Easing, FadeIn } from "react-native-reanimated";
 
 type ActiveRidesCountProps = {
   count: number;
@@ -8,7 +9,7 @@ type ActiveRidesCountProps = {
 
 const ActiveRidesCount = ({ count }: ActiveRidesCountProps) => {
   return (
-    <View className="bg-white rounded-2xl p-5 shadow-md shadow-black/5 border border-gray-100 items-center justify-center">
+    <Animated.View entering={FadeIn.easing(Easing.linear)} className="bg-white rounded-2xl p-5 shadow-md shadow-black/5 border border-gray-100 items-center justify-center">
       <View className="flex-row items-center mb-2">
         <Car size={28} color="#4F46E5" />
         <Text className="ml-2 text-lg font-psemibold text-indigo-950">
@@ -24,7 +25,7 @@ const ActiveRidesCount = ({ count }: ActiveRidesCountProps) => {
           Duke u zhvilluar tani
         </Text>
       </View>
-    </View>
+    </Animated.View>
   );
 };
 

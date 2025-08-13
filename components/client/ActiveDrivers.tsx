@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import "dayjs/locale/sq";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { Car, CheckCircle2, Clock, Star, X } from "lucide-react-native";
+import { Car, CheckCircle2, Clock, Send, Star, X } from "lucide-react-native";
 import React, { useState } from "react";
 import { Image, Modal, Text, TouchableOpacity, View } from "react-native";
 import Animated, { Easing, FadeInLeft } from "react-native-reanimated";
@@ -87,7 +87,7 @@ const ActiveDrivers = ({driverActive}: {driverActive: ActiveDriverProps}) => {
       {/* Modal with full details */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View className="flex-1 bg-black/40 justify-center items-center">
-          <View className="bg-white rounded-xl p-5 w-11/12">
+          <View className="bg-white rounded-2xl p-5 w-11/12">
             <Text className="text-lg font-psemibold text-indigo-950 mb-3">
               Detajet e shoferit
             </Text>
@@ -117,9 +117,14 @@ const ActiveDrivers = ({driverActive}: {driverActive: ActiveDriverProps}) => {
               </Text>
             </Text>
 
+            <TouchableOpacity onPress={() => setModalVisible(false)} className="bg-indigo-600 mb-3 rounded-xl px-4 py-2 flex-row items-center gap-1 justify-center">
+                <Text className="text-white font-pregular">Kontakto shoferin</Text>
+                <Send color={"white"} size={18}/>
+            </TouchableOpacity>
+
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
-              className="bg-red-600 px-4 py-2 rounded-lg flex-row items-center gap-1 justify-center"
+              className="bg-red-600 px-4 py-2 rounded-xl flex-row items-center gap-1 justify-center"
             >
               <Text className="text-white font-pregular">Mbyll</Text>
               <X color={"white"} size={18} />
