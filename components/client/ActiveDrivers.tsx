@@ -97,22 +97,22 @@ const ActiveDrivers = ({driverActive}: {driverActive: ActiveDriverProps}) => {
                 source={{ uri: driverActive.photo }}
                 className="w-20 h-20 rounded-full mb-2"
               />
-              <Text className="text-xl font-semibold">{driverActive.name}</Text>
+              <Text className="text-xl font-psemibold">{driverActive.name}</Text>
               <View className="flex-row items-center mt-1">
                 <Star size={16} color="#FACC15" />
-                <Text className="ml-1 text-gray-500">{driverActive.rating}</Text>
+                <Text className="ml-1 text-indigo-600 font-psemibold">{driverActive.rating}</Text>
               </View>
             </View>
 
-            <Text className="text-gray-700 mb-1">
-              🚗 Makina: {driverActive.car.brand} {driverActive.car.model} ({driverActive.car.plate})
+            <Text className="text-gray-700 mb-1 font-pregular">
+              🚗 Makina: <Text className="text-red-600 font-psemibold">{driverActive.car.brand} {driverActive.car.model} ({driverActive.car.plate})</Text>
             </Text>
-            <Text className="text-gray-700 mb-1">
-              📅 Regjistruar: {dayjs(driverActive.registeredAt).format("DD MMMM YYYY")}
+            <Text className="text-gray-700 mb-1 font-pregular">
+              📅 Që nga: <Text className="text-indigo-600 font-psemibold">{dayjs(driverActive.registeredAt).format("DD MMMM YYYY")}</Text>
             </Text>
-            <Text className="text-gray-700 mb-4">
+            <Text className="text-gray-700 mb-4 font-pregular">
               Statusi:{" "}
-              <Text className={driverActive.onDuty ? "text-green-600" : "text-gray-600"}>
+              <Text className={driverActive.onDuty ? "text-green-600 font-psemibold" : "text-gray-600 font-psemibold"}>
                 {driverActive.onDuty ? "Në detyrë" : "Jo aktiv"}
               </Text>
             </Text>

@@ -1,23 +1,15 @@
-import ActiveDrivers from '@/components/client/ActiveDrivers'
 import ActiveTransports from '@/components/client/ActiveTransports'
 import HeaderComponent from '@/components/HeaderComponent'
-import { ArrowUpRight, Plus } from 'lucide-react-native'
+import { Plus } from 'lucide-react-native'
 import React from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view'
-import Animated, { Easing, FadeInLeft, FadeInRight } from 'react-native-reanimated'
+import Animated, { Easing, FadeInLeft } from 'react-native-reanimated'
 
+import HomeActiveDriversWrapper from '@/components/client/HomeActiveDriversWrapper'
 import dayjs from "dayjs"
 
-type ActiveDriverProps = {
-  id: number;
-  name: string;
-  photo: string;
-  rating: number;
-  car: { brand: string; model: string; plate: string };
-  registeredAt: string;
-  onDuty: boolean;
-};
+
 
 export const dummyActiveDrivers = [
   {
@@ -86,19 +78,7 @@ const ClientHome = () => {
           </Animated.View>
           <ActiveTransports />
 
-          <Animated.View entering={FadeInRight.easing(Easing.bounce).duration(1000)} className='bg-white rounded-2xl shadow-lg shadow-black/10 p-4 gap-3 relative'>
-            <View className='bg-indigo-600 absolute top-4 -left-6 -rotate-[35deg] z-50 py-1.5 px-2 rounded-2xl gap-1'>
-              <Text className='text-white font-pregular text-sm'>Shoferët aktiv</Text>
-            </View>
-            <View className='flex-row gap-0 items-center justify-end'>
-              <Text className='text-indigo-600 font-pregular text-sm'>Shiko të gjithë shoferët</Text>
-              <ArrowUpRight color={"#4f46e5"}/>
-            </View>
-            {dummyActiveDrivers.map((item) => (
-              <ActiveDrivers key={item.id} driverActive={item}/>
-            ))}
-          </Animated.View>
-
+          <HomeActiveDriversWrapper activeDrivers={dummyActiveDrivers}/>
         </View>
       )}
     />
