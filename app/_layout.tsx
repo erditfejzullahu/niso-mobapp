@@ -4,6 +4,7 @@ import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import Toast from 'react-native-toast-message';
 import "../assets/global.css";
 
 SplashScreen.preventAutoHideAsync();
@@ -37,6 +38,7 @@ export default function RootLayout() {
     </GestureHandlerRootView>
 
       <StatusBar style="dark"/>
+      <Toast />
     </>
 );
 }
