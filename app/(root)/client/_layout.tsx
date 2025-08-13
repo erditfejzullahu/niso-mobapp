@@ -1,10 +1,46 @@
-import { Stack } from 'expo-router'
-import React from 'react'
+// app/(drawer)/_layout.jsx
+import ClientDrawerComponent from "@/components/client/ClientDrawerComponent";
+import NotificationsComponent from "@/components/NotificationsComponent";
+import TopbarComponent from "@/components/TopbarComponent";
+import { Drawer } from "expo-router/drawer";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-const _layout = () => {
+export default function DrawerLayout() {
   return (
-    <Stack screenOptions={{headerShown: false}}/>
-  )
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Drawer
+        drawerContent={(props) => <ClientDrawerComponent {...props} />}
+        screenOptions={{
+          // headerShown: false,
+          header: ({navigation}) => <TopbarComponent navigation={navigation}/>,
+          drawerPosition: "right",
+          drawerActiveBackgroundColor: "#4F46E5", // Indigo
+          drawerActiveTintColor: "#fff",
+          drawerInactiveTintColor: "#94A3B8", // Slate gray
+          drawerLabelStyle: {
+            fontSize: 16,
+            fontWeight: "600",
+            marginLeft: -10,
+            fontFamily: "pblack"
+          },
+          drawerItemStyle: {
+            borderRadius: 12,
+            marginVertical: 6,
+            paddingVertical: 4,
+          },
+        }}
+        
+      >
+        <Drawer.Screen
+          name="section"
+          options={{
+            drawerItemStyle: { display: "none" },
+          }}
+        />
+      </Drawer>
+      <NotificationsComponent />
+    </GestureHandlerRootView>
+  );
 }
 
-export default _layout
+

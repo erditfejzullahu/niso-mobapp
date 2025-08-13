@@ -1,0 +1,240 @@
+import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import { DrawerContentScrollView } from "@react-navigation/drawer";
+import { LinearGradient } from "expo-linear-gradient";
+import { router, usePathname } from "expo-router";
+import React from "react";
+import {
+    Alert,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+interface DrawerItemProps {
+  label: string;
+  icon: React.ReactNode;
+  isActive: boolean;
+  onPress: () => void;
+}
+
+const CustomDrawerItem = ({ label, icon, isActive, onPress }: DrawerItemProps) => (
+  <TouchableOpacity
+    style={[
+      styles.drawerItem,
+      isActive && styles.activeDrawerItem
+    ]}
+    onPress={onPress}
+  >
+    <View style={styles.iconContainer}>
+      {icon}
+    </View>
+    <Text style={[
+      styles.drawerLabel,
+      isActive && styles.activeDrawerLabel
+    ]}>
+      {label}
+    </Text>
+  </TouchableOpacity>
+);
+
+export default function ClientDrawerComponent(props: any) {
+  const pathname = usePathname();
+  
+  
+  const handleLogout = () => {
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: () => console.log("User logged out"),
+      },
+    ]);
+  };
+
+  const drawerItems = [
+    {
+      route: "client-home",
+      label: "Ballina",
+      icon: (color: string, size: number) => (
+        <MaterialIcons name="dashboard" size={size} color={color} />
+      ),
+    },
+    {
+      route: "drivers",
+      label: "Shoferët e Niso.",
+      icon: (color: string, size: number) => (
+        <FontAwesome name="drivers-license" size={size} color={color} />
+      ),
+    },
+    {
+      route: "create-rotation",
+      label: "Shto rotacion t'përditshëm",
+      icon: (color: string, size: number) => (
+        <Ionicons name="pricetag" size={size} color={color} />
+      ),
+    },
+    {
+      route: "default-rotations",
+      label: "Të gjithë rotacionet",
+      icon: (color: string, size: number) => (
+        <Ionicons name="pricetags" size={size} color={color} />
+      )
+    },
+    {
+      route: "expenses",
+      label: "Shpenzimet tuaja",
+      icon: (color: string, size: number) => (
+        <Ionicons name="stats-chart" size={size} color={color} />
+      ),
+    },
+    {
+      route: "client-profile",
+      label: "Profili juaj",
+      icon: (color: string, size: number) => (
+        <Ionicons name="person-circle" size={size} color={color} />
+      ),
+    },
+  ];
+
+  return (
+    <SafeAreaView className="flex-1 bg-gray-50">
+      <View style={{ flex: 1 }} >
+        <DrawerContentScrollView
+          {...props}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* User profile with gradient */}
+          <LinearGradient
+            colors={["#4f46e5", "#4f46e5", "#4f46e5"]} // multiple indigo tones
+            start={{ x: 0, y: 1.5 }}
+            end={{ x: 1, y: 1.5 }}
+            style={styles.profileSection}
+          >
+            <Image
+              source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg" }}
+              style={styles.profileImage}
+            />
+            <Text style={styles.profileName}>John Doe</Text>
+            <Text className="text-white font-pregular text-sm">Shofer</Text>
+          </LinearGradient>
+
+          {/* Custom Drawer Items */}
+          <View style={styles.drawerItemsContainer}>
+            {drawerItems.map((item) => {
+              const isActive = pathname.includes(item.route);
+              return (
+                <CustomDrawerItem
+                  key={item.route}
+                  label={item.label}
+                  icon={item.icon(
+                    isActive ? "#fff" : "#94A3B8",
+                    24
+                  )}
+                  isActive={isActive}
+                  onPress={() => router.push('/(root)/client/section/' + item.route as unknown as any)}
+                />
+              );
+            })}
+          </View>
+        </DrawerContentScrollView>
+
+        {/* Logout button */}
+        <View style={styles.logoutSection}>
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={handleLogout}
+            className="!bg-red-600"
+          >
+            <Text style={styles.logoutText}>Shkycuni</Text>
+            <AntDesign name="logout" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  scrollContent: {
+    paddingTop: 0,
+    paddingHorizontal: 10,
+  },
+  profileSection: {
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    alignItems: "center",
+    marginBottom: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 8,
+  },
+  profileImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    borderWidth: 3,
+    borderColor: "#fff",
+    marginBottom: 12,
+  },
+  profileName: {
+    color: "#fff",
+    fontSize: 22,
+    fontFamily: "pbold"
+  },
+  drawerItemsContainer: {
+    marginTop: 10,
+    paddingHorizontal: 5,
+  },
+  drawerItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 12,
+    marginVertical: 4,
+  },
+  activeDrawerItem: {
+    backgroundColor: "#4f46e5",
+  },
+  iconContainer: {
+    width: 30,
+    alignItems: "center",
+  },
+  drawerLabel: {
+    fontSize: 16,
+    fontFamily: "psemibold",
+    fontWeight: "600",
+    marginLeft: 15,
+    color: "#94A3B8",
+  },
+  activeDrawerLabel: {
+    color: "#fff",
+  },
+  logoutSection: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderColor: "#eee",
+  },
+  logoutButton: {
+    paddingVertical: 12,
+    borderRadius: 10,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 10,
+  },
+  logoutText: {
+    color: "#fff",
+    fontFamily: "pregular",
+    fontSize: 16,
+  },
+});
