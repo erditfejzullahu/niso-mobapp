@@ -9,10 +9,8 @@ import { Text, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view'
 
 
-
-
 const Drivers = () => {
-  const [driversFilter, setDriversFilter] = useState<'all' | 'favorite'>()
+  const [driversFilter, setDriversFilter] = useState<'all' | 'favorite'>('all')
   const [sorter, setSorter] = useState<DriverFilters>({sortBy: "rating", sortOrder: "desc"})
   const dummyActiveDrivers = [
   {
