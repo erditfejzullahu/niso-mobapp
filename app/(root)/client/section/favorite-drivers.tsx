@@ -1,7 +1,7 @@
 import ActiveDrivers from '@/components/client/ActiveDrivers'
 import HeaderComponent from '@/components/HeaderComponent'
 import dayjs from "dayjs"
-import { CirclePlus, UserStar } from 'lucide-react-native'
+import { ArrowDownLeft, CirclePlus, UserStar } from 'lucide-react-native'
 import React, { useState } from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
@@ -50,6 +50,10 @@ const FavoriteDrivers = () => {
     ];
 
     const [favoriteDrivers, setFavoriteDrivers] = useState<'favorites' | 'add'>('favorites')
+
+    const handleAddDriver = (text?: string | null) => {
+        //logic
+    }
     
   return (
     <KeyboardAwareScrollView className='p-4 bg-gray-50'>
@@ -71,8 +75,16 @@ const FavoriteDrivers = () => {
                 ))}
             </View>
         ) : (
-            <View>
-
+            <View className='mt-3'>
+                <View className='flex-row items-center gap-1 justify-end'>
+                    <ArrowDownLeft size={16} color={"#4f46e5"}/>
+                    <Text className='font-pregular text-sm'>Shoferët që keni udhëtuar me ta</Text>
+                </View>
+                <View className='gap-3 mt-2'>
+                    {dummyActiveDrivers.map((item) => (
+                        <ActiveDrivers driverActive={item} key={item.id} favoriteAddPage addDriver={handleAddDriver}/>
+                    ))}
+                </View>
             </View>
         )}
     </KeyboardAwareScrollView>

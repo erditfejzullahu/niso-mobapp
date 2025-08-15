@@ -88,7 +88,7 @@ const ClientProfile = () => {
 
         <TouchableOpacity
           className="flex-row items-center py-3 border-b border-gray-100"
-          // onPress={() => router.push('/client/section/favorite-drivers')}
+          onPress={() => router.push('/client/section/favorite-drivers')}
         >
           <Ionicons name="people" size={20} color="#4338ca" />
           <Text className="ml-3 text-indigo-950 font-pmedium">Shoferët e preferuar</Text>
