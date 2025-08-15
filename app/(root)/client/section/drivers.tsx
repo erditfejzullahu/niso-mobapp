@@ -3,14 +3,16 @@ import DriverSortFilterComponent, { DriverFilters } from '@/components/client/Dr
 import HeaderComponent from '@/components/HeaderComponent'
 import SearchBar from '@/components/SearchBar'
 import dayjs from "dayjs"
+import { Tally3, UserStar } from 'lucide-react-native'
 import React, { useCallback, useState } from 'react'
-import { Text, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view'
 
 
 
 
 const Drivers = () => {
+  const [driversFilter, setDriversFilter] = useState<'all' | 'favorite'>()
   const [sorter, setSorter] = useState<DriverFilters>({sortBy: "rating", sortOrder: "desc"})
   const dummyActiveDrivers = [
   {
@@ -80,6 +82,16 @@ const Drivers = () => {
           />
           <DriverSortFilterComponent filters={sorter} setFilters={handleFiltersChange}/>
           <SearchBar placeholder='Kërkoni shoferë' onSearch={searchDrivers}/>
+          <View className='flex-row flex-1 rounded-xl bg-white shadow-md shadow-black/5'>
+            <TouchableOpacity className='flex-1 border-r border-gray-300 flex-row items-center justify-center my-2 gap-1' onPress={() => setDriversFilter("all")}>
+              <Text className={`font-plight text-sm ${driversFilter === "all" && 'text-indigo-600 !font-pmedium'}`}>Te gjithë</Text>
+              <Tally3 color={driversFilter === "all" ? "#4f46e5" : "#1e1b4b"} size={16}/>
+            </TouchableOpacity>
+            <TouchableOpacity className='flex-1 flex-row items-center justify-center gap-1 my-2' onPress={() => setDriversFilter("favorite")}>
+              <Text className={`font-plight text-sm ${driversFilter === "favorite" && 'text-indigo-600 !font-pmedium'}`}>Të preferuar</Text>
+              <UserStar color={driversFilter === 'favorite' ? "#4f46e5" : "#1e1b4b"} size={16}/>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     />
