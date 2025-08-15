@@ -52,7 +52,7 @@ const Drivers = () => {
     registeredAt: dayjs().subtract(2, "year").toISOString(),
     onDuty: false,
   },
-];
+  ];
   const handleFiltersChange = useCallback((newFilters: Partial<DriverFilters>) => {
     setSorter((prev) => ({
       ...prev,
