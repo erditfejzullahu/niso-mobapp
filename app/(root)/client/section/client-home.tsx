@@ -58,7 +58,7 @@ export const dummyActiveDrivers = [
 
 const ClientHome = () => {
   return (
-    <KeyboardAwareScrollView contentContainerStyle={{ padding: 16, paddingBottom: 80 }}>
+    <KeyboardAwareScrollView className='bg-gray-50' contentContainerStyle={{ padding: 16, paddingBottom: 80 }}>
       <View className='gap-3'>
         <HeaderComponent 
           title={<>Mirësevini, <Text className='text-indigo-600'>Erdit Fejzullahu</Text></>} textStyle={"!font-pmedium !text-2xl"}

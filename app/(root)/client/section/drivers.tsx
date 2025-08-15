@@ -1,26 +1,76 @@
+import ActiveDrivers from '@/components/client/ActiveDrivers'
 import DriverSortFilterComponent, { DriverFilters } from '@/components/client/DriverSortFilterComponent'
 import HeaderComponent from '@/components/HeaderComponent'
+import SearchBar from '@/components/SearchBar'
+import dayjs from "dayjs"
 import React, { useCallback, useState } from 'react'
 import { Text, View } from 'react-native'
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view'
 
+
+
+
 const Drivers = () => {
   const [sorter, setSorter] = useState<DriverFilters>({sortBy: "rating", sortOrder: "desc"})
-
+  const dummyActiveDrivers = [
+  {
+    id: 1,
+    name: "Ardit Leka",
+    photo: "https://randomuser.me/api/portraits/men/45.jpg",
+    rating: 4.7,
+    car: {
+      brand: "Mercedes",
+      model: "E-Class",
+      plate: "TR-456-AB",
+    },
+    registeredAt: dayjs().subtract(8, "month").toISOString(),
+    onDuty: true,
+  },
+  {
+    id: 2,
+    name: "Eriona Krasniqi",
+    photo: "https://randomuser.me/api/portraits/women/44.jpg",
+    rating: 4.9,
+    car: {
+      brand: "BMW",
+      model: "X5",
+      plate: "AA-789-CC",
+    },
+    registeredAt: dayjs().subtract(1, "year").toISOString(),
+    onDuty: true,
+  },
+  {
+    id: 3,
+    name: "Blerim Dervishi",
+    photo: "https://randomuser.me/api/portraits/men/53.jpg",
+    rating: 4.3,
+    car: {
+      brand: "Audi",
+      model: "A4",
+      plate: "DR-654-DF",
+    },
+    registeredAt: dayjs().subtract(2, "year").toISOString(),
+    onDuty: false,
+  },
+];
   const handleFiltersChange = useCallback((newFilters: Partial<DriverFilters>) => {
     setSorter((prev) => ({
       ...prev,
       ...newFilters
     }))
   }, [])
+
+  const searchDrivers = useCallback((data: string) => {
+
+  }, [])
+
   return (
     <KeyboardAwareFlatList 
-      contentContainerStyle={{ padding: 16, paddingBottom: 80 }}
-      data={[]}
+      className='bg-gray-50'
+      contentContainerStyle={{ padding: 16, paddingBottom: 80, gap:16 }}
+      data={dummyActiveDrivers}
       renderItem={({item}) => (
-        <View>
-          <Text>asd</Text>
-        </View>
+        <ActiveDrivers driverActive={item}/>
       )}
       ListHeaderComponent={() => (
         <View className='gap-3'>
@@ -29,6 +79,7 @@ const Drivers = () => {
             title={<><Text>Shoferët e </Text><Text className='text-indigo-600'>Niso.</Text></>}
           />
           <DriverSortFilterComponent filters={sorter} setFilters={handleFiltersChange}/>
+          <SearchBar placeholder='Kërkoni shoferë' onSearch={searchDrivers}/>
         </View>
       )}
     />
