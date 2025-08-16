@@ -74,7 +74,7 @@ export default function ClientDrawerComponent(props: any) {
     },
     {
       route: "create-rotation",
-      label: "Shto rotacion t'përditshëm",
+      label: "Shtoni rotacion",
       icon: (color: string, size: number) => (
         <Ionicons name="pricetag" size={size} color={color} />
       ),
