@@ -47,7 +47,7 @@ export default function Layout() {
             case "client-home":
                 icon = <Ionicons name="home" color={color} size={size}/>
                 break;
-            case "drivers":
+            case "niso-drivers":
                 icon = <FontAwesome name="drivers-license" size={size} color={color} />
                 break;
             case "expenses":
@@ -73,7 +73,7 @@ export default function Layout() {
       <Tabs.Screen name="client-home" options={{tabBarLabel: "Ballina"}}/>
 
       {/* Search */}
-      <Tabs.Screen name="drivers" options={{tabBarLabel: "Shoferët"}}/>
+      <Tabs.Screen name="niso-drivers" options={{tabBarLabel: "Shoferët"}}/>
 
       {/* Floating Add Button */}
       <Tabs.Screen

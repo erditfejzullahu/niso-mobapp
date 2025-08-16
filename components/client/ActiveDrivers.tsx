@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import "dayjs/locale/sq";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { Car, CheckCircle2, Clock, Send, Star, X } from "lucide-react-native";
+import { Car, CheckCircle2, Clock, InfoIcon, Send, Star, X } from "lucide-react-native";
 import React, { useState } from "react";
 import { Image, Modal, Text, TouchableOpacity, View } from "react-native";
 import Animated, { Easing, FadeInLeft } from "react-native-reanimated";
@@ -18,6 +18,7 @@ type ActiveDriverProps = {
   car: { brand: string; model: string; plate: string };
   registeredAt: string;
   onDuty: boolean;
+  preferedDriverInfo?: string | null
 };
 //favorite page is for favorite drivers page, favoriteaddpage is for the add section of favorite drivers page.
 const ActiveDrivers = ({addDriver, driverActive, favoritePage = false, favoriteAddPage = false}: {driverActive: ActiveDriverProps, favoritePage?: boolean, favoriteAddPage?: boolean;   addDriver?: (e?: string | null) => void;}) => {
@@ -29,6 +30,7 @@ const ActiveDrivers = ({addDriver, driverActive, favoritePage = false, favoriteA
   const handleAddDriver = () => {
     if(addDriver){
       addDriver(favoriteAdditionalInfo)
+      setFavoriteAddModal(false)
     }
   }
 
@@ -84,6 +86,13 @@ const ActiveDrivers = ({addDriver, driverActive, favoritePage = false, favoriteA
             {driverActive.car.brand} {driverActive.car.model} ({driverActive.car.plate})
           </Text>
         </View>
+
+        {driverActive.preferedDriverInfo && <View className="flex-row items-center mb-2 bg-indigo-100 self-start shadow-lg shadow-black/10 rounded-xl p-2">
+          <InfoIcon size={16} color="#3B82F6"/>
+          <Text className="ml-2 text-gray-800 text-sm flex-shrink-0">
+            {driverActive.preferedDriverInfo}
+          </Text>
+        </View>}
 
         {/* Bottom: Registered At */}
         <View className="mt-1 flex-row items-center gap-2 rounded-xl shadow-md bg-white shadow-black/10 self-start p-2">

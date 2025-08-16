@@ -5,6 +5,7 @@ import { ArrowDownLeft, CirclePlus, UserStar } from 'lucide-react-native'
 import React, { useState } from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+import Toast from 'react-native-toast-message'
 
 const FavoriteDrivers = () => {
     const dummyActiveDrivers = [
@@ -20,6 +21,7 @@ const FavoriteDrivers = () => {
         },
         registeredAt: dayjs().subtract(8, "month").toISOString(),
         onDuty: true,
+        preferedDriverInfo: "Djali me X5"
       },
       {
         id: 2,
@@ -33,6 +35,7 @@ const FavoriteDrivers = () => {
         },
         registeredAt: dayjs().subtract(1, "year").toISOString(),
         onDuty: true,
+        preferedDriverInfo: "Djali me Audi"
       },
       {
         id: 3,
@@ -46,6 +49,7 @@ const FavoriteDrivers = () => {
         },
         registeredAt: dayjs().subtract(2, "year").toISOString(),
         onDuty: false,
+        preferedDriverInfo: "Djali me X6"
       },
     ];
 
@@ -53,6 +57,13 @@ const FavoriteDrivers = () => {
 
     const handleAddDriver = (text?: string | null) => {
         //logic
+        // console.log(!!text);
+        Toast.show({
+            type: "success",
+            text1: "Shoferi i preferuar u shtua me sukses",
+            text2: "Ndërveproni me të duke u drejtuar tek seksioni 'Të preferuar'"
+        })
+        
     }
     
   return (

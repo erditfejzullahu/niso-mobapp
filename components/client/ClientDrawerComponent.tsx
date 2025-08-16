@@ -3,14 +3,15 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { DrawerContentScrollView } from "@react-navigation/drawer";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, usePathname } from "expo-router";
+import { UserStar } from "lucide-react-native";
 import React from "react";
 import {
-    Alert,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -65,7 +66,7 @@ export default function ClientDrawerComponent(props: any) {
       ),
     },
     {
-      route: "drivers",
+      route: "niso-drivers",
       label: "Shoferët e Niso.",
       icon: (color: string, size: number) => (
         <FontAwesome name="drivers-license" size={size} color={color} />
@@ -83,6 +84,13 @@ export default function ClientDrawerComponent(props: any) {
       label: "Të gjithë rotacionet",
       icon: (color: string, size: number) => (
         <Ionicons name="pricetags" size={size} color={color} />
+      )
+    },
+    {
+      route: "favorite-drivers",
+      label: "Shoferët e preferuar",
+      icon: (color: string, size: number) => (
+        <UserStar color={color} size={size}/>
       )
     },
     {
