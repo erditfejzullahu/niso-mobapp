@@ -1,12 +1,15 @@
 import HeaderComponent from "@/components/HeaderComponent";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { CalendarDays, Clock, LocationEdit, MapPin, Save } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 
-const CreateRotationForm = ({ onSave }: { onSave: (rotation: any) => void }) => {
+const CreateRotationForm = () => {
+  const {rotation} = useLocalSearchParams();
+  
   const daysOfWeek = [
     { label: "E Hënë", value: "monday" },
     { label: "E Martë", value: "tuesday" },
@@ -22,6 +25,43 @@ const CreateRotationForm = ({ onSave }: { onSave: (rotation: any) => void }) => 
   const [time, setTime] = useState<Date | null>(null);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
+  useEffect(() => {
+    if(rotation){
+      try {
+        const parsedRotation = JSON.parse(rotation as string)
+        if(parsedRotation.time){
+          const [hours, minutes] = parsedRotation.time.split(':').map(Number);
+          const newDate = new Date();
+          newDate.setHours(hours)
+          newDate.setMinutes(minutes)
+          newDate.setSeconds(0)
+          newDate.setMilliseconds(0)
+          setTime(newDate)
+        }else{
+          setTime(null)
+        }
+        setFromAddress(parsedRotation.fromAddress)
+        setToAddress(parsedRotation.toAddress)
+        setSelectedDays(parsedRotation.days || [])
+      } catch (error) {
+        console.error("error parsing, ", error);
+      }
+    }
+    
+  }, [rotation])
+  
+  //when user gets out of the screen
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setFromAddress("")
+        setToAddress("")
+        setSelectedDays([])
+        setTime(null)
+      }
+    }, [])
+  )
+
   const toggleDay = (day: string) => {
     setSelectedDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
@@ -30,16 +70,23 @@ const CreateRotationForm = ({ onSave }: { onSave: (rotation: any) => void }) => 
 
   const handleSave = () => {
     const newRotation = { fromAddress, toAddress, days: selectedDays, time };
-    onSave(newRotation);
     setFromAddress("");
     setToAddress("");
     setSelectedDays([]);
     setTime(null);
   };
 
+  const handleSaveRotation = () => {
+    
+  }
+
   return (
     <KeyboardAwareScrollView className="p-4 bg-gray-50">
-      <HeaderComponent title={"Krijo rotacion"} subtitle={"Këtu mund të shtoni rotacione që mund t'i përdorni për të lidhur 'Kontratë' me shoferët e Niso. P.sh. nga puna në banesë."}/>
+      <HeaderComponent title={rotation ? "Rifresko rotacion" : "Krijo rotacion"} subtitle={
+        rotation
+        ? "Rifreskoni rotacionin duke ndryshuar fushat e mëposhtme sipas nevojave tua personale. Në fund klikoni 'Rifresko Rotacionin'."
+        : "Këtu mund të shtoni rotacione që mund t'i përdorni për të lidhur 'Kontratë' me shoferët e Niso. P.sh. nga puna në banesë."
+        }/>
 
       <View className="bg-white rounded-xl p-3 mt-3 shadow-lg shadow-black/5">
         {/* From Address */}
@@ -77,15 +124,15 @@ const CreateRotationForm = ({ onSave }: { onSave: (rotation: any) => void }) => 
             <TouchableOpacity
               key={day.value}
               className={`px-3 py-2 rounded-xl border ${
-                selectedDays.includes(day.value)
+                selectedDays.includes(day.label)
                   ? "bg-indigo-600 border-indigo-600"
-                  : "bg-gray-100 border-gray-300"
+                  : "bg-indigo-100 border-indigo-300"
               }`}
-              onPress={() => toggleDay(day.value)}
+              onPress={() => toggleDay(day.label)}
             >
               <Text
                 className={`${
-                  selectedDays.includes(day.value) ? "text-white" : "text-gray-700"
+                  selectedDays.includes(day.label) ? "text-white" : "text-gray-700"
                 }`}
               >
                 {day.label}
@@ -159,7 +206,7 @@ const CreateRotationForm = ({ onSave }: { onSave: (rotation: any) => void }) => 
           onPress={handleSave}
         >
           <Save size={20} color="white" />
-          <Text className="text-white font-semibold ml-2">Ruaj Rotacionin</Text>
+          <Text className="text-white font-semibold ml-2">{rotation ? "Rifresko Rotacionin" : "Ruaj Rotacionin"}</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAwareScrollView>

@@ -3,7 +3,7 @@ import { kosovoCities } from "@/data/kosovoCities";
 import { Picker } from '@react-native-picker/picker';
 import axios from "axios";
 import * as Location from "expo-location";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { debounce } from "lodash";
 import { Euro, Link2, MapPin, X } from "lucide-react-native";
 import React, { useCallback, useEffect, useState } from "react";
@@ -49,6 +49,22 @@ export default function AddFixedTarif() {
       }
     }
   }, [tarif])
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setAreaName("")
+        setPrice("")
+        setDescription("")
+        setCity("")
+        setLocation(null)
+        setErrorMsg("")
+        setAreaData(null)
+        setShowAreaScroller(false)
+        setZoneClicked(false)
+      }
+    }, [])
+  )
   
 
   const handleMapPress = (event: MapPressEvent) => {

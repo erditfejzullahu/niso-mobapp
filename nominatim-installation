@@ -1,0 +1,89 @@
+Here's a **compact, all-in-one Docker setup** for running Nominatim with Kosovo-only data, using PostgreSQL in Docker with persistent storage:
+
+### `docker-compose.yml` (Complete Solution)
+```yaml
+version: "3.8"
+
+services:
+  postgres:
+    image: postgis/postgis:13-3.3
+    environment:
+      POSTGRES_USER: nominatim
+      POSTGRES_PASSWORD: kosovo123  # Change this!
+      POSTGRES_DB: nominatim
+    volumes:
+      - pg_data:/var/lib/postgresql/data  # Database persists here
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nominatim -d nominatim"]
+    restart: unless-stopped
+
+  nominatim:
+    image: mediagis/nominatim:4.2
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"  # Access at http://localhost:8080
+    volumes:
+      - ./kosovo.osm.pbf:/app/input.osm.pbf  # Your Kosovo data
+    environment:
+      PBF_PATH: /app/input.osm.pbf
+      NOMINATIM_DATABASE_DSN: "pgsql:dbname=nominatim;host=postgres;user=nominatim;password=kosovo123"
+      IMPORT_WIKIPEDIA: "false"  # Disable Wikipedia import (saves space)
+      OSM2PGSQL_CACHE: 512  # RAM for imports (MB)
+    deploy:
+      resources:
+        limits:
+          memory: 2G  # Max container RAM
+    restart: unless-stopped
+
+volumes:
+  pg_data:  # Named volume for PostgreSQL
+```
+
+### **How to Use This**
+1. **Save the file** as `docker-compose.yml`
+2. **Download Kosovo data**:
+   ```bash
+   wget https://download.geofabrik.de/europe/kosovo-latest.osm.pbf -O kosovo.osm.pbf
+   ```
+3. **Launch the stack**:
+   ```bash
+   docker-compose up -d
+   ```
+4. **Check progress**:
+   ```bash
+   docker-compose logs -f nominatim
+   ```
+   Wait for `[INFO] Import finished.` (~10-30 mins)
+
+5. **Access**:
+   - API: `http://localhost:8080/search?q=Prishtina&format=json`
+   - Web UI: `http://localhost:8080`
+
+---
+
+### **Key Features**
+- **All-in-one** (PostgreSQL + Nominatim in Docker)
+- **Persistent storage** (database survives restarts)
+- **Kosovo-only data** (small footprint)
+- **Resource-constrained** (optimized for Lubuntu)
+
+---
+
+### **Maintenance Commands**
+| Task | Command |
+|------|---------|
+| Update Kosovo data | `wget https://download.geofabrik.de/europe/kosovo-latest.osm.pbf -O kosovo.osm.pbf && docker-compose up -d --build nominatim` |
+| Stop containers | `docker-compose down` |
+| Delete everything | `docker-compose down -v` |
+| Check RAM usage | `docker stats` |
+
+---
+
+### **Troubleshooting**
+- **First import fails?** Run `docker-compose up -d --force-recreate`
+- **Out of memory?** Reduce `OSM2PGSQL_CACHE` to 256
+- **Port 8080 busy?** Change the left port in `ports:` (e.g., `8081:8080`)
+
+This gives you a **fully self-contained, Kosovo-specific geocoding service** with minimal host system impact.
