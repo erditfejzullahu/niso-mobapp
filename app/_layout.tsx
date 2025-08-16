@@ -1,3 +1,4 @@
+import { AuthProvider } from "@/context/AuthContext";
 import { Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold, Poppins_900Black } from "@expo-google-fonts/poppins";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
@@ -33,12 +34,14 @@ export default function RootLayout() {
 
   return (
     <>
-    <GestureHandlerRootView style={{flex: 1}}>
-      <Stack screenOptions={{headerShown: false, gestureEnabled: true}}/>
-    </GestureHandlerRootView>
-
-      <StatusBar style="dark"/>
-      <Toast />
+    <AuthProvider>
+      <GestureHandlerRootView style={{flex: 1}}>
+        <Stack screenOptions={{headerShown: false, gestureEnabled: true}}/>
+      </GestureHandlerRootView>
+    </AuthProvider>
+    
+    <StatusBar style="dark"/>
+    <Toast />
     </>
 );
 }
