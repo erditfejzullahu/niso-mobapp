@@ -51,6 +51,13 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Lejo $(PRODUCT_NAME) të përdorë lokacionin tuaj."
         }
+      ],
+      [
+        "expo-video",
+        {
+          "supportsBackgroundPlayback": true,
+          "supportsPictureInPicture": true
+        }
       ]
     ],
     "experiments": {
