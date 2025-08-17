@@ -2,7 +2,8 @@ import { useAuth } from '@/context/AuthContext';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
-import { Dimensions, ImageBackground, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Dimensions, ImageBackground, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Animated, {
   Easing,
   Extrapolation,
@@ -133,7 +134,7 @@ const NisoLogin = () => {
       </Animated.View>
 
       {/* Content */}
-      <ScrollView 
+      <KeyboardAwareScrollView 
         className="flex-1"
         onScroll={handleScroll}
         scrollEventThrottle={16}
@@ -183,7 +184,8 @@ const NisoLogin = () => {
           {/* Login Button (Uber-like) */}
           <TouchableOpacity
             onPress={handleLogin}
-            className="bg-black rounded-full p-4 items-center mt-4"
+            disabled={loading}
+            className={`bg-black rounded-full p-4 items-center mt-4 ${loading && "opacity-50"}`}
             activeOpacity={0.9}
           >
             <Text className="text-white font-bold text-lg">Kycuni</Text>
@@ -218,7 +220,7 @@ const NisoLogin = () => {
         </View>
 
         <View className="h-20" /> {/* Bottom spacer */}
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 };

@@ -50,6 +50,7 @@ const NisoSignUp = () => {
   const [loading, setLoading] = useState(false)
 
   const [imageSelected, setImageSelected] = useState("")
+  const [imageToSend, setImageToSend] = useState<Blob | null>(null)
 
 
   const scrollY = useSharedValue(0);
@@ -110,7 +111,7 @@ const NisoSignUp = () => {
     scrollY.value = event.nativeEvent.contentOffset.y;
   };
 
-  const handleImageUpload = async (): Promise<Blob | null> => {
+  const handleImageUpload = async () => {
     const {status} = await ImagePicker.getMediaLibraryPermissionsAsync()
     console.log(status);
     
@@ -140,13 +141,13 @@ const NisoSignUp = () => {
         })
         const response = await fetch(result.uri);
         const blob = await response.blob()
-        return blob
+        setImageToSend(blob)
       } catch (error) {
         console.error("error converting image ", error);
-        return null;
+        setImageToSend(null)
       }
     }
-    return null;
+    setImageToSend(null)
   }
 
   const handleSignUp = async () => {
@@ -170,9 +171,8 @@ const NisoSignUp = () => {
     if (!valid) return;
     setLoading(true)
 
-    const blob = await handleImageUpload();
     try {
-      await signUp(email, password, fullName, accountType === 0 ? "client" : "driver", blob)
+      await signUp(email, password, fullName, accountType === 0 ? "client" : "driver", imageToSend)
       Toast.show({
         type: "success",
         text1: "Sapo u regjistruat me sukses në Niso."
