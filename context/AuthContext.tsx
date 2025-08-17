@@ -1,6 +1,6 @@
 import { auth, db } from "@/firebase";
 import { AuthError, createUserWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, signInWithEmailAndPassword, updateProfile, User } from "firebase/auth";
-import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, getFirestore, query, setDoc, where } from "firebase/firestore";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { createContext, ReactNode, use, useEffect, useState } from "react";
 
@@ -10,6 +10,8 @@ type AuthContextType = {
     signIn: (email: string, password: string) => Promise<void>;
     signUp: (email: string, password: string, fullName: string, role: 'client' | 'driver', photoBlob: Blob | null) => Promise<void>;
     signOut: () => Promise<void>;
+    resendEmail: (email: string) => Promise<void>;
+    resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -34,7 +36,11 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
     
     const signIn = async (email: string, password: string) => {
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            const {user} = await signInWithEmailAndPassword(auth, email, password);
+            if(!user.emailVerified){
+                // await firebaseSignOut(auth)
+                throw new Error('verify email')
+            }
         } catch (error) {
             const authError = error as AuthError;
             throw new Error(authError.message)
@@ -80,12 +86,25 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
         }
     }
 
+    const resendEmail = async (email: string) => {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where('email', '==', email))
+        const querySnapshot = await getDocs(q);
+        
+    }
+
+    const resetPassword = async (email: string) => {
+
+    }
+
     const value: AuthContextType = {
         currentUser,
         signIn,
         signOut,
         signUp,
         loading,
+        resendEmail,
+        resetPassword
     }
 
     return (

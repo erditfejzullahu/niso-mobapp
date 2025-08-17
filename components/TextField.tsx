@@ -8,7 +8,7 @@ const TextField = ({ value, placeholder, enabled = true, className = "", title, 
         <TextInput
             editable={enabled}
             placeholder={placeholder}
-            className={`bg-white rounded-2xl px-4 py-3 shadow-sm shadow-black/10 border border-gray-200 ${className}`}
+            className={`bg-white rounded-2xl font-pregular px-4 py-3 shadow-sm shadow-black/10 border border-gray-200 ${className}`}
             value={value}
             {...props}
         />

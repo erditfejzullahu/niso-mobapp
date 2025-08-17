@@ -208,10 +208,10 @@ const NisoSignUp = () => {
         <View className="bg-white mx-6 rounded-3xl p-8 shadow-md shadow-black/15 border border-gray-100">
           {/* Title */}
           <View className="items-center mb-10">
-            <Animated.Text className="text-5xl font-bold mb-1 pt-1" style={animatedTitleStyle}>
+            <Animated.Text className="text-4xl font-pbold mb-1 pt-3" style={animatedTitleStyle}>
               Regjistrohu<Animated.Text style={animatedDotStyle} className="text-black text-6xl">.</Animated.Text>
             </Animated.Text>
-            <Text className="text-gray-600 text-center">
+            <Text className="text-gray-600 text-center font-pregular">
               Krijoni një llogari për të lëvizur shpejt me Niso.
             </Text>
           </View>
@@ -290,31 +290,31 @@ const NisoSignUp = () => {
 
           {/* Sign Up Button */}
           <TouchableOpacity disabled={loading} onPress={handleSignUp} className={`bg-black rounded-full p-4 items-center mt-4 ${loading && "opacity-50"}`} activeOpacity={0.9}>
-            <Text className="text-white font-bold text-lg">Krijo Llogari</Text>
+            <Text className="text-white font-pbold text-lg">Krijo Llogari</Text>
           </TouchableOpacity>
 
           {/* Divider */}
-          <View className="flex-row items-center my-6">
+          <View className="flex-row items-center my-6 mb-5">
             <View className="flex-1 h-px bg-gray-200" />
-            <Text className="mx-4 text-gray-500">ose</Text>
+            <Text className="mx-4 text-gray-500 font-pregular pb-1">ose</Text>
             <View className="flex-1 h-px bg-gray-200" />
           </View>
 
           {/* Social Buttons */}
           <View className="flex-row justify-center gap-2">
             <TouchableOpacity className="border border-gray-200 rounded-full p-3 flex-row items-center gap-2">
-              <Text className="text-gray-800">Google</Text>
+              <Text className="text-gray-800 font-pregular">Google</Text>
               <AntDesign name="google" size={24} color="#4f46e5" />
             </TouchableOpacity>
             <TouchableOpacity className="border border-gray-200 rounded-full p-3 flex-row items-center gap-2">
-              <Text className="text-gray-800">Apple</Text>
+              <Text className="text-gray-800 font-pregular">Apple</Text>
               <AntDesign name="apple1" size={24} color="#4f46e5" />
             </TouchableOpacity>
           </View>
 
           {/* Login Link */}
           <View className="mt-8 items-center">
-            <Text className="text-gray-600">Keni tashmë një llogari? </Text>
+            <Text className="text-gray-600 font-pregular">Keni tashmë një llogari? </Text>
               <Link href={'/(auth)/sign-in'}>
                   <Text className="text-black font-psemibold">Kyçuni</Text>
               </Link>

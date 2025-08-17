@@ -17,6 +17,9 @@ export default function DrawerLayout() {
       if(!currentUser){
         router.replace('/(auth)/sign-in')
       }
+      if(currentUser && !currentUser.emailVerified){
+        router.replace('/sign-in')
+      }
       if(currentUser && currentUser.role !== 'driver'){
         router.replace('/(root)/client/section/client-home')
       }

@@ -8,6 +8,9 @@ const _layout = () => {
   useEffect(() => {
     if(loading) return;
     if(!loading){
+      if(currentUser && !currentUser.emailVerified){
+        return;
+      }
       if(currentUser && currentUser.role === 'client'){
         router.replace('/(root)/client/section/client-home')
       }else if(currentUser && currentUser.role === 'driver'){
