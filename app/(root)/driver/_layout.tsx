@@ -2,10 +2,27 @@
 import DriverDrawerComponent from "@/components/DriverDrawerComponent";
 import NotificationsComponent from "@/components/NotificationsComponent";
 import TopbarComponent from "@/components/TopbarComponent";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "expo-router";
 import { Drawer } from "expo-router/drawer";
+import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function DrawerLayout() {
+  const router = useRouter();
+  const {currentUser, loading, role} = useAuth();
+
+  useEffect(() => {
+    if(!loading){
+      if(!currentUser){
+        router.replace('/(auth)/sign-in')
+      }
+      if(role !== 'driver'){
+        router.replace('/(root)/client/section/client-home')
+      }
+    }  
+  }, [currentUser, loading, role])
+  
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Drawer

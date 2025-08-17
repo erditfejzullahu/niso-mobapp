@@ -1,3 +1,4 @@
+import { useAuth } from '@/context/AuthContext';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
@@ -12,6 +13,7 @@ import Animated, {
   withSpring,
   withTiming
 } from 'react-native-reanimated';
+import Toast from 'react-native-toast-message';
 
 const { width, height } = Dimensions.get('window');
 
@@ -21,6 +23,35 @@ const NisoLogin = () => {
   const scrollY = useSharedValue(0);
   const titleColor = useSharedValue(0); // For color animation
   const dotScale = useSharedValue(1);
+
+  const [loading, setLoading] = useState(false)
+  const {signIn} = useAuth();
+
+  const handleLogin = async () => {
+    if(!email || !password){
+      Toast.show({
+        type: "error",
+        text1: "Ju lutem mbushini të gjitha fushat"
+      })
+      return;
+    }
+    setLoading(true)
+    try {
+      await signIn(email, password)
+      Toast.show({
+        type: "success",
+        text1: "Sapo u identifikuat me sukses në Niso."
+      })
+    } catch (error) {
+      console.error(error);
+      Toast.show({
+        type: "error",
+        text1: "Dicka shkoi gabim!"
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   React.useEffect(() => {
     dotScale.value = withRepeat(
@@ -124,7 +155,7 @@ const NisoLogin = () => {
 
           {/* Email Input (Uber-like minimal style) */}
           <View className="mb-6 border-b border-gray-200">
-            <Text className="text-gray-700 mb-1">Perdoruesi</Text>
+            <Text className="text-gray-700 mb-1 font-pmedium">Përdoruesi</Text>
             <TextInput
               className="text-gray-800 h-[35px]"
               placeholder="perdoruesi@shembull.com"
@@ -138,7 +169,7 @@ const NisoLogin = () => {
 
           {/* Password Input */}
           <View className="mb-8">
-            <Text className="text-gray-700 mb-1">Fjalekalimi</Text>
+            <Text className="text-gray-700 mb-1 font-pmedium">Fjalëkalimi</Text>
             <TextInput
               className="border-b border-gray-200 pb-3 text-gray-800 text-lg"
               placeholder="••••••••"
@@ -151,6 +182,7 @@ const NisoLogin = () => {
 
           {/* Login Button (Uber-like) */}
           <TouchableOpacity
+            onPress={handleLogin}
             className="bg-black rounded-full p-4 items-center mt-4"
             activeOpacity={0.9}
           >

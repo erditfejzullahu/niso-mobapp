@@ -4,9 +4,9 @@ import SegmentedControl from "@react-native-segmented-control/segmented-control"
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from "expo-image-picker";
 import { Link } from 'expo-router';
-import { getStorage } from "firebase/storage";
 import React, { useEffect, useState } from 'react';
-import { Dimensions, ImageBackground, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, ImageBackground, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Animated, {
   Easing,
   Extrapolation,
@@ -110,11 +110,11 @@ const NisoSignUp = () => {
     scrollY.value = event.nativeEvent.contentOffset.y;
   };
 
-  const storage = getStorage();
-
   const handleImageUpload = async (): Promise<Blob | null> => {
     const {status} = await ImagePicker.getMediaLibraryPermissionsAsync()
-    if(status !== "granted"){
+    console.log(status);
+    
+    if(status !== "granted" && status !== "undetermined"){
       Toast.show({
         type: "error",
         text1: "Ju duhet të keni leje të hapjes së galerisë"
@@ -132,7 +132,7 @@ const NisoSignUp = () => {
       setImageSelected(imageUri)
 
       try {
-        const imageContext = ImageManipulator.useImageManipulator(imageUri)
+        const imageContext = ImageManipulator.ImageManipulator.manipulate(imageUri)
         const image = await imageContext.renderAsync();
         const result = await image.saveAsync({
           compress: 0,
@@ -171,7 +171,19 @@ const NisoSignUp = () => {
     setLoading(true)
 
     const blob = await handleImageUpload();
-    await signUp(email, password, fullName, accountType === 0 ? "client" : "driver", blob)
+    try {
+      await signUp(email, password, fullName, accountType === 0 ? "client" : "driver", blob)
+      Toast.show({
+        type: "success",
+        text1: "Sapo u regjistruat me sukses në Niso."
+      })
+    } catch (error) {
+      console.error(error);
+      Toast.show({
+        type: "error",
+        text1: "Dicka shkoi gabim në regjistrimin tuaj"
+      })
+    }
 
     setLoading(false)
   }
@@ -190,7 +202,7 @@ const NisoSignUp = () => {
       </Animated.View>
 
       {/* Content */}
-      <ScrollView className="flex-1" onScroll={handleScroll} scrollEventThrottle={16}>
+      <KeyboardAwareScrollView className="flex-1" onScroll={handleScroll} scrollEventThrottle={16}>
         <View className="h-64" /> {/* Spacer */}
 
         <View className="bg-white mx-6 rounded-3xl p-8 shadow-md shadow-black/15 border border-gray-100">
@@ -204,9 +216,19 @@ const NisoSignUp = () => {
             </Text>
           </View>
 
+          <View className='mb-6'>
+            <Text className='text-gray-700 font-pmedium mb-1 text-center'>Fotoja juaj</Text>
+            <TouchableOpacity onPress={handleImageUpload} className='rounded-full border-indigo-600 border-2 self-start mx-auto overflow-hidden'>
+              <Image 
+                source={{uri: imageSelected || "https://avatar.iran.liara.run/public"}}
+                style={{width: 74, height: 74}}
+                resizeMode='cover'
+              />
+            </TouchableOpacity>
+          </View>
           {/* Full Name */}
           <View className="mb-6 border-b border-gray-200">
-            <Text className="text-gray-700 mb-1">Emri i plotë</Text>
+            <Text className="text-gray-700 mb-1 font-pmedium">Emri i plotë</Text>
             <TextInput
               className="text-gray-800 h-[35px]"
               placeholder="John Doe"
@@ -218,7 +240,7 @@ const NisoSignUp = () => {
 
           {/* Email */}
           <View className="mb-6 border-b border-gray-200">
-            <Text className="text-gray-700 mb-1">Email</Text>
+            <Text className="text-gray-700 mb-1 font-pmedium">Email</Text>
             <TextInput
               className="text-gray-800 h-[35px]"
               placeholder="perdoruesi@shembull.com"
@@ -230,7 +252,7 @@ const NisoSignUp = () => {
 
           {/* role */}
           <View className='mb-6 border-gray-200'>
-            <Text className='text-gray-700 mb-1'>Lloji i llogarise</Text>
+            <Text className='text-gray-700 mb-1 font-pmedium'>Lloji i llogarise</Text>
             <SegmentedControl 
                 values={['Client', 'Driver']}
                 selectedIndex={accountType}
@@ -239,32 +261,32 @@ const NisoSignUp = () => {
           </View>
 
           {/* Password */}
-          <View className="mb-6 border-b border-gray-200">
-            <Text className="text-gray-700 mb-1">Fjalëkalimi</Text>
+          <View className={`border-b border-gray-200 ${!passwordError && "mb-6"}`}>
+            <Text className="text-gray-700 mb-1 font-pmedium">Fjalëkalimi</Text>
             <TextInput
               className="text-gray-800 h-[35px]"
               placeholder="••••••••"
               placeholderTextColor="#9CA3AF"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(e) => {setPassword(e); setPasswordError("")}}
               secureTextEntry
             />
-            {passwordError ? <Text className="text-red-500 text-sm mt-1">{passwordError}</Text> : null}
           </View>
+            {passwordError ? <Text className="text-red-500 mb-6 text-sm mt-1">{passwordError}</Text> : null}
 
           {/* Confirm Password */}
-          <View className="mb-8 border-b border-gray-200">
-            <Text className="text-gray-700 mb-1">Konfirmo fjalëkalimin</Text>
+          <View className={`border-b ${!confirmPasswordError && "mb-8"} border-gray-200`}>
+            <Text className="text-gray-700 mb-1 font-pmedium">Konfirmo fjalëkalimin</Text>
             <TextInput
               className="text-gray-800 h-[35px]"
               placeholder="••••••••"
               placeholderTextColor="#9CA3AF"
               value={confirmPassword}
-              onChangeText={setConfirmPassword}
+              onChangeText={(e) => {setConfirmPassword(e); setConfirmPasswordError("")}}
               secureTextEntry
             />
-            {confirmPasswordError ? <Text className="text-red-500 text-sm mt-1">{confirmPasswordError}</Text> : null}
           </View>
+            {confirmPasswordError ? <Text className="text-red-500 mb-8 text-sm mt-1">{confirmPasswordError}</Text> : null}
 
           {/* Sign Up Button */}
           <TouchableOpacity disabled={loading} onPress={handleSignUp} className={`bg-black rounded-full p-4 items-center mt-4 ${loading && "opacity-50"}`} activeOpacity={0.9}>
@@ -300,7 +322,7 @@ const NisoSignUp = () => {
         </View>
 
         <View className="h-20" />
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 };

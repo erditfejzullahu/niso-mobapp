@@ -1,3 +1,4 @@
+import { useAuth } from "@/context/AuthContext";
 import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { DrawerContentScrollView } from "@react-navigation/drawer";
@@ -44,15 +45,15 @@ const CustomDrawerItem = ({ label, icon, isActive, onPress }: DrawerItemProps) =
 
 export default function ClientDrawerComponent(props: any) {
   const pathname = usePathname();
-  
+  const {signOut} = useAuth();
   
   const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert("Shkycje", "A jeni të sigurt që dëshironi të shkyceni?", [
+      { text: "Mbyll", style: "cancel" },
       {
-        text: "Logout",
+        text: "Shkycuni",
         style: "destructive",
-        onPress: () => console.log("User logged out"),
+        onPress: () => signOut(),
       },
     ]);
   };
