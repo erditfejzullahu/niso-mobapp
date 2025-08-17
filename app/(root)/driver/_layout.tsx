@@ -10,18 +10,18 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function DrawerLayout() {
   const router = useRouter();
-  const {currentUser, loading, role} = useAuth();
+  const {currentUser, loading} = useAuth();
 
   useEffect(() => {
     if(!loading){
       if(!currentUser){
         router.replace('/(auth)/sign-in')
       }
-      if(role !== 'driver'){
+      if(currentUser && currentUser.role !== 'driver'){
         router.replace('/(root)/client/section/client-home')
       }
     }  
-  }, [currentUser, loading, role])
+  }, [currentUser, loading])
   
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

@@ -5,9 +5,8 @@ import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { createContext, ReactNode, use, useEffect, useState } from "react";
 
 type AuthContextType = {
-    currentUser: User | null;
+    currentUser: User & {role: "client" | "driver"} | null;
     loading: boolean;
-    role: 'client' | 'driver' | null;
     signIn: (email: string, password: string) => Promise<void>;
     signUp: (email: string, password: string, fullName: string, role: 'client' | 'driver', photoBlob: Blob | null) => Promise<void>;
     signOut: () => Promise<void>;
@@ -16,21 +15,17 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider = ({children}: {children: ReactNode}) => {
-    const [currentUser, setCurrentUser] = useState<User | null>(null)
+    const [currentUser, setCurrentUser] = useState<User & {role: 'client' | 'driver'} | null>(null)
     const [loading, setLoading] = useState<boolean>(true)
-    const [role, setRole] = useState<'client' | 'driver' | null>(null)
     
     useEffect(() => {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        setCurrentUser(user)
-        if(user){
-            const docRef = doc(db, 'users', user.uid);
-            const docSnap = await getDoc(docRef);
-            if(docSnap.exists()){
-                setRole(docSnap.data().role)
-            }
+          if(user){
+              const docRef = doc(db, 'users', user.uid);
+              const docSnap = await getDoc(docRef);
+              setCurrentUser({...user, role: docSnap.data()?.role})
         }else{
-            setRole(null)
+            setCurrentUser(null)
         }
         setLoading(false);
       })
@@ -66,6 +61,7 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
             const db = getFirestore();
             await setDoc(doc(db, "users", user.uid), {
                 role,
+                ...user
             })
 
             await signIn(email, password)
@@ -90,7 +86,6 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
         signOut,
         signUp,
         loading,
-        role
     }
 
     return (
