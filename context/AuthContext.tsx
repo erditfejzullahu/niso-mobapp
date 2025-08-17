@@ -1,12 +1,15 @@
-import { auth } from "@/firebase";
-import { AuthError, createUserWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, signInWithEmailAndPassword, User } from "firebase/auth";
+import { auth, db } from "@/firebase";
+import { AuthError, createUserWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, signInWithEmailAndPassword, updateProfile, User } from "firebase/auth";
+import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { createContext, ReactNode, use, useEffect, useState } from "react";
 
 type AuthContextType = {
     currentUser: User | null;
     loading: boolean;
+    role: 'client' | 'driver' | null;
     signIn: (email: string, password: string) => Promise<void>;
-    signUp: (email: string, password: string) => Promise<void>;
+    signUp: (email: string, password: string, fullName: string, role: 'client' | 'driver', photoBlob: Blob | null) => Promise<void>;
     signOut: () => Promise<void>;
 }
 
@@ -15,13 +18,23 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider = ({children}: {children: ReactNode}) => {
     const [currentUser, setCurrentUser] = useState<User | null>(null)
     const [loading, setLoading] = useState<boolean>(true)
+    const [role, setRole] = useState<'client' | 'driver' | null>(null)
 
     useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
         setCurrentUser(user)
+        if(user){
+            const docRef = doc(db, 'users', user.uid);
+            const docSnap = await getDoc(docRef);
+            if(docSnap.exists()){
+                setRole(docSnap.data().role)
+            }
+        }else{
+            setRole(null)
+        }
         setLoading(false);
       })
-      return unsubscribe;
+      return () => unsubscribe();
     }, [])
     
     const signIn = async (email: string, password: string) => {
@@ -33,9 +46,29 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
         }
     }
 
-    const signUp = async (email: string, password: string) => {
+    const signUp = async (email: string, password: string, fullName: string, role: 'client' | 'driver', photoBlob: Blob | null) => {
         try {
-            await createUserWithEmailAndPassword(auth, email, password);
+            const {user} = await createUserWithEmailAndPassword(auth, email, password);
+
+            let downloadUrl: string | null = null
+            if(photoBlob){
+                const storage = getStorage();
+                const storageRef = ref(storage, `images/${user.uid}.webp`)
+                await uploadBytes(storageRef, photoBlob)
+                downloadUrl = await getDownloadURL(storageRef);
+            }
+
+            await updateProfile(user, {
+                displayName: fullName,
+                photoURL: downloadUrl,
+            })
+
+            const db = getFirestore();
+            await setDoc(doc(db, "users", user.uid), {
+                role,
+            })
+
+            await signIn(email, password)
         } catch (error) {
             const authError = error as AuthError;
             throw new Error(authError.message)
@@ -56,7 +89,8 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
         signIn,
         signOut,
         signUp,
-        loading
+        loading,
+        role
     }
 
     return (

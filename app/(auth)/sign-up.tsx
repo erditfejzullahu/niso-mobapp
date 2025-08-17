@@ -1,6 +1,10 @@
+import { useAuth } from '@/context/AuthContext';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import * as ImageManipulator from 'expo-image-manipulator';
+import * as ImagePicker from "expo-image-picker";
 import { Link } from 'expo-router';
+import { getStorage } from "firebase/storage";
 import React, { useEffect, useState } from 'react';
 import { Dimensions, ImageBackground, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, {
@@ -13,15 +17,40 @@ import Animated, {
   withSpring,
   withTiming
 } from 'react-native-reanimated';
+import Toast from 'react-native-toast-message';
+
+const validatePassword = (pwd: string) => {
+  const minLength = /.{8,}/;
+  const uppercase = /[A-Z]/;
+  const lowercase = /[a-z]/;
+  const number = /[0-9]/;
+  const specialChar = /[!@#$%^&*(),.?":{}|<>]/;
+
+  return (
+    minLength.test(pwd) &&
+    uppercase.test(pwd) &&
+    lowercase.test(pwd) &&
+    number.test(pwd) &&
+    specialChar.test(pwd)
+  );
+};
 
 const { width, height } = Dimensions.get('window');
 
 const NisoSignUp = () => {
+  const {signUp} = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [accountType, setAccountType] = useState(0) //0 for CLIENT, 1 for DRIVER
+
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+  const [loading, setLoading] = useState(false)
+
+  const [imageSelected, setImageSelected] = useState("")
+
 
   const scrollY = useSharedValue(0);
   const titleColor = useSharedValue(0);
@@ -80,6 +109,72 @@ const NisoSignUp = () => {
   const handleScroll = (event: any) => {
     scrollY.value = event.nativeEvent.contentOffset.y;
   };
+
+  const storage = getStorage();
+
+  const handleImageUpload = async (): Promise<Blob | null> => {
+    const {status} = await ImagePicker.getMediaLibraryPermissionsAsync()
+    if(status !== "granted"){
+      Toast.show({
+        type: "error",
+        text1: "Ju duhet të keni leje të hapjes së galerisë"
+      })
+    }
+
+    const imagePicked = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: "images",
+      quality: 1,
+      aspect: [4,3]
+    })
+
+    if(!imagePicked.canceled){
+      const imageUri = imagePicked.assets[0].uri
+      setImageSelected(imageUri)
+
+      try {
+        const imageContext = ImageManipulator.useImageManipulator(imageUri)
+        const image = await imageContext.renderAsync();
+        const result = await image.saveAsync({
+          compress: 0,
+          format: ImageManipulator.SaveFormat.WEBP
+        })
+        const response = await fetch(result.uri);
+        const blob = await response.blob()
+        return blob
+      } catch (error) {
+        console.error("error converting image ", error);
+        return null;
+      }
+    }
+    return null;
+  }
+
+  const handleSignUp = async () => {
+    let valid = true;
+    // Check password strength
+    if (!validatePassword(password)) {
+      setPasswordError('Fjalëkalimi duhet të ketë të paktën 8 karaktere, një shkronjë të madhe, një të vogël, një numër dhe një karakter special.');
+      valid = false;
+    } else {
+      setPasswordError('');
+    }
+
+    // Check password match
+    if (password !== confirmPassword) {
+      setConfirmPasswordError('Fjalëkalimi dhe konfirmimi nuk përputhen.');
+      valid = false;
+    } else {
+      setConfirmPasswordError('');
+    }
+
+    if (!valid) return;
+    setLoading(true)
+
+    const blob = await handleImageUpload();
+    await signUp(email, password, fullName, accountType === 0 ? "client" : "driver", blob)
+
+    setLoading(false)
+  }
 
   return (
     <View className="flex-1 bg-gray-100">
@@ -154,6 +249,7 @@ const NisoSignUp = () => {
               onChangeText={setPassword}
               secureTextEntry
             />
+            {passwordError ? <Text className="text-red-500 text-sm mt-1">{passwordError}</Text> : null}
           </View>
 
           {/* Confirm Password */}
@@ -167,10 +263,11 @@ const NisoSignUp = () => {
               onChangeText={setConfirmPassword}
               secureTextEntry
             />
+            {confirmPasswordError ? <Text className="text-red-500 text-sm mt-1">{confirmPasswordError}</Text> : null}
           </View>
 
           {/* Sign Up Button */}
-          <TouchableOpacity className="bg-black rounded-full p-4 items-center mt-4" activeOpacity={0.9}>
+          <TouchableOpacity disabled={loading} onPress={handleSignUp} className={`bg-black rounded-full p-4 items-center mt-4 ${loading && "opacity-50"}`} activeOpacity={0.9}>
             <Text className="text-white font-bold text-lg">Krijo Llogari</Text>
           </TouchableOpacity>
 
