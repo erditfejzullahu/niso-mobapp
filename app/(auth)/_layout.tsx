@@ -8,7 +8,7 @@ const _layout = () => {
   useEffect(() => {
     if(loading) return;
     if(!loading){
-      if(currentUser && !currentUser.emailVerified){
+      if(currentUser && !currentUser.emailVerified){        
         return;
       }
       if(currentUser && currentUser.role === 'client'){

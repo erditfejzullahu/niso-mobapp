@@ -203,7 +203,7 @@ const NisoSignUp = () => {
 
       {/* Content */}
       <KeyboardAwareScrollView className="flex-1" onScroll={handleScroll} scrollEventThrottle={16}>
-        <View className="h-64" /> {/* Spacer */}
+        <View className="h-64" />
 
         <View className="bg-white mx-6 rounded-3xl p-8 shadow-md shadow-black/15 border border-gray-100">
           {/* Title */}

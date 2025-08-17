@@ -1,7 +1,8 @@
 import { useAuth } from '@/context/AuthContext';
+import { auth } from '@/firebase';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { Link } from 'expo-router';
-import { sendEmailVerification, User } from 'firebase/auth';
+import { AuthError, sendEmailVerification } from 'firebase/auth';
 import { Mail } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Dimensions, ImageBackground, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -21,7 +22,7 @@ import Toast from 'react-native-toast-message';
 
 const NisoLogin = () => {
   const { width, height } = Dimensions.get('window');
-  const {currentUser} = useAuth();
+  const {currentUser, signOut} = useAuth();
   console.log(currentUser);
   
   const [email, setEmail] = useState('');
@@ -36,8 +37,13 @@ const NisoLogin = () => {
   const {signIn} = useAuth();
 
   const handleResetEmail = async () => {
-    const test = await sendEmailVerification(currentUser as User);
-    console.log(test);
+    try {
+      await sendEmailVerification(auth.currentUser!);
+      await signOut();
+    } catch (error) {
+      const authError = error as AuthError;
+      throw new Error(authError.message);
+    }
     
     Toast.show({type: "success", text1: "Ridërgimi i emailit verifikues shkoi me sukses!"})
     setResendEmail(false)
@@ -142,7 +148,7 @@ const NisoLogin = () => {
 
   return (
     <View className="flex-1 bg-gray-100">
-      {/* Parallax Background (Car-themed) */}
+      
       <Animated.View 
         className="absolute w-full h-96"
         style={backgroundLayer}
@@ -156,16 +162,16 @@ const NisoLogin = () => {
         </ImageBackground>
       </Animated.View>
 
-      {/* Content */}
+      
       <KeyboardAwareScrollView 
         className="flex-1"
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
-        <View className="h-64" /> {/* Spacer for parallax */}
+        <View className="h-64" />
 
         <View className="bg-white mx-6 rounded-3xl p-8 shadow-md shadow-black/15">
-          {/* Animated "Niso" Title */}
+          
           <View className="items-center mb-10">
             <Link href={'/_sitemap'}>Sitemap</Link>
             <Animated.Text 
@@ -177,7 +183,7 @@ const NisoLogin = () => {
             <Text className="text-gray-600 font-pregular">Lëviz shpejt, lëviz me Niso.</Text>
           </View>
 
-          {/* Email Input (Uber-like minimal style) */}
+          
           <View className="mb-6 border-b border-gray-200">
             <Text className="text-gray-700 mb-1 font-pmedium">Përdoruesi</Text>
             <TextInput
@@ -186,12 +192,10 @@ const NisoLogin = () => {
               placeholderTextColor="#9CA3AF"
               value={email}
               onChangeText={setEmail}
-              // keyboardType="email-address"
-              // autoCapitalize="none"
             />
           </View>
 
-          {/* Password Input */}
+          
           <View className="mb-8">
             <Text className="text-gray-700 mb-1 font-pmedium">Fjalëkalimi</Text>
             <TextInput
@@ -246,7 +250,7 @@ const NisoLogin = () => {
           </View>
         </View>
 
-        <View className="h-20" /> {/* Bottom spacer */}
+        <View className="h-20" />
       </KeyboardAwareScrollView>
     </View>
   );
