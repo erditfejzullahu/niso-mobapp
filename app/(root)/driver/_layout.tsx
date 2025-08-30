@@ -11,7 +11,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 export default function DrawerLayout() {
   const router = useRouter();
   const {currentUser, loading} = useAuth();
-
+  
   useEffect(() => {
     if(!loading){
       if(!currentUser){

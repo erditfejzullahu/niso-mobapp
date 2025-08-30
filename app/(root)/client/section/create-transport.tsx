@@ -79,9 +79,6 @@ const CreateTransport = () => {
           />
         </View>
       </View>
-
-      
-
     </KeyboardAwareScrollView>
   );
 };

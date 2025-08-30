@@ -2,8 +2,11 @@ import { useAuth } from "@/context/AuthContext";
 import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { DrawerContentScrollView } from "@react-navigation/drawer";
+import * as ImageManipulator from "expo-image-manipulator";
+import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, usePathname } from "expo-router";
+import { getStorage, ref, uploadBytes } from "firebase/storage";
 import { UserStar } from "lucide-react-native";
 import React from "react";
 import {
@@ -15,6 +18,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 interface DrawerItemProps {
   label: string;
@@ -44,9 +48,10 @@ const CustomDrawerItem = ({ label, icon, isActive, onPress }: DrawerItemProps) =
 );
 
 export default function ClientDrawerComponent(props: any) {
+  const {currentUser} = useAuth();
   const pathname = usePathname();
   const {signOut} = useAuth();
-  
+
   const handleLogout = () => {
     Alert.alert("Shkycje", "A jeni të sigurt që dëshironi të shkyceni?", [
       { text: "Mbyll", style: "cancel" },
@@ -110,6 +115,45 @@ export default function ClientDrawerComponent(props: any) {
     },
   ];
 
+  
+  const handleImageUpload = async () => {
+      const {status} = await ImagePicker.getMediaLibraryPermissionsAsync()
+      console.log(status);
+      
+      if(status !== "granted" && status !== "undetermined"){
+        Toast.show({
+          type: "error",
+          text1: "Ju duhet të keni leje të hapjes së galerisë"
+        })
+      }
+  
+      const imagePicked = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: "images",
+        quality: 1,
+        aspect: [4,3]
+      })
+  
+      if(!imagePicked.canceled){
+        const imageUri = imagePicked.assets[0].uri  
+        try {
+          const imageContext = ImageManipulator.ImageManipulator.manipulate(imageUri)
+          const image = await imageContext.renderAsync();
+          const result = await image.saveAsync({
+            compress: 0,
+            format: ImageManipulator.SaveFormat.WEBP
+          })
+          const response = await fetch(result.uri);
+          const blob = await response.blob()
+          const storage = getStorage();
+          const storageRef = ref(storage, `images/${currentUser?.uid}.webp`)
+          await uploadBytes(storageRef, blob);
+          currentUser?.reload();
+        } catch (error) {
+          console.error("error converting image ", error);
+        }
+      }
+    }
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <View style={{ flex: 1 }} >
@@ -124,10 +168,12 @@ export default function ClientDrawerComponent(props: any) {
             end={{ x: 1, y: 1.5 }}
             style={styles.profileSection}
           >
-            <Image
-              source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg" }}
-              style={styles.profileImage}
-            />
+            <TouchableOpacity onPress={handleImageUpload}>
+              <Image
+                source={{ uri: currentUser?.photoURL || "https://randomuser.me/api/portraits/men/32.jpg" }}
+                style={styles.profileImage}
+              />
+            </TouchableOpacity>
             <Text style={styles.profileName}>John Doe</Text>
             <Text className="text-white font-pregular text-sm">Shofer</Text>
           </LinearGradient>

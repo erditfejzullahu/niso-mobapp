@@ -50,7 +50,7 @@ const NisoSignUp = () => {
   const [loading, setLoading] = useState(false)
 
   const [imageSelected, setImageSelected] = useState("")
-  const [imageToSend, setImageToSend] = useState<Blob | null>(null)
+  const [imageToSend, setImageToSend] = useState<string | null>(null)
 
 
   const scrollY = useSharedValue(0);
@@ -139,9 +139,7 @@ const NisoSignUp = () => {
           compress: 0,
           format: ImageManipulator.SaveFormat.WEBP
         })
-        const response = await fetch(result.uri);
-        const blob = await response.blob()
-        setImageToSend(blob)
+        setImageToSend(result.uri)
       } catch (error) {
         console.error("error converting image ", error);
         setImageToSend(null)

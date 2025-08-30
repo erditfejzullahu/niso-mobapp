@@ -73,9 +73,7 @@ export default function AddFixedTarif() {
     // You can do more here — e.g., show modal, save coordinate, etc.
   };
 
-  const getAreaNameData = async (areaName: string) => {
-    console.log(region);
-    
+  const getAreaNameData = async (areaName: string) => {    
     try {
       const response = await axios.get(`https://photon.komoot.io/api/?q=${areaName}&lat=${region?.latitude}&lon=${region?.longitude}&limit=10`)
       

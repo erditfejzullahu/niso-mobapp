@@ -23,7 +23,6 @@ import Toast from 'react-native-toast-message';
 const NisoLogin = () => {
   const { width, height } = Dimensions.get('window');
   const {currentUser, signOut} = useAuth();
-  console.log(currentUser);
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
