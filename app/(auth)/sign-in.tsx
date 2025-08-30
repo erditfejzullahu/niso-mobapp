@@ -54,7 +54,7 @@ const NisoLogin = () => {
       }else{
         Toast.show({
           type: "error",
-          text1: "Dicka shkoi gabim!"
+          text1: error.response.data.message
         })
       }
     } finally {
@@ -152,7 +152,6 @@ const NisoLogin = () => {
         <View className="bg-white mx-6 rounded-3xl p-8 shadow-md shadow-black/15">
           
           <View className="items-center mb-10">
-            <Link href={'/_sitemap'}>Sitemap</Link>
             <Animated.Text 
               className="text-5xl font-pbold pt-3"
               style={animatedTitleStyle}

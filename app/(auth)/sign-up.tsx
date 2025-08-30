@@ -1,10 +1,13 @@
 import { useAuth } from '@/context/AuthContext';
+import { registerSchema } from '@/schemas/registerSchema';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { zodResolver } from '@hookform/resolvers/zod';
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from "expo-image-picker";
 import { Link } from 'expo-router';
 import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { Dimensions, Image, ImageBackground, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Animated, {
@@ -18,36 +21,16 @@ import Animated, {
   withTiming
 } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
-
-const validatePassword = (pwd: string) => {
-  const minLength = /.{8,}/;
-  const uppercase = /[A-Z]/;
-  const lowercase = /[a-z]/;
-  const number = /[0-9]/;
-  const specialChar = /[!@#$%^&*(),.?":{}|<>]/;
-
-  return (
-    minLength.test(pwd) &&
-    uppercase.test(pwd) &&
-    lowercase.test(pwd) &&
-    number.test(pwd) &&
-    specialChar.test(pwd)
-  );
-};
+import {z} from "zod"
 
 const { width, height } = Dimensions.get('window');
 
 const NisoSignUp = () => {
   const {signUp} = useAuth();
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+
   const [accountType, setAccountType] = useState(0) //0 for CLIENT, 1 for DRIVER
 
-  const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
-  const [loading, setLoading] = useState(false)
 
   const [imageSelected, setImageSelected] = useState("")
 
@@ -147,37 +130,50 @@ const NisoSignUp = () => {
     // setImageToSend(null)
   }
 
-  const handleSignUp = async () => {
+  const {control, handleSubmit, formState: {errors, isSubmitting}} = useForm<z.infer<typeof registerSchema>>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      fullName: "",
+      password: "",
+      email: "",
+      confirmPassword:""
+    }
+  })
+
+  const handleSignUp = async (data: z.infer<typeof registerSchema>) => {
     let valid = true;
     // Check password strength
-    if (!validatePassword(password)) {
-      setPasswordError('Fjalëkalimi duhet të ketë të paktën 8 karaktere, një shkronjë të madhe, një të vogël, një numër dhe një karakter special.');
-      valid = false;
-    } else {
-      setPasswordError('');
-    }
 
     // Check password match
-    if (password !== confirmPassword) {
-      setConfirmPasswordError('Fjalëkalimi dhe konfirmimi nuk përputhen.');
+    if (data.password !== data.confirmPassword) {
+      setConfirmPasswordError('Fjalëkalimi dhe konfirmimi i fjalekalimit nuk përputhen.');
       valid = false;
     } else {
       setConfirmPasswordError('');
     }
 
-    if(imageSelected === null){
+    if((accountType > 1) || (accountType < 0)){
       Toast.show({
         type: "error",
-        text1: "Ju lutem fusni nje foto profili."
+        text1: "Gabim!",
+        text2: "Ju lutem zgjidhni mes tipeve egzistuese te llogarise sic jane: SHOFERI dhe PASAGJERI."
+      })
+      valid = false;
+    }
+
+    if(!imageSelected){
+      Toast.show({
+        type: "error",
+        text1: "Gabim!",
+        text2: "Ju lutem paraqisni foton tuaj te profilit."
       })
       valid = false;
     }
 
     if (!valid) return;
-    setLoading(true)
 
     try {
-      await signUp(fullName, email, password, confirmPassword, accountType, imageSelected)
+      await signUp(data.fullName, data.email, data.password, data.confirmPassword, accountType, imageSelected)
       Toast.show({
         type: "success",
         text1: "Sapo u regjistruat me sukses në Niso. Tani do te ridrejtoheni tek seksioni i verifikimit te identitetit tuaj."
@@ -189,8 +185,6 @@ const NisoSignUp = () => {
         text1: "Dicka shkoi gabim në regjistrimin tuaj"
       })
     }
-
-    setLoading(false)
   }
 
   return (
@@ -231,70 +225,105 @@ const NisoSignUp = () => {
               />
             </TouchableOpacity>
           </View>
+
           {/* Full Name */}
           <View className="mb-6 border-b border-gray-200">
-            <Text className="text-gray-700 mb-1 font-pmedium">Emri i plotë</Text>
-            <TextInput
-              className="text-gray-800 h-[35px]"
-              placeholder="John Doe"
-              placeholderTextColor="#9CA3AF"
-              value={fullName}
-              onChangeText={setFullName}
-            />
+            <Controller 
+              control={control}
+              name="fullName"
+              render={({field}) => (
+                <>
+                  <Text className="text-gray-700 mb-1 font-pmedium">Emri i plotë</Text>
+                  <TextInput
+                    className="text-gray-800 h-[35px]"
+                    placeholder="John Doe"
+                    placeholderTextColor="#9CA3AF"
+                    {...field}
+                  />
+                  </>
+                )}
+              />
+            {errors.fullName && (
+              <Text className='text-xs font-plight text-red-500 mt-1'>{errors.fullName.message}</Text>
+            )}
           </View>
 
           {/* Email */}
           <View className="mb-6 border-b border-gray-200">
-            <Text className="text-gray-700 mb-1 font-pmedium">Email</Text>
-            <TextInput
-              className="text-gray-800 h-[35px]"
-              placeholder="perdoruesi@shembull.com"
-              placeholderTextColor="#9CA3AF"
-              value={email}
-              onChangeText={setEmail}
+            <Controller 
+              control={control}
+              name="email"
+              render={({field}) => (
+                <>
+                <Text className="text-gray-700 mb-1 font-pmedium">Email</Text>
+                <TextInput
+                  className="text-gray-800 h-[35px]"
+                  placeholder="perdoruesi@shembull.com"
+                  placeholderTextColor="#9CA3AF"
+                  {...field}
+                />
+                </>
+              )}
             />
+            {errors.email && (
+              <Text className='text-xs font-plight text-red-500 mt-1'>{errors.email.message}</Text>
+            )}
           </View>
 
           {/* role */}
           <View className='mb-6 border-gray-200'>
             <Text className='text-gray-700 mb-1 font-pmedium'>Lloji i llogarise</Text>
             <SegmentedControl 
-                values={['Client', 'Driver']}
+                values={['Pasagjer', 'Shofer']}
                 selectedIndex={accountType}
                 onChange={(event) => {setAccountType(event.nativeEvent.selectedSegmentIndex)}}
             />
           </View>
 
           {/* Password */}
-          <View className={`border-b border-gray-200 ${!passwordError && "mb-6"}`}>
-            <Text className="text-gray-700 mb-1 font-pmedium">Fjalëkalimi</Text>
-            <TextInput
-              className="text-gray-800 h-[35px]"
-              placeholder="••••••••"
-              placeholderTextColor="#9CA3AF"
-              value={password}
-              onChangeText={(e) => {setPassword(e); setPasswordError("")}}
-              secureTextEntry
+          <View className={`border-b border-gray-200`}>
+            <Controller 
+              control={control}
+              name="password"
+              render={({field}) => (
+                <>
+                <Text className="text-gray-700 mb-1 font-pmedium">Fjalëkalimi</Text>
+                <TextInput
+                  className="text-gray-800 h-[35px]"
+                  placeholder="••••••••"
+                  placeholderTextColor="#9CA3AF"
+                  {...field}
+                  secureTextEntry
+                />
+                </>
+              )}
             />
+
           </View>
-            {passwordError ? <Text className="text-red-500 mb-6 text-sm mt-1">{passwordError}</Text> : null}
 
           {/* Confirm Password */}
           <View className={`border-b ${!confirmPasswordError && "mb-8"} border-gray-200`}>
-            <Text className="text-gray-700 mb-1 font-pmedium">Konfirmo fjalëkalimin</Text>
-            <TextInput
-              className="text-gray-800 h-[35px]"
-              placeholder="••••••••"
-              placeholderTextColor="#9CA3AF"
-              value={confirmPassword}
-              onChangeText={(e) => {setConfirmPassword(e); setConfirmPasswordError("")}}
-              secureTextEntry
+            <Controller 
+              control={control}
+              name="confirmPassword"
+              render={({field}) => (
+                <>
+                <Text className="text-gray-700 mb-1 font-pmedium">Konfirmo fjalëkalimin</Text>
+                <TextInput
+                  className="text-gray-800 h-[35px]"
+                  placeholder="••••••••"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry
+                  {...field}
+                />
+                </>
+              )}
             />
-          </View>
             {confirmPasswordError ? <Text className="text-red-500 mb-8 text-sm mt-1">{confirmPasswordError}</Text> : null}
+          </View>
 
           {/* Sign Up Button */}
-          <TouchableOpacity disabled={loading} onPress={handleSignUp} className={`bg-black rounded-full p-4 items-center mt-4 ${loading && "opacity-50"}`} activeOpacity={0.9}>
+          <TouchableOpacity disabled={isSubmitting} onPress={handleSubmit(handleSignUp)} className={`bg-black rounded-full p-4 items-center mt-4 ${isSubmitting && "opacity-50"}`} activeOpacity={0.9}>
             <Text className="text-white font-pbold text-lg">Krijo Llogari</Text>
           </TouchableOpacity>
 
