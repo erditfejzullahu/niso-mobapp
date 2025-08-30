@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import api from "../hooks/useApi";
 import CookieManager from "@react-native-cookies/cookies";
 import { User } from "@/types/app-types";
+import Toast from "react-native-toast-message";
 
 interface AuthContextType {
   user: User | null;
@@ -9,7 +10,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   signUp: (fullName: string, email: string, password: string, confirmPassword: string, accountType: number, image: string) => Promise<void>;
-  updateSession: () => Promise<void>;
+  updateSession: () => Promise<boolean>;
 }
 
 const BACKEND_URL = 'https://localhost:3000'
@@ -62,12 +63,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const updateSession = async () => {
     try {
-      const res = await api.get<User>("/auth/update-session");
-      setUser(res.data);
+      const res = await api.get("/auth/update-session");
+      if(res.data.success){
+        const getUser = await api.get('/auth/profile');
+        if(getUser.data.success){
+          setUser(res.data);
+        }
+      }
       //toaster
+      return true;
     } catch(err) {
+      console.error(err);
       setUser(null);
-      throw err
+      return false;
     }
   };
 
@@ -85,7 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const match = /\.(\w+)$/.exec(filename);
       const type = match ? `image/${match[1]}` : 'image/jpeg';
       
-      formData.append('image', {
+      formData.append('profileImage', {
         uri: imageUri,
         name: filename,
         type,

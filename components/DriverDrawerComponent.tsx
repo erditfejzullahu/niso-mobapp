@@ -1,3 +1,4 @@
+import { useAuth } from "@/context/AuthContext";
 import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { DrawerContentScrollView } from "@react-navigation/drawer";
@@ -13,6 +14,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
+import * as ImagePicker from "expo-image-picker"
+import api from "@/hooks/useApi";
 
 interface DrawerItemProps {
   label: string;
@@ -42,19 +46,77 @@ const CustomDrawerItem = ({ label, icon, isActive, onPress }: DrawerItemProps) =
 );
 
 export default function DriverDrawerComponent(props: any) {
+  const {user, updateSession} = useAuth();
+  
+  if(!user) {router.replace('/sign-in'); return;}
+  
   const pathname = usePathname();
+  const {logout} = useAuth();
   
   
   const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert("Shkycje", "A jeni të sigurt që dëshironi të shkyceni?", [
+      { text: "Mbyll", style: "cancel" },
       {
-        text: "Logout",
+        text: "Shkycuni",
         style: "destructive",
-        onPress: () => console.log("User logged out"),
+        onPress: () => logout(),
       },
     ]);
   };
+
+  const handleImageUpload = async () => {
+      const {status} = await ImagePicker.getMediaLibraryPermissionsAsync()
+      console.log(status);
+      
+      if(status !== "granted" && status !== "undetermined"){
+        Toast.show({
+          type: "error",
+          text1: "Ju duhet të keni leje të hapjes së galerisë"
+        })
+      }
+  
+      const imagePicked = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: "images",
+        quality: 0.7,
+        aspect: [1,1]
+      })
+  
+      if(!imagePicked.canceled){
+        const imageUri = imagePicked.assets[0].uri  
+        const formData = new FormData();
+        const filename = imageUri.split('/').pop() || 'profile.jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
+        
+        formData.append('newProfileImage', {
+          uri: imageUri,
+          name: filename,
+          type,
+        } as any);
+        const res = await api.post('/auth/update-profile-image', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        if(res.data.success){
+          const uptdSession = await updateSession();
+          if(uptdSession){
+            Toast.show({
+              type: "success",
+              text1: "Sukes!",
+              text2: "Sapo ndryshuat me sukses foton e profilit."
+            })
+          }else{
+            Toast.show({
+              type: "info",
+              text1: "Informacion",
+              text2: "Sesioni nuk u perditesua. Deri ne kycjen tjeter fotoja e ngarkuar nuk do paraqitet tek ju."
+            })
+          }
+        }
+      }
+    }
 
   const drawerItems = [
     {
@@ -115,10 +177,12 @@ export default function DriverDrawerComponent(props: any) {
             end={{ x: 1, y: 1.5 }}
             style={styles.profileSection}
           >
-            <Image
-              source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg" }}
-              style={styles.profileImage}
-            />
+            <TouchableOpacity onPress={handleImageUpload}>
+          <Image
+            source={{ uri: user.image }}
+            style={styles.profileImage}
+          />
+            </TouchableOpacity>
             <Text style={styles.profileName}>John Doe</Text>
             <Text className="text-white font-pregular text-sm">Shofer</Text>
           </LinearGradient>

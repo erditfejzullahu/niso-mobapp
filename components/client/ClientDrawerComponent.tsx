@@ -1,4 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
+import api from "@/hooks/useApi";
 import { FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { DrawerContentScrollView } from "@react-navigation/drawer";
@@ -6,7 +7,6 @@ import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, usePathname } from "expo-router";
-import { getStorage, ref, uploadBytes } from "firebase/storage";
 import { UserStar } from "lucide-react-native";
 import React from "react";
 import {
@@ -48,9 +48,12 @@ const CustomDrawerItem = ({ label, icon, isActive, onPress }: DrawerItemProps) =
 );
 
 export default function ClientDrawerComponent(props: any) {
-  const {currentUser} = useAuth();
+  const {user, updateSession} = useAuth();
+
+  if(!user) {router.replace('/sign-in'); return;}
+
   const pathname = usePathname();
-  const {signOut} = useAuth();
+  const {logout} = useAuth();
 
   const handleLogout = () => {
     Alert.alert("Shkycje", "A jeni të sigurt që dëshironi të shkyceni?", [
@@ -58,7 +61,7 @@ export default function ClientDrawerComponent(props: any) {
       {
         text: "Shkycuni",
         style: "destructive",
-        onPress: () => signOut(),
+        onPress: () => logout(),
       },
     ]);
   };
@@ -129,27 +132,42 @@ export default function ClientDrawerComponent(props: any) {
   
       const imagePicked = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: "images",
-        quality: 1,
-        aspect: [4,3]
+        quality: 0.7,
+        aspect: [1,1]
       })
   
       if(!imagePicked.canceled){
         const imageUri = imagePicked.assets[0].uri  
-        try {
-          const imageContext = ImageManipulator.ImageManipulator.manipulate(imageUri)
-          const image = await imageContext.renderAsync();
-          const result = await image.saveAsync({
-            compress: 0,
-            format: ImageManipulator.SaveFormat.WEBP
-          })
-          const response = await fetch(result.uri);
-          const blob = await response.blob()
-          const storage = getStorage();
-          const storageRef = ref(storage, `images/${currentUser?.uid}.webp`)
-          await uploadBytes(storageRef, blob);
-          currentUser?.reload();
-        } catch (error) {
-          console.error("error converting image ", error);
+        const formData = new FormData();
+        const filename = imageUri.split('/').pop() || 'profile.jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
+        
+        formData.append('newProfileImage', {
+          uri: imageUri,
+          name: filename,
+          type,
+        } as any);
+        const res = await api.post('/auth/update-profile-image', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        if(res.data.success){
+          const uptdSession = await updateSession();
+          if(uptdSession){
+            Toast.show({
+              type: "success",
+              text1: "Sukes!",
+              text2: "Sapo ndryshuat me sukses foton e profilit."
+            })
+          }else{
+            Toast.show({
+              type: "info",
+              text1: "Informacion",
+              text2: "Sesioni nuk u perditesua. Deri ne kycjen tjeter fotoja e ngarkuar nuk do paraqitet tek ju."
+            })
+          }
         }
       }
     }
@@ -170,7 +188,7 @@ export default function ClientDrawerComponent(props: any) {
           >
             <TouchableOpacity onPress={handleImageUpload}>
               <Image
-                source={{ uri: currentUser?.photoURL || "https://randomuser.me/api/portraits/men/32.jpg" }}
+                source={{ uri: user.image }}
                 style={styles.profileImage}
               />
             </TouchableOpacity>
