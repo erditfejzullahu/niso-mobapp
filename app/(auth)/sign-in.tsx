@@ -1,6 +1,6 @@
 import { useAuth } from '@/context/AuthContext';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { Mail } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Dimensions, ImageBackground, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -27,8 +27,6 @@ const NisoLogin = () => {
   const titleColor = useSharedValue(0); // For color animation
   const dotScale = useSharedValue(1);
 
-  const [resendEmail, setResendEmail] = useState(false)
-
   const [loading, setLoading] = useState(false)
   const {login} = useAuth();
 
@@ -48,19 +46,17 @@ const NisoLogin = () => {
         text1: "Sapo u identifikuat me sukses në Niso."
       })
     } catch (error: any) {
-      console.error(error);
-      if(error.message === "verify email"){
+      if(error.response.data.message[0] === "email must be an email") {
         Toast.show({
-            type: "error",
-            text1: "Ju lutem verifikoni emailin tuaj."
+          type: "error",
+          text1: "Fusha e emailit duhet te kete tipin email."
         })
-        setResendEmail(true)
-        return;
+      }else{
+        Toast.show({
+          type: "error",
+          text1: "Dicka shkoi gabim!"
+        })
       }
-      Toast.show({
-        type: "error",
-        text1: "Dicka shkoi gabim!"
-      })
     } finally {
       setLoading(false)
     }

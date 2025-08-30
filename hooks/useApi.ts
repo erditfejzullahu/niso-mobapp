@@ -1,49 +1,97 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
-import CookieManager, { Cookie } from "@react-native-cookies/cookies";
+import * as SecureStore from "expo-secure-store";
 
-const API_URL = "http://localhost:3000"; // change this
+const API_URL = "http://192.168.1.12:3000";
 
-// Create axios instance
+// --- Secure Storage Keys ---
+const COOKIE_STORAGE_KEY = "auth_cookies";
+const USER_STORAGE_KEY = "user_data";
+
+// --- Axios instance ---
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
   withCredentials: true,
 });
 
-// --- Utility: attach cookies to each request ---
-api.interceptors.request.use(async (config: AxiosRequestConfig): Promise<any> => {
-  const cookies = await CookieManager.get(API_URL);
-  const cookieHeader = Object.values(cookies)
-    .map((c: Cookie) => `${c.name}=${c.value}`)
-    .join("; ");
-
-  if (cookieHeader) {
-    if (!config.headers) config.headers = {};
-    config.headers["Cookie"] = cookieHeader;
+// --- Cookie Management ---
+export const getStoredCookies = async (): Promise<string | null> => {
+  try {
+    return await SecureStore.getItemAsync(COOKIE_STORAGE_KEY);
+  } catch (error) {
+    console.error("Failed to get stored cookies:", error);
+    return null;
   }
+};
 
-  return config;
+export const setStoredCookies = async (cookies: string): Promise<void> => {
+  try {
+    await SecureStore.setItemAsync(COOKIE_STORAGE_KEY, cookies);
+  } catch (error) {
+    console.error("Failed to store cookies:", error);
+  }
+};
+
+export const clearStoredCookies = async (): Promise<void> => {
+  try {
+    await SecureStore.deleteItemAsync(COOKIE_STORAGE_KEY);
+    await SecureStore.deleteItemAsync(USER_STORAGE_KEY);
+  } catch (error) {
+    console.error("Failed to clear cookies:", error);
+  }
+};
+
+// --- Extract cookies from response ---
+const extractCookiesFromResponse = (response: AxiosResponse): string | null => {
+  const setCookieHeader = response.headers["set-cookie"];
+  if (!setCookieHeader) return null;
+  
+  return Array.isArray(setCookieHeader) 
+    ? setCookieHeader.join("; ") 
+    : setCookieHeader;
+};
+
+// --- Attach cookies manually before each request ---
+api.interceptors.request.use(async (config: AxiosRequestConfig): Promise<any> => {
+  try {
+    const cookieHeader = await getStoredCookies();
+    if (cookieHeader) {
+      if (!config.headers) config.headers = {};
+      config.headers["Cookie"] = cookieHeader;
+    }
+    return config;
+  } catch (error) {
+    console.error("Request interceptor error:", error);
+    return config;
+  }
 });
 
 // --- Response interceptor: handle 401 & refresh ---
 let isRefreshing = false;
-let failedQueue: {
-  resolve: (value?: unknown) => void;
-  reject: (reason?: unknown) => void;
-}[] = [];
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (error: any) => void;
+}> = [];
 
-const processQueue = (error: unknown, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
+const processQueue = (error: any = null) => {
+  failedQueue.forEach(promise => {
     if (error) {
-      prom.reject(error);
+      promise.reject(error);
     } else {
-      prom.resolve(token);
+      promise.resolve();
     }
   });
   failedQueue = [];
 };
 
 api.interceptors.response.use(
-  (response: AxiosResponse) => response,
+  (response: AxiosResponse) => {
+    // Store cookies from response if they exist
+    const cookies = extractCookiesFromResponse(response);
+    if (cookies) {
+      setStoredCookies(cookies);
+    }
+    return response;
+  },
   async (error: AxiosError) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
@@ -53,27 +101,34 @@ api.interceptors.response.use(
           failedQueue.push({ resolve, reject });
         })
           .then(() => api(originalRequest))
-          .catch((err) => Promise.reject(err));
+          .catch(err => Promise.reject(err));
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
       try {
-        // call refresh endpoint (adjust path if needed)
-        await api.post("/auth/update-session", {}, { withCredentials: true });
+        // Call refresh endpoint
+        const refreshResponse = await api.post("/auth/update-session", {}, { 
+          withCredentials: true,
+        });
+
+        // Save updated cookies
+        const cookies = extractCookiesFromResponse(refreshResponse);
+        if (cookies) {
+          await setStoredCookies(cookies);
+        }
 
         isRefreshing = false;
-        processQueue(null);
+        processQueue();
 
         return api(originalRequest);
       } catch (refreshError) {
         isRefreshing = false;
-        processQueue(refreshError, null);
+        processQueue(refreshError);
 
-        // clear cookies if refresh fails
-        await logout();
-
+        // Clear auth state on refresh failure
+        await clearStoredCookies();
         return Promise.reject(refreshError);
       }
     }
@@ -85,15 +140,14 @@ api.interceptors.response.use(
 // --- Logout helper ---
 export const logout = async (): Promise<void> => {
   try {
-    // Inform backend
-    await api.post("/auth/logout", {}, { withCredentials: true });
-    CookieManager.clearAll();
+    await api.post("/auth/logout", {}, { 
+      withCredentials: true,
+    });
   } catch (err) {
     console.warn("Logout request failed:", err);
+  } finally {
+    await clearStoredCookies();
   }
-
-  // Clear cookies client-side
-  await CookieManager.clearAll(true);
 };
 
 export default api;

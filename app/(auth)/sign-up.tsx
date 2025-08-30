@@ -180,7 +180,7 @@ const NisoSignUp = () => {
       await signUp(fullName, email, password, confirmPassword, accountType, imageSelected)
       Toast.show({
         type: "success",
-        text1: "Sapo u regjistruat me sukses në Niso."
+        text1: "Sapo u regjistruat me sukses në Niso. Tani do te ridrejtoheni tek seksioni i verifikimit te identitetit tuaj."
       })
     } catch (error) {
       console.error(error);

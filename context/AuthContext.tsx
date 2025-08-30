@@ -1,85 +1,152 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import api from "../hooks/useApi";
-import CookieManager from "@react-native-cookies/cookies";
+import api, { logout as apiLogout, setStoredCookies, clearStoredCookies } from "../hooks/useApi";
 import { User } from "@/types/app-types";
+import * as SecureStore from "expo-secure-store";
 import Toast from "react-native-toast-message";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   signUp: (fullName: string, email: string, password: string, confirmPassword: string, accountType: number, image: string) => Promise<void>;
   updateSession: () => Promise<boolean>;
 }
 
-const BACKEND_URL = 'https://localhost:3000'
+const USER_STORAGE_KEY = "user_data";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  // Load profile on mount (if cookies are still valid)
+  // Load user from secure storage on mount
+  const loadUserFromStorage = async (): Promise<User | null> => {
+    try {
+      const userData = await SecureStore.getItemAsync(USER_STORAGE_KEY);
+      return userData ? JSON.parse(userData) : null;
+    } catch (error) {
+      console.error("Failed to load user from storage:", error);
+      return null;
+    }
+  };
+
+  const saveUserToStorage = async (userData: User | null): Promise<void> => {
+    try {
+      if (userData) {
+        await SecureStore.setItemAsync(USER_STORAGE_KEY, JSON.stringify(userData));
+      } else {
+        await SecureStore.deleteItemAsync(USER_STORAGE_KEY);
+      }
+    } catch (error) {
+      console.error("Failed to save user to storage:", error);
+    }
+  };
+
+  // Load profile on mount
   useEffect(() => {
-    const init = async () => {
+    const initAuth = async () => {
       try {
-        const cookies = await CookieManager.get(BACKEND_URL)
-        console.log(cookies);
-        
-        if(cookies.sessionid){
-          const res = await api.get<User>("/auth/profile");
-          setUser(res.data);
+        const storedUser = await loadUserFromStorage();
+        if (storedUser) {
+          setUser(storedUser);
+          setIsAuthenticated(true);
         }
-      } catch {
+
+        // Verify session is still valid
+        const res = await api.get<User>("/auth/profile");
+        const userData = res.data;
+        
+        setUser(userData);
+        setIsAuthenticated(true);
+        await saveUserToStorage(userData);
+      } catch (error) {
+        console.error("Auth initialization failed:", error);
         setUser(null);
+        setIsAuthenticated(false);
+        await clearStoredCookies();
+        await saveUserToStorage(null);
       } finally {
         setLoading(false);
       }
     };
-    init();
+
+    initAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      await api.post("/auth/login", { email, password }, { withCredentials: true });
-      const res = await api.get<User>("/auth/profile");
-      setUser(res.data);
-    } catch (err) {
-      throw err;
+      const response = await api.post("/auth/login", { email, password }, { 
+        withCredentials: true 
+      });
+
+      // Get user profile after successful login
+      const profileResponse = await api.get<User>("/auth/profile");
+      const userData = profileResponse.data;
+      
+      setUser(userData);
+      setIsAuthenticated(true);
+      await saveUserToStorage(userData);
+    } catch (error: any) {
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
   const logout = async () => {
-    await api.post('/auth/logout');
-    await CookieManager.clearAll();
-    setUser(null);
-    //toaster
+    try {
+      await apiLogout();
+    } catch (err) {
+      console.warn("Logout request failed:", err);
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
+      await saveUserToStorage(null);
+      
+      Toast.show({
+        type: "success",
+        text1: "Logged out",
+        text2: "You have been logged out successfully",
+      });
+    }
   };
 
-  const updateSession = async () => {
+  const updateSession = async (): Promise<boolean> => {
     try {
-      const res = await api.get("/auth/update-session");
-      if(res.data.success){
-        const getUser = await api.get('/auth/profile');
-        if(getUser.data.success){
-          setUser(res.data);
-        }
+      const response = await api.post("/auth/update-session", {}, { 
+        withCredentials: true,
+      });
+      if(response.data.success){
+        const profileResponse = await api.get<User>("/auth/profile");
+        const userData = profileResponse.data;
+        
+        setUser(userData);
+        setIsAuthenticated(true);
+        await saveUserToStorage(userData);
+  
+        return true;
       }
-      //toaster
-      return true;
-    } catch(err) {
-      console.error(err);
+      console.log("not updated");
+      return false;
+      // Verify the session is still valid
+    } catch (error) {
+      console.error("Session refresh failed:", error);
       setUser(null);
+      setIsAuthenticated(false);
+      await clearStoredCookies();
+      await saveUserToStorage(null);
+      
       return false;
     }
   };
 
   const signUp = async (fullName: string, email: string, password: string, confirmPassword: string, accountType: number, imageUri: string) => {
+    setLoading(true);
     try {
       const formData = new FormData();
 
@@ -87,7 +154,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       formData.append('email', email);
       formData.append('password', password);
       formData.append('confirmPassword', confirmPassword);
-      formData.append('accountType', accountType as any);
+      formData.append('accountType', accountType.toString());
 
       const filename = imageUri.split('/').pop() || 'profile.jpg';
       const match = /\.(\w+)$/.exec(filename);
@@ -99,27 +166,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         type,
       } as any);
 
-      await api.post('/auth/register', formData, {
+      const response = await api.post('/auth/register', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        withCredentials: true,
       });
 
-      await login(email, password);
-    } catch (error) {
-      console.error(error);
-      throw error
+      if(response.data.success){
+        // Auto-login after successful registration
+        await login(email, password);
+      }
+
+    } catch (error: any) {      
+      throw error;
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, updateSession, signUp }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      isAuthenticated,
+      login, 
+      logout, 
+      signUp, 
+      updateSession 
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
