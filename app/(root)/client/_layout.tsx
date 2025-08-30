@@ -9,22 +9,22 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function DrawerLayout() {
-  const {currentUser, loading} = useAuth();
+  const {user, loading} = useAuth();
   const router = useRouter();
   
   useEffect(() => {
     if(!loading){
-      if(!currentUser){
+      if(!user){
         router.replace('/sign-in')
       }
-      if(currentUser && !currentUser.emailVerified){
-        router.replace('/sign-in')
+      if(user && !user.user_verified){
+        router.replace('/verify-identity')
       }
-      if(currentUser && currentUser.role !== 'client'){
+      if(user && user.role !== 'PASSENGER'){
         router.replace('/driver/section/active-routes')
       }
     }
-  }, [currentUser, loading])
+  }, [user, loading])
   
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

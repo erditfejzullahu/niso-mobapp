@@ -3,24 +3,24 @@ import { Stack, useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 
 const _layout = () => {
-  const {currentUser, loading} = useAuth();
+  const {user, loading} = useAuth();
   const router = useRouter();
   useEffect(() => {
     if(loading) return;
     if(!loading){
-      if(currentUser && !currentUser.emailVerified){        
-        return;
+      if(user && !user.user_verified){        
+        router.replace('/(root)/verify-identity')
       }
-      if(currentUser && currentUser.role === 'client'){
+      if(user && user.role === "PASSENGER"){
         router.replace('/(root)/client/section/client-home')
-      }else if(currentUser && currentUser.role === 'driver'){
+      }else if(user && user.role === 'DRIVER'){
         router.replace('/(root)/driver/section/active-routes')
       }
     }
-  }, [currentUser, loading])
+  }, [user, loading])
   
   return (
-    <Stack screenOptions={{headerShown: false}}/>
+    <Stack screenOptions={{headerShown: false, gestureEnabled: false}}/>
   )
 }
 
