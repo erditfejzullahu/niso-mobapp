@@ -50,8 +50,6 @@ const NisoSignUp = () => {
   const [loading, setLoading] = useState(false)
 
   const [imageSelected, setImageSelected] = useState("")
-  const [imageToSend, setImageToSend] = useState<string | null>(null)
-
 
   const scrollY = useSharedValue(0);
   const titleColor = useSharedValue(0);
@@ -113,39 +111,40 @@ const NisoSignUp = () => {
 
   const handleImageUpload = async () => {
     const {status} = await ImagePicker.getMediaLibraryPermissionsAsync()
-    console.log(status);
     
     if(status !== "granted" && status !== "undetermined"){
       Toast.show({
         type: "error",
-        text1: "Ju duhet të keni leje të hapjes së galerisë"
+        text1: "Ju duhet të jepni leje për të hapur galerinë"
       })
+      return;
     }
 
     const imagePicked = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: "images",
-      quality: 1,
-      aspect: [4,3]
+      quality: 0.7,
+      aspect: [1,1],
+      allowsEditing: true
     })
 
     if(!imagePicked.canceled){
       const imageUri = imagePicked.assets[0].uri
       setImageSelected(imageUri)
 
-      try {
-        const imageContext = ImageManipulator.ImageManipulator.manipulate(imageUri)
-        const image = await imageContext.renderAsync();
-        const result = await image.saveAsync({
-          compress: 0,
-          format: ImageManipulator.SaveFormat.WEBP
-        })
-        setImageToSend(result.uri)
-      } catch (error) {
-        console.error("error converting image ", error);
-        setImageToSend(null)
-      }
+      // try {
+      //   const imageContext = ImageManipulator.ImageManipulator.manipulate(imageUri)
+      //   const image = await imageContext.renderAsync();
+      //   const result = await image.saveAsync({
+      //     compress: 0.7,
+      //     format: ImageManipulator.SaveFormat.WEBP
+      //   })
+      //   setImageToSend(result.uri)
+      // } catch (error) {
+      //   console.error("error converting image ", error);
+      //   setImageToSend(null)
+      // }
     }
-    setImageToSend(null)
+    // setImageToSend(null)
   }
 
   const handleSignUp = async () => {
@@ -166,11 +165,19 @@ const NisoSignUp = () => {
       setConfirmPasswordError('');
     }
 
+    if(imageSelected === null){
+      Toast.show({
+        type: "error",
+        text1: "Ju lutem fusni nje foto profili."
+      })
+      valid = false;
+    }
+
     if (!valid) return;
     setLoading(true)
 
     try {
-      await signUp(email, password, fullName, accountType === 0 ? "client" : "driver", imageToSend)
+      await signUp(fullName, email, password, confirmPassword, accountType, imageSelected)
       Toast.show({
         type: "success",
         text1: "Sapo u regjistruat me sukses në Niso."

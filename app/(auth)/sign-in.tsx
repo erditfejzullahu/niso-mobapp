@@ -1,8 +1,6 @@
 import { useAuth } from '@/context/AuthContext';
-import { auth } from '@/firebase';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { Link } from 'expo-router';
-import { AuthError, sendEmailVerification } from 'firebase/auth';
 import { Mail } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Dimensions, ImageBackground, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -22,7 +20,6 @@ import Toast from 'react-native-toast-message';
 
 const NisoLogin = () => {
   const { width, height } = Dimensions.get('window');
-  const {currentUser, signOut} = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,20 +30,7 @@ const NisoLogin = () => {
   const [resendEmail, setResendEmail] = useState(false)
 
   const [loading, setLoading] = useState(false)
-  const {signIn} = useAuth();
-
-  const handleResetEmail = async () => {
-    try {
-      await sendEmailVerification(auth.currentUser!);
-      await signOut();
-    } catch (error) {
-      const authError = error as AuthError;
-      throw new Error(authError.message);
-    }
-    
-    Toast.show({type: "success", text1: "Ridërgimi i emailit verifikues shkoi me sukses!"})
-    setResendEmail(false)
-  }
+  const {login} = useAuth();
 
   const handleLogin = async () => {
     if(!email || !password){
@@ -58,7 +42,7 @@ const NisoLogin = () => {
     }
     setLoading(true)
     try {
-      await signIn(email, password)
+      await login(email, password)
       Toast.show({
         type: "success",
         text1: "Sapo u identifikuat me sukses në Niso."
@@ -216,10 +200,6 @@ const NisoLogin = () => {
           >
             <Text className="text-white font-pbold text-lg">Kycuni</Text>
           </TouchableOpacity>
-          {resendEmail && <TouchableOpacity className='items-center mt-3 justify-center flex-row gap-1' onPress={handleResetEmail}>
-            <Text className='font-pbold text-indigo-600 underline text-sm'>Ridërgo email-in</Text>
-            <Mail color={"#4f46e5"} size={20}/>
-          </TouchableOpacity>}
 
           {/* "Or continue with" divider */}
           <View className="flex-row items-center my-6">
