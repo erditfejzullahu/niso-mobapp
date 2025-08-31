@@ -112,20 +112,19 @@ const NisoSignUp = () => {
 
     if(!imagePicked.canceled){
       const imageUri = imagePicked.assets[0].uri
-      setImageSelected(imageUri)
-
-      // try {
-      //   const imageContext = ImageManipulator.ImageManipulator.manipulate(imageUri)
-      //   const image = await imageContext.renderAsync();
-      //   const result = await image.saveAsync({
-      //     compress: 0.7,
-      //     format: ImageManipulator.SaveFormat.WEBP
-      //   })
-      //   setImageToSend(result.uri)
-      // } catch (error) {
-      //   console.error("error converting image ", error);
-      //   setImageToSend(null)
-      // }
+      
+      try {
+        const imageContext = ImageManipulator.ImageManipulator.manipulate(imageUri)
+        const image = await imageContext.renderAsync();
+        const result = await image.saveAsync({
+          compress: 0.7,
+          format: ImageManipulator.SaveFormat.WEBP
+        })
+        setImageSelected(result.uri)
+      } catch (error) {
+        console.error("error converting image ", error);
+        setImageSelected("")
+      }
     }
     // setImageToSend(null)
   }

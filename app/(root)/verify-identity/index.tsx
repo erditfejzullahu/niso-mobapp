@@ -15,6 +15,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons, FontAwesome, Ionicons } from '@expo/vector-icons';
 import { KosovoCity } from '@/types/app-types';
 import api from '@/hooks/useApi';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 const VerifyIdentity = () => {
   const { width, height } = Dimensions.get('window');
@@ -22,7 +23,7 @@ const VerifyIdentity = () => {
   
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
-  const [gender, setGender] = useState('');
+  const [gender, setGender] = useState('MALE');
   const [selfie, setSelfie] = useState<string | null>(null);
   const [idFront, setIdFront] = useState<string | null>(null);
   const [idBack, setIdBack] = useState<string | null>(null);
@@ -35,7 +36,10 @@ const VerifyIdentity = () => {
   const allKosovoCities = Object.values(KosovoCity);
   
   const { user, updateSession } = useAuth();
-  console.log(user, ' tek verifyy');
+  
+  if(user && user.user_verified) {
+    router.replace(user.role === "DRIVER" ? "/driver/section/active-routes" : "/client/section/client-home")
+  }
   
 
   const backgroundLayer = useAnimatedStyle(() => ({
@@ -100,20 +104,37 @@ const VerifyIdentity = () => {
     }
 
     // Launch image picker
-    let result = await ImagePicker.launchImageLibraryAsync({
+    let imagePicked = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
     });
 
-    if (!result.canceled) {
-      if (type === 'selfie') {
-        setSelfie(result.assets[0].uri);
-      } else if (type === 'idFront') {
-        setIdFront(result.assets[0].uri);
-      } else if (type === 'idBack') {
-        setIdBack(result.assets[0].uri);
+    if (!imagePicked.canceled) {
+      try {
+        const imageContext = ImageManipulator.ImageManipulator.manipulate(imagePicked.assets[0].uri)
+        const image = await imageContext.renderAsync();
+        const result = await image.saveAsync({
+          compress: 0.7,
+          format: ImageManipulator.SaveFormat.WEBP
+        })
+        if (type === 'selfie') {
+          setSelfie(result.uri);
+        } else if (type === 'idFront') {
+          setIdFront(result.uri);
+        } else if (type === 'idBack') {
+          setIdBack(result.uri);
+        }
+      } catch (error) {
+        console.error("error converting image ", error);
+        if (type === 'selfie') {
+          setSelfie("");
+        } else if (type === 'idFront') {
+          setIdFront("");
+        } else if (type === 'idBack') {
+          setIdBack("");
+        }
       }
     }
   };
@@ -128,14 +149,20 @@ const VerifyIdentity = () => {
     }
 
     // Launch camera
-    let result = await ImagePicker.launchCameraAsync({
+    let imagePicked = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 1,
+      quality: 0.7,
     });
 
-    if (!result.canceled) {
-      setSelfie(result.assets[0].uri);
+    if (!imagePicked.canceled) {
+      const imageContext = ImageManipulator.ImageManipulator.manipulate(imagePicked.assets[0].uri)
+      const image = await imageContext.renderAsync();
+      const result = await image.saveAsync({
+        compress: 0.7,
+        format: ImageManipulator.SaveFormat.WEBP
+      })
+      setSelfie(result.uri);
     }
   };
 
@@ -196,6 +223,9 @@ const VerifyIdentity = () => {
           'Content-Type': 'multipart/form-data',
         },
       });      
+      if(res.data.success){
+        await updateSession();
+      }
       
       Toast.show({
         type: "success",
@@ -205,6 +235,8 @@ const VerifyIdentity = () => {
       // Navigate to the next screen
       // router.replace('/(tabs)');
     } catch (error: any) {
+      console.log(error.response.data.message);
+      
       console.error('Verification error:', error);
       Toast.show({
         type: "error",
@@ -300,18 +332,24 @@ const VerifyIdentity = () => {
             <Text className="text-gray-700 mb-1 font-pmedium">Gjinia</Text>
             <View className="flex-row justify-between mt-2">
               <TouchableOpacity 
-                className={`flex-1 mr-2 py-3 rounded-lg border ${gender === 'Mashkull' ? 'bg-indigo-100 border-indigo-600' : 'border-gray-300'}`}
-                onPress={() => setGender('Mashkull')}
+                className={`flex-1 mr-2 py-3 rounded-lg border ${gender === 'MALE' ? 'bg-indigo-100 border-indigo-600' : 'border-gray-300'}`}
+                onPress={() => setGender('MALE')}
               >
-                <Text className={`text-center font-pmedium ${gender === 'Mashkull' ? 'text-indigo-600' : 'text-gray-600'}`}>Mashkull</Text>
+                <Text className={`text-center font-pmedium ${gender === 'MALE' ? 'text-indigo-600' : 'text-gray-600'}`}>Mashkull</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                className={`flex-1 ml-2 py-3 rounded-lg border ${gender === 'Femër' ? 'bg-indigo-100 border-indigo-600' : 'border-gray-300'}`}
-                onPress={() => setGender('Femër')}
+                className={`flex-1 ml-2 py-3 rounded-lg border ${gender === 'FEMALE' ? 'bg-indigo-100 border-indigo-600' : 'border-gray-300'}`}
+                onPress={() => setGender('FEMALE')}
               >
-                <Text className={`text-center font-pmedium ${gender === 'Femër' ? 'text-indigo-600' : 'text-gray-600'}`}>Femër</Text>
+                <Text className={`text-center font-pmedium ${gender === 'FEMALE' ? 'text-indigo-600' : 'text-gray-600'}`}>Femër</Text>
               </TouchableOpacity>
             </View>
+            <TouchableOpacity 
+              className={`flex-1 mt-2 py-3 rounded-lg border ${gender === 'RATHER_NOT_SAY' ? 'bg-indigo-100 border-indigo-600' : 'border-gray-300'}`}
+              onPress={() => setGender('RATHER_NOT_SAY')}
+            >
+              <Text className={`text-center font-pmedium ${gender === 'RATHER_NOT_SAY' ? 'text-indigo-600' : 'text-gray-600'}`}>Tjeter</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Selfie Upload */}
