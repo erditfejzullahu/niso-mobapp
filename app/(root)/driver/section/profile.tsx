@@ -12,7 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/sq';
 import { router } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Alert, Image, Modal, RefreshControl, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -22,6 +22,7 @@ import * as ImagePicker from "expo-image-picker"
 import Toast from 'react-native-toast-message';
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImageManipulator from "expo-image-manipulator"
+import { passwordResetSchema } from '@/schemas/passwordResetSchema';
 
 dayjs.locale('sq');
 
@@ -54,7 +55,30 @@ const Profile = () => {
 
   const [isContactingSupport, setIsContactingSupport] = useState(false)
 
-  const pickImage = async (onChange: (value: string) => void) => {
+  
+  const {control, reset, handleSubmit, formState: {errors, isSubmitting}} = useForm<z.infer<typeof userDetailsSchema>>({
+    resolver: zodResolver(userDetailsSchema),
+    defaultValues: useMemo(() => ({
+      fullName: "",
+      image: "",
+      email: "",
+      address: "",
+      city: KosovoCity.PRISHTINE,
+      gender: Gender.MALE
+    }), []),
+    mode: "onChange"
+  })
+  
+  const {control: passwordControl, watch: passwordWatcher, reset: resetPasswords, handleSubmit: passwordResetSubmit, formState: {errors: passwordErrors, isSubmitting: passwordIsSubmitting}} = useForm<z.infer<typeof passwordResetSchema>>({
+    resolver: zodResolver(passwordResetSchema),
+    defaultValues: useMemo(() => ({
+      password: "",
+      confirmPassword: ""
+    }), []),
+    mode: "onChange"
+  })
+  
+  const pickImage = useCallback(async (onChange: (value: string) => void) => {
     try {
       // Request permissions
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -93,21 +117,9 @@ const Profile = () => {
       Alert.alert('Error', 'Failed to pick image');
       console.error('Image picker error:', error);
     }
-  };
+  }, [reset]);
 
-  const {control, reset, handleSubmit, formState: {errors, isSubmitting}} = useForm<z.infer<typeof userDetailsSchema>>({
-    resolver: zodResolver(userDetailsSchema),
-    defaultValues: useMemo(() => ({
-      fullName: "",
-      image: "",
-      email: "",
-      address: "",
-      city: KosovoCity.PRISHTINE,
-      gender: Gender.MALE
-    }), [])
-  })
-
-  const updateUserDetails = async (data: z.infer<typeof userDetailsSchema>) => {
+  const updateUserDetails = useCallback(async (data: z.infer<typeof userDetailsSchema>) => {
     try {
       const formData = new FormData();
       formData.append('fullName', data.fullName);
@@ -152,7 +164,43 @@ const Profile = () => {
         text2: error.response.data.message
       })
     }
-  }
+  }, [reset])
+
+  const updateUserPassword = useCallback(async (data: z.infer<typeof passwordResetSchema>) => {
+    try {
+      if(data.password !== data.confirmPassword) {
+        Toast.show({
+          type: 'error',
+          text1: "Gabim!",
+          text2: "Fjalekalimet duhet te jene te njejta."
+        })
+        return;
+      }
+      
+      const res = await api.patch('/auth/updatePassword', data);
+      if(res.data.success){
+        Toast.show({
+          type: "success",
+          text1: "Sukses!",
+          text2: "Sapo keni ndryshuar fjalekalimin me sukses!"
+        })
+        setIsChangingPassword(false);
+      }
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Gabim!",
+        text2: error.response.data.message
+      })
+    }
+  }, [resetPasswords])
+
+  useEffect(() => {
+    if(!isChangingPassword){
+      resetPasswords();
+    }
+  }, [isChangingPassword])
+  
 
   useEffect(() => {
     if(data && data.data){
@@ -210,15 +258,15 @@ const Profile = () => {
       {/* Stats Section */}
       <View className="flex-row justify-between mt-4">
         <View className="flex-1 bg-white rounded-2xl p-4 mr-2 shadow shadow-black/5 items-center">
-          <Text className="text-lg font-psemibold text-indigo-950">100</Text>
+          <Text className="text-lg font-psemibold text-indigo-950">{data.data.profileDetails.completedRides}</Text>
           <Text className="text-xs text-gray-500 text-center font-pregular">Udhetime</Text>
         </View>
         <View className="flex-1 bg-white rounded-2xl p-4 mx-1 shadow shadow-black/5 items-center">
-          <Text className="text-lg font-psemibold text-indigo-950">100</Text>
+          <Text className="text-lg font-psemibold text-indigo-950">{data.data.profileDetails.regularClients}</Text>
           <Text className="text-xs text-gray-500 text-center font-pregular">Klientë të Rregullt</Text>
         </View>
         <View className="flex-1 bg-white rounded-2xl p-4 ml-2 shadow shadow-black/5 items-center">
-          <Text className="text-lg font-psemibold text-indigo-950">€100</Text>
+          <Text className="text-lg font-psemibold text-indigo-950">€{data.data.profileDetails.driverNetEarnings}</Text>
           <Text className="text-xs text-gray-500 text-center font-pregular">Fitime</Text>
         </View>
       </View>
@@ -265,27 +313,49 @@ const Profile = () => {
           <Text className="ml-3 text-indigo-950 font-pmedium">Ndrysho fjalëkalimin</Text>
         </TouchableOpacity>
         {isChangingPassword && <View className='overflow-hidden'><Animated.View entering={BounceInUp.easing(Easing.inOut(Easing.bounce))} className='p-4'>
-            <View className='mb-4'>
-              <Text className='mb-1 text-gray-700 font-pmedium'>Fjalëkalimi i ri</Text>
-              <TextInput
-                secureTextEntry
-                placeholder="********"
-                className={`bg-white rounded-2xl px-4 py-3 shadow-sm shadow-black/10 border border-gray-200`}
-                value={newPassword}
-                onChangeText={setNewPassword}
+          <View className='mb-4'>
+            <Controller 
+              control={passwordControl}
+              name="password"
+              render={({field}) => (
+                <>
+                <Text className='mb-1 text-gray-700 font-pmedium'>Fjalëkalimi i ri</Text>
+                <TextInput
+                  secureTextEntry
+                  placeholder="********"
+                  className={`bg-white rounded-2xl px-4 py-3 shadow-sm shadow-black/10 border border-gray-200`}
+                  value={field.value}
+                  onChangeText={field.onChange}
+                />
+                </>  
+              )}
               />
+              {passwordErrors.password && (
+                <Text className='text-xs font-plight text-red-500 mt-1'>{passwordErrors.password.message}</Text>
+              )}
             </View>
-            <View >
-              <Text className='mb-1 text-gray-700 font-pmedium'>Konfirmo fjalëkalimin e ri</Text>
-              <TextInput
-                secureTextEntry
-                placeholder="********"
-                className={`bg-white rounded-2xl px-4 py-3 shadow-sm shadow-black/10 border border-gray-200`}
-                value={confirmNewPassword}
-                onChangeText={setConfirmNewPassword}
+            <View>
+              <Controller 
+                control={passwordControl}
+                name="confirmPassword"
+                render={({field}) => (
+                  <>
+                  <Text className='mb-1 text-gray-700 font-pmedium'>Konfirmo fjalëkalimin e ri</Text>
+                  <TextInput
+                    secureTextEntry
+                    placeholder="********"
+                    className={`bg-white rounded-2xl px-4 py-3 shadow-sm shadow-black/10 border border-gray-200`}
+                    value={field.value}
+                    onChangeText={field.onChange}
+                  />
+                  </>
+                )}
               />
+              {passwordErrors.confirmPassword && (
+                <Text className='text-xs font-plight text-red-500 mt-1'>{passwordErrors.confirmPassword.message}</Text>
+              )}
             </View>
-            <TouchableOpacity disabled={((newPassword !== confirmNewPassword) || (!newPassword || !confirmNewPassword))} className={`rounded-2xl mt-2 bg-indigo-600 p-3 ${((newPassword !== confirmNewPassword) || (!newPassword || !confirmNewPassword)) && "opacity-50"}`}><Text className='font-pregular text-center text-white'>Ndryshoni fjalëkalimin</Text></TouchableOpacity>
+            <TouchableOpacity onPress={passwordResetSubmit(updateUserPassword)} disabled={passwordIsSubmitting || (passwordWatcher('password') !== passwordWatcher('confirmPassword')) || (!passwordWatcher('password') || !passwordWatcher('confirmPassword'))} className={`rounded-2xl mt-2 bg-indigo-600 p-3 ${(passwordIsSubmitting || (passwordWatcher('password') !== passwordWatcher('confirmPassword')) || (!passwordWatcher('password') || !passwordWatcher('confirmPassword'))) && "opacity-50"}`}><Text className='font-pregular text-center text-white'>Ndryshoni fjalëkalimin</Text></TouchableOpacity>
         </Animated.View></View>}
 
         <TouchableOpacity
@@ -336,6 +406,9 @@ const Profile = () => {
                   </View>
                 )}
               />
+              {errors.image && (
+                <Text className='text-xs font-plight text-red-500 mt-1'>{errors.image.message}</Text>
+              )}
             </View>
 
             <View className='mb-3'>
@@ -351,6 +424,9 @@ const Profile = () => {
                   />
                 )}
               />
+              {errors.fullName && (
+                <Text className='text-xs font-plight text-red-500 mt-1'>{errors.fullName.message}</Text>
+              )}
             </View>
             <View className='mb-3'>
               <Controller 
@@ -365,6 +441,9 @@ const Profile = () => {
                   />
                 )}
               />
+              {errors.address && (
+                <Text className='text-xs font-plight text-red-500 mt-1'>{errors.address.message}</Text>
+              )}
             </View>
             <View className='mb-3'>
               <Controller 
@@ -382,6 +461,9 @@ const Profile = () => {
                   </>
                 )}
               />
+              {errors.email && (
+                <Text className='text-xs font-plight text-red-500 mt-1'>{errors.email.message}</Text>
+              )}
             </View>
             <View className='mb-3'>
               <Controller 
@@ -413,6 +495,9 @@ const Profile = () => {
                   </View>
                 )}
               />
+              {errors.gender && (
+                <Text className='text-xs font-plight text-red-500 mt-1'>Ju lutem zgjidhni mes opsioneve</Text>
+              )}
             </View>
             
             
