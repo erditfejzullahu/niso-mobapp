@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import api, { logout as apiLogout, setStoredCookies, clearStoredCookies } from "../hooks/useApi";
+import api from "../hooks/useApi";
 import { User } from "@/types/app-types";
 import * as SecureStore from "expo-secure-store";
 import Toast from "react-native-toast-message";
+import { clearStoredCookies, getStoredCookies, loadUserFromStorage, saveUserToStorage } from "@/hooks/cookieManagement";
 
 interface AuthContextType {
   user: User | null;
@@ -23,47 +24,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  // Load user from secure storage on mount
-  const loadUserFromStorage = async (): Promise<User | null> => {
-    try {
-      const userData = await SecureStore.getItemAsync(USER_STORAGE_KEY);
-      return userData ? JSON.parse(userData) : null;
-    } catch (error) {
-      console.error("Failed to load user from storage:", error);
-      return null;
-    }
-  };
-
-  const saveUserToStorage = async (userData: User | null): Promise<void> => {
-    try {
-      if (userData) {
-        await SecureStore.setItemAsync(USER_STORAGE_KEY, JSON.stringify(userData));
-      } else {
-        await SecureStore.deleteItemAsync(USER_STORAGE_KEY);
-      }
-    } catch (error) {
-      console.error("Failed to save user to storage:", error);
-    }
-  };
+  
 
   // Load profile on mount
   useEffect(() => {
     const initAuth = async () => {
+      setLoading(true)
       try {
+        
         const storedUser = await loadUserFromStorage();
         if (storedUser) {
           setUser(storedUser);
           setIsAuthenticated(true);
-        }
-
+          // console.log(storedUser, ' ? stored user');
+        }        
+      
         // Verify session is still valid
-        const res = await api.get<User>("/auth/profile");
+        const res = await api.get("/auth/profile");     
+
         const userData = res.data;
         
         setUser(userData);
         setIsAuthenticated(true);
         await saveUserToStorage(userData);
       } catch (error) {
+        
         console.error("Auth initialization failed:", error);
         setUser(null);
         setIsAuthenticated(false);
@@ -100,7 +85,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await apiLogout();
+      await api.post("/auth/logout", {}, { 
+        withCredentials: true,
+      });
     } catch (err) {
       console.warn("Logout request failed:", err);
     } finally {
@@ -117,6 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateSession = async (): Promise<boolean> => {
+    setLoading(true)
     try {
       const response = await api.post("/auth/update-session", {}, { 
         withCredentials: true,
@@ -142,6 +130,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await saveUserToStorage(null);
       
       return false;
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -164,7 +154,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         uri: imageUri,
         name: filename,
         type,
-      } as any);
+      } as any);      
 
       const response = await api.post('/auth/register', formData, {
         headers: {
@@ -174,7 +164,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if(response.data.success){
-        // Auto-login after successful registration
         await login(email, password);
       }
 

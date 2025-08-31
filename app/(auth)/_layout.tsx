@@ -4,10 +4,15 @@ import React, { useEffect } from 'react';
 
 const _layout = () => {
   const {user, loading} = useAuth();
+  
   const router = useRouter();
   useEffect(() => {
+    
+    
     if(loading) return;
     if(!loading){
+      
+      
       if(user && !user.user_verified){        
         router.replace('/(root)/verify-identity')
       }

@@ -28,7 +28,8 @@ const NisoLogin = () => {
   const dotScale = useSharedValue(1);
 
   const [loading, setLoading] = useState(false)
-  const {login} = useAuth();
+  const {login, user} = useAuth();
+  
 
   const handleLogin = async () => {
     if(!email || !password){

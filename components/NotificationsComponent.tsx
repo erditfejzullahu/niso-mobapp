@@ -28,7 +28,6 @@ const fakeNotifications = [
 const NotificationsComponent = () => {
   const bottomSheetRef = useRef<BottomSheetModal>(null)
     const {isClosed, setToggled} = useToggleNotifications();
-    console.log(isClosed);
     const dateCreated = "2025-08-09T14:22:00Z";
     const clientPhoto ="https://randomuser.me/api/portraits/men/32.jpg";
 

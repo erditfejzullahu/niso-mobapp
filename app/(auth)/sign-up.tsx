@@ -98,7 +98,7 @@ const NisoSignUp = () => {
     if(status !== "granted" && status !== "undetermined"){
       Toast.show({
         type: "error",
-        text1: "Ju duhet të jepni leje për të hapur galerinë"
+        text1: "Ju duhet të jepni leje për të hapur galerinë",
       })
       return;
     }
@@ -137,10 +137,13 @@ const NisoSignUp = () => {
       password: "",
       email: "",
       confirmPassword:""
-    }
+    },
+    mode: "onChange"
   })
 
   const handleSignUp = async (data: z.infer<typeof registerSchema>) => {
+    console.log(data);
+    
     let valid = true;
     // Check password strength
 
@@ -174,12 +177,13 @@ const NisoSignUp = () => {
 
     try {
       await signUp(data.fullName, data.email, data.password, data.confirmPassword, accountType, imageSelected)
+
       Toast.show({
         type: "success",
         text1: "Sapo u regjistruat me sukses në Niso. Tani do te ridrejtoheni tek seksioni i verifikimit te identitetit tuaj."
       })
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error(error.response.data);
       Toast.show({
         type: "error",
         text1: "Dicka shkoi gabim në regjistrimin tuaj"
@@ -206,7 +210,7 @@ const NisoSignUp = () => {
 
         <View className="bg-white mx-6 rounded-3xl p-8 shadow-md shadow-black/15 border border-gray-100">
           {/* Title */}
-          <View className="items-center mb-10">
+          <View className="items-center mb-6">
             <Animated.Text className="text-4xl font-pbold mb-1 pt-3" style={animatedTitleStyle}>
               Regjistrohu<Animated.Text style={animatedDotStyle} className="text-black text-6xl">.</Animated.Text>
             </Animated.Text>
@@ -238,7 +242,8 @@ const NisoSignUp = () => {
                     className="text-gray-800 h-[35px]"
                     placeholder="John Doe"
                     placeholderTextColor="#9CA3AF"
-                    {...field}
+                    value={field.value}
+                    onChangeText={(e) => field.onChange(e)}
                   />
                   </>
                 )}
@@ -260,7 +265,8 @@ const NisoSignUp = () => {
                   className="text-gray-800 h-[35px]"
                   placeholder="perdoruesi@shembull.com"
                   placeholderTextColor="#9CA3AF"
-                  {...field}
+                  value={field.value}
+                  onChangeText={(e) => field.onChange(e)}
                 />
                 </>
               )}
@@ -281,7 +287,7 @@ const NisoSignUp = () => {
           </View>
 
           {/* Password */}
-          <View className={`border-b border-gray-200`}>
+          <View className={`border-b border-gray-200 mb-6`}>
             <Controller 
               control={control}
               name="password"
@@ -292,7 +298,8 @@ const NisoSignUp = () => {
                   className="text-gray-800 h-[35px]"
                   placeholder="••••••••"
                   placeholderTextColor="#9CA3AF"
-                  {...field}
+                  value={field.value}
+                  onChangeText={(e) => field.onChange(e)}
                   secureTextEntry
                 />
                 </>
@@ -302,7 +309,7 @@ const NisoSignUp = () => {
           </View>
 
           {/* Confirm Password */}
-          <View className={`border-b ${!confirmPasswordError && "mb-8"} border-gray-200`}>
+          <View className={`border-b border-gray-200`}>
             <Controller 
               control={control}
               name="confirmPassword"
@@ -314,7 +321,8 @@ const NisoSignUp = () => {
                   placeholder="••••••••"
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry
-                  {...field}
+                  value={field.value}
+                  onChangeText={(e) => field.onChange(e)}
                 />
                 </>
               )}
