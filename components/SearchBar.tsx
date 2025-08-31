@@ -1,20 +1,23 @@
 import { Search, X } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { memo, useMemo, useState } from "react";
 import { TextInput, TouchableOpacity } from "react-native";
 import Animated, { Easing, FadeInLeft } from "react-native-reanimated";
+import { debounce } from "lodash";
 
 type SearchBarProps = {
   placeholder?: string;
   onSearch: (query: string) => void;
 };
 
-export default function SearchBar({ placeholder = "Kërko klientin...", onSearch }: SearchBarProps) {
+export default memo(function SearchBar({ placeholder = "Kërko klientin...", onSearch }: SearchBarProps) {
   const [query, setQuery] = useState("");
 
-  const handleChange = (text: string) => {
-    setQuery(text);
-    onSearch(text);
-  };
+  const debounceTextSearch = useMemo(
+    () => debounce((searchQuery: string) => {
+      onSearch(searchQuery);
+    }, 500),
+    [onSearch]
+  )
 
   const clearSearch = () => {
     setQuery("");
@@ -28,7 +31,7 @@ export default function SearchBar({ placeholder = "Kërko klientin...", onSearch
         className="flex-1 ml-3 text-gray-700 text-base font-pregular"
         placeholder={placeholder}
         value={query}
-        onChangeText={handleChange}
+        onChangeText={(e) => {debounceTextSearch(e); setQuery(e);}}
         autoCorrect={false}
         autoCapitalize="none"
         clearButtonMode="never"
@@ -41,4 +44,4 @@ export default function SearchBar({ placeholder = "Kërko klientin...", onSearch
       )}
     </Animated.View>
   );
-}
+})
