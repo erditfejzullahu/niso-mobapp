@@ -1,54 +1,71 @@
 import HeaderComponent from "@/components/HeaderComponent";
 import SearchBar from "@/components/SearchBar";
+import EmptyState from "@/components/system/EmptyState";
+import ErrorState from "@/components/system/ErrorState";
+import LoadingState from "@/components/system/LoadingState";
+import api from "@/hooks/useApi";
+import { DriverFixedTarifs } from "@/types/app-types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Pencil, Trash2 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import Toast from "react-native-toast-message";
 
 export default function ViewTarifs({ navigation }: any) {
-  const [tarifs, setTarifs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  const [searchParam, setSearchParam] = useState("")
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    // In real scenario: fetch from API
-    // For now: load dummy tariffs from local storage or test data
-    setTimeout(() => {
-      setTarifs([
-        { id: 1, areaName: "Bregu i Diellit", price: 5, description: "Shërbim ditor", city: "Gjakova" },
-        { id: 2, areaName: "Qendra", price: 7.5, description: "Tarifë për qendër", city: "Prishtina" },
-      ]);
-      setLoading(false);
-    }, 1000);
-  }, []);
+  const {data, isLoading, isRefetching, refetch, error} = useQuery({
+    queryKey: ['driverTarifs', searchParam],
+    queryFn: async () => {
+      return await api.get<DriverFixedTarifs[]>(`/drivers/all-tarifs?searchParam=${searchParam}`)
+    }
+  })
 
-  const handleDelete = (id: number) => {
-    Alert.alert(
-      "Fshi Tarifën",
-      "A jeni të sigurt që dëshironi ta fshini këtë tarifë?",
-      [
-        { text: "Anulo", style: "cancel" },
-        {
-          text: "Po, fshij",
-          style: "destructive",
-          onPress: () => setTarifs((prev) => prev.filter((t) => t.id !== id)),
-        },
-      ]
-    );
-  };
+  const handleDelete = useMutation({
+    mutationFn: async (id: string) => {
+      return await api.delete(`/drivers/delete-tarif/${id}`);
+    },
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({queryKey: ['driverTarifs', searchParam]});
+
+      const previousTarifs = queryClient.getQueryData(['driverTarifs', searchParam]);
+
+      queryClient.setQueryData(['driverTarifs', searchParam], (old: any) => {
+        return {
+          ...old,
+          data: old.data.filter((item: DriverFixedTarifs) => item.id !== id)
+        }
+      });
+
+      return {previousTarifs}
+    },
+    onError: (err: any, id, context) => {
+      queryClient.setQueryData(['driverTarifs', searchParam], context?.previousTarifs);
+      Toast.show({
+        type: "error",
+        text1: "Gabim!",
+        text2: err.response.data.message || "Dicka shkoi gabim ne fshirjen e tarifes."
+      })
+    },
+    onSuccess: () => {
+      Toast.show({
+        type: "success",
+        text1: "Sukses!",
+        text2: "Tarifa u fshi me sukses!"
+      })
+    }
+  })
+
+  console.log(data?.data);
+  
 
   const handleEdit = (tarif: any) => {
     // Navigate to AddFixedTarif with pre-filled data
     router.push({pathname: "/(root)/driver/section/add-fixed-tarif", params: {tarif: JSON.stringify(tarif)}})
   };
-
-  if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#4338ca" />
-        <Text className="mt-3 text-gray-500">Duke ngarkuar tarifat...</Text>
-      </View>
-    );
-  }
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16 }} className="bg-gray-50">
@@ -56,35 +73,41 @@ export default function ViewTarifs({ navigation }: any) {
         <HeaderComponent title="Tarifat e Ruajtura" subtitle={"Këtu mund të menaxhoni të gjitha tarifat tua të regjistruara."}/>
       </View>
         <View className="mb-4">
-            <SearchBar placeholder="Kërkoni tarifat tua" onSearch={() => {}}/>
+            <SearchBar placeholder="Kërkoni tarifat tua" onSearch={(e) => {setSearchParam(e)}}/>
         </View>
-      {tarifs.length === 0 ? (
-        <Text className="text-gray-500">Nuk keni tarifa të regjistruara.</Text>
-      ) : (
-        tarifs.map((tarif) => (
+        {isLoading ? (
+          <LoadingState />
+        ) : (!isLoading && error) ? (
+          <ErrorState onRetry={refetch}/>
+        ) : (!data || data.data.length === 0) ? (
+          <View className="h-full">
+          <EmptyState message="Nuk keni krijuar ende tarifa fikse. Nese mendoni qe eshte gabim provoni perseri." onRetry={refetch}/>
+          </View>
+        ) : (
+          data.data.length > 0 && data.data.map(item => (
           <View
-            key={tarif.id}
+            key={item.id}
             className="bg-white rounded-2xl p-4 mb-3 shadow-lg shadow-black/5"
           >
-            <Text className="text-lg font-psemibold text-indigo-950">{tarif.areaName}</Text>
-            <Text className="text-gray-600 text-sm mb-1">Çmimi: €{tarif.price}</Text>
-            {tarif.description ? (
-              <Text className="text-gray-500 text-sm">{tarif.description}</Text>
+            <Text className="text-lg font-psemibold text-indigo-950">{item.fixedTarifTitle}</Text>
+            <Text className="text-gray-600 text-sm mb-1">Çmimi: €{item.price}</Text>
+            {item.description ? (
+              <Text className="text-gray-500 text-sm">{item.description}</Text>
             ) : null}
 
             <View className="flex-row justify-between items-center mt-3">
                 <View>
-                    <Text className="text-indigo-950 text-sm font-pregular bg-indigo-100 rounded-lg shadow-lg shadow-black/10 py-1 px-2">{tarif.city}</Text>
+                    <Text className="text-indigo-950 text-sm font-pregular bg-indigo-100 rounded-lg shadow-lg shadow-black/10 py-1 px-2">{item.city}</Text>
                 </View>
                 <View className="flex-row items-center ">
                     <TouchableOpacity
-                        onPress={() => handleEdit(tarif)}
+                        onPress={() => handleEdit(item)}
                         className="bg-indigo-100 p-2 rounded-xl mr-2"
                     >
                         <Pencil size={18} color="#4338ca" />
                     </TouchableOpacity>
                     <TouchableOpacity
-                        onPress={() => handleDelete(tarif.id)}
+                        onPress={() => handleDelete.mutate(item.id)}
                         className="bg-red-100 p-2 rounded-xl"
                     >
                         <Trash2 size={18} color="#dc2626" />
@@ -92,8 +115,10 @@ export default function ViewTarifs({ navigation }: any) {
                 </View>
             </View>
           </View>
-        ))
-      )}
+          ))
+
+        )}
+      
     </ScrollView>
   );
 }
