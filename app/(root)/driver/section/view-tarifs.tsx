@@ -52,7 +52,9 @@ export default function ViewTarifs({ navigation }: any) {
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16 }} className="bg-gray-50">
-      <HeaderComponent title="Tarifat e Ruajtura" subtitle={"Këtu mund të menaxhoni të gjitha tarifat tua të regjistruara."} style={"mb-4"}/>
+      <View className="mb-4">
+        <HeaderComponent title="Tarifat e Ruajtura" subtitle={"Këtu mund të menaxhoni të gjitha tarifat tua të regjistruara."}/>
+      </View>
         <View className="mb-4">
             <SearchBar placeholder="Kërkoni tarifat tua" onSearch={() => {}}/>
         </View>

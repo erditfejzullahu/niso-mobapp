@@ -45,28 +45,16 @@ const RegularClients = () => {
     },
   ];
 
+  const [searchParam, setSearchParam] = useState("")
+
   const {data, isLoading, isRefetching, error, refetch} = useQuery({
-    queryKey: ['regularPassengers'],
+    queryKey: ['regularPassengers', searchParam],
     queryFn: async () => {
-      return await api.get<RegularPassengers[]>('/drivers/regular-clients')
+      return await api.get<RegularPassengers[]>(`/drivers/regular-clients?searchParam=${searchParam}`)
     },
     refetchOnWindowFocus: false
   })
   
-
-  const [filteredClients, setFilteredClients] = useState(regularClients);
-
-  const handleSearch = (query: string) => {
-    if (!query.trim()) {
-      setFilteredClients(regularClients);
-      return;
-    }
-
-    const filtered = regularClients.filter(client =>
-      client.name.toLowerCase().includes(query.toLowerCase())
-    );
-    setFilteredClients(filtered);
-  };
 
   if(isLoading || isRefetching) return <LoadingState />;
   if(!isLoading && error) return <ErrorState onRetry={refetch}/>
@@ -105,7 +93,7 @@ const RegularClients = () => {
               subtitle="Këtu keni listën e klientëve të rregullt me të cilët mund të kontaktoni rregullisht"
             />
             <View className='mt-4'>
-              <SearchBar onSearch={handleSearch}/>
+              <SearchBar onSearch={(e) => setSearchParam(e)}/>
             </View>
           </View>
         )}

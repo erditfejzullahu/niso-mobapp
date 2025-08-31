@@ -84,15 +84,7 @@ export default function RegularClientCard({
                 <Text className="font-psemibold text-white">Kërko kontakt</Text>
                 <MailPlus color={"white"}/>
               </TouchableOpacity>
-              <TouchableOpacity className="bg-indigo-600 flex-row gap-2 rounded-lg py-2 justify-center items-center">
-                <Text className="font-psemibold text-white">Rifresko të dhënat</Text>
-                <UserPen color={"white"}/>
-              </TouchableOpacity>
               <View className="border-t my-2 border-gray-200"/>
-              <TouchableOpacity onPress={() => setPopupModal(false)} className="bg-red-600 flex-row gap-2 rounded-lg py-2 justify-center items-center">
-                <Text className="text-white font-psemibold">Fshij</Text>
-                <Trash color={"white"} size={18}/>
-              </TouchableOpacity>
               <TouchableOpacity onPress={() => setPopupModal(false)} className="bg-red-600 flex-row gap-2 rounded-lg py-2 justify-center items-center">
                 <Text className="text-white font-psemibold">Largo dritaren</Text>
                 <X color={"white"} size={18}/>
