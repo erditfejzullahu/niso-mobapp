@@ -18,7 +18,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({
     <View style={styles.container}>
       <View style={styles.content}>
         <Ionicons name="alert-circle-outline" size={48} color="#dc2626" />
-        <Text style={styles.message}>{message}</Text>
+        <Text className='font-pmedium' style={styles.message}>{message}</Text>
         
         {onRetry && (
           <TouchableOpacity 
@@ -27,7 +27,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({
             activeOpacity={0.8}
           >
             <Ionicons name="refresh" size={20} color="#ffffff" />
-            <Text style={styles.retryButtonText}>{retryButtonText}</Text>
+            <Text className='font-pmedium' style={styles.retryButtonText}>{retryButtonText}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -42,6 +42,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f9fafb',
     padding: 20,
+    marginBottom: 80
   },
   content: {
     alignItems: 'center',

@@ -13,7 +13,7 @@ const LoadingState: React.FC<LoadingStateProps> = ({
     <View style={styles.container}>
       <View style={styles.content}>
         <ActivityIndicator size="large" color="#4f46e5" />
-        <Text style={styles.message}>{message}</Text>
+        <Text className='font-pmedium' style={styles.message}>{message}</Text>
       </View>
     </View>
   );
@@ -26,6 +26,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f9fafb',
     padding: 20,
+    marginBottom: 80
   },
   content: {
     alignItems: 'center',

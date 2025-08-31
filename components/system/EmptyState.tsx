@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 interface EmptyStateProps {
   message?: string;
   icon?: keyof typeof Ionicons.glyphMap;
-  onRetry: () => void;
+  onRetry?: () => void;
   retryButtonText?: string;
 }
 
@@ -19,13 +19,14 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Ionicons name={icon} size={48} color="#6b7280" />
-        <Text style={styles.message}>{message}</Text>
+        <Ionicons name={icon} size={48} color="#4f46e5" />
+        <Text className='font-pmedium' style={styles.message}>{message}</Text>
         {onRetry && (
             <TouchableOpacity
             style={styles.retryButton} 
             onPress={onRetry}
             activeOpacity={0.8}
+            className='!bg-indigo-600 mt-4'
             >
             <Ionicons name="refresh" size={20} color="#ffffff" />
             <Text style={styles.retryButtonText}>{retryButtonText}</Text>

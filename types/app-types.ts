@@ -172,6 +172,17 @@ export interface DriverFixedTarifs {
   user: User;
 }
 
+export interface RegularPassengers {
+  fullName: string;
+  id: string;
+  image: string;
+  userInformation: {
+    address: string;
+    yourDesiresForRide: string;
+  },
+  ridesWithDriver: number;
+}
+
 export interface RideRequest {
   id: string;
   passengerId: string;

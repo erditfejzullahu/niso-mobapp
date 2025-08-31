@@ -10,7 +10,7 @@ const HeaderComponent = ({title, subtitle, style, textStyle, imageStyle}: {title
 
   return (
     <>
-    <View className={`relative ${!showHeader && "h-[24px]"}`}>
+    <View className={`relative ${!showHeader && "h-[28px]"}`}>
       {!showHeader && <Animated.View className={`absolute top-0 ${!showHeader && "left-0"} z-50`} entering={BounceIn} exiting={BounceOut}>
           <TouchableOpacity onPress={() => setShowHeader(!showHeader)} className='rounded-xl shadow-lg shadow-black/15 bg-white p-1'>
               <MaterialCommunityIcons name="image-filter-vintage" size={24} color="black" />
