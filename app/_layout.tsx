@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from 'react-native-toast-message';
 import "../assets/global.css";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 SplashScreen.preventAutoHideAsync();
 
@@ -31,13 +32,16 @@ export default function RootLayout() {
     return null;
   }
   
+  const queryClient = new QueryClient();
 
   return (
     <>
     <AuthProvider>
-      <GestureHandlerRootView style={{flex: 1}}>
-        <Stack screenOptions={{headerShown: false, gestureEnabled: true}}/>
-      </GestureHandlerRootView>
+      <QueryClientProvider client={queryClient}>
+        <GestureHandlerRootView style={{flex: 1}}>
+          <Stack screenOptions={{headerShown: false, gestureEnabled: true}}/>
+        </GestureHandlerRootView>
+      </QueryClientProvider>
     </AuthProvider>
     
     <StatusBar style="dark"/>

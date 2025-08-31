@@ -1,16 +1,50 @@
 import SupportSection from '@/components/SupportSection';
+import ErrorState from '@/components/system/ErrorState';
+import LoadingState from '@/components/system/LoadingState';
+import TextField from '@/components/TextField';
+import { useAuth } from '@/context/AuthContext';
+import api from '@/hooks/useApi';
+import { userDetailsSchema } from '@/schemas/userDetailsSchema';
+import { Gender, KosovoCity, UserProfileDetails } from '@/types/app-types';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/sq';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { Image, Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { Alert, Image, Modal, RefreshControl, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Animated, { BounceInUp, Easing } from 'react-native-reanimated';
+import {z} from 'zod';
+import * as ImagePicker from "expo-image-picker"
+import Toast from 'react-native-toast-message';
+import { useQueryClient } from '@tanstack/react-query';
+import * as ImageManipulator from "expo-image-manipulator"
 
 dayjs.locale('sq');
 
 const Profile = () => {
+
+  const queryClient = useQueryClient();
+
+  const {user, updateSession} = useAuth();
+
+  if(!user) return (
+    <ErrorState message='Sesioni juaj ka skaduar, ju lutem kycuni perseri...'/>
+  )
+
+  const {data, isLoading, error, refetch, isRefetching} = useQuery({
+    queryKey: ['userProfileDetails'],
+    queryFn: async () => {
+      return await api.get<UserProfileDetails>('/auth/profile-details')
+    },
+    refetchOnWindowFocus: false,
+    enabled: !!user
+  })
+
+
 
   const [showProfileModal, setShowProfileModal] = useState(false);
 
@@ -20,31 +54,149 @@ const Profile = () => {
 
   const [isContactingSupport, setIsContactingSupport] = useState(false)
 
-  const user = {
-    name: 'Ardit Krasniqi',
-    role: 'Driver',
-    photo: 'https://randomuser.me/api/portraits/men/42.jpg',
-    totalDrives: 152,
-    totalEarnings: 4250.75,
-    regularClients: 12,
-    rating: 4.8,
-    joinDate: '2023-03-12',
+  const pickImage = async (onChange: (value: string) => void) => {
+    try {
+      // Request permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission required', 'Please allow access to your photos');
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+        base64: true,
+      });
+
+      if (!result.canceled) {
+        // Get the first asset (image)
+        const imageUri = result.assets[0].uri;
+        try {
+          const imageContext = ImageManipulator.ImageManipulator.manipulate(imageUri)
+          const image = await imageContext.renderAsync();
+          const result = await image.saveAsync({
+            compress: 0.7,
+            format: ImageManipulator.SaveFormat.WEBP
+          })
+          onChange(result.uri);
+        } catch (error) {
+          console.error("error converting image ", error);
+          onChange("");
+        }
+        
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to pick image');
+      console.error('Image picker error:', error);
+    }
   };
 
+  const {control, reset, handleSubmit, formState: {errors, isSubmitting}} = useForm<z.infer<typeof userDetailsSchema>>({
+    resolver: zodResolver(userDetailsSchema),
+    defaultValues: useMemo(() => ({
+      fullName: "",
+      image: "",
+      email: "",
+      address: "",
+      city: KosovoCity.PRISHTINE,
+      gender: Gender.MALE
+    }), [])
+  })
+
+  const updateUserDetails = async (data: z.infer<typeof userDetailsSchema>) => {
+    try {
+      const formData = new FormData();
+      formData.append('fullName', data.fullName);
+      formData.append('address', data.address);
+      formData.append('city', data.city);
+      formData.append('gender', data.gender);
+      formData.append('email', data.email);
+
+      const filename = data.image.split('/').pop() || 'profile.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+      formData.append('profileImage', {
+        uri: data.image,
+        name: filename,
+        type,
+      } as any);  
+
+      const res = await api.patch('/auth/updateUserInformation', formData, {
+        headers: {
+          'Content-Type' :"multipart/form-data",
+        },
+        withCredentials: true
+      })
+      if(res.data.success) {
+        await updateSession();
+        queryClient.invalidateQueries({
+          queryKey: ['userProfileDetails']
+        })
+        setShowProfileModal(false);
+        Toast.show({
+          type: "success",
+          text1: "Sukses!",
+          text2: "Profili u perditesua me sukses"
+        });
+      }
+
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Gabim!",
+        text2: error.response.data.message
+      })
+    }
+  }
+
+  useEffect(() => {
+    if(data && data.data){
+      reset({
+        city: data.data.profileDetails.userInformations.city,
+        gender: data.data.profileDetails.userInformations.gender,
+        address: data.data.profileDetails.userInformations.address,
+        image: user.image,
+        fullName: user.fullName,
+        email: user.email
+      })
+    }
+  }, [data, reset, user])
+  
+  if(isLoading || isRefetching) return ( <LoadingState /> )
+
+  if(!isLoading && error) return (<ErrorState onRetry={refetch} />)
+
+  if(!data) return (<ErrorState onRetry={refetch} retryButtonText='Provoni perseri' message='Nuk u gjeten te dhenat tua. Nese mendoni qe eshte gabim klikoni me poshte'/>)
+
   return (
-    <KeyboardAwareScrollView extraScrollHeight={20} className="flex-1 bg-gray-50 p-4" showsVerticalScrollIndicator={false}>
+    <KeyboardAwareScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          colors={['#4f46e5']} // Indigo color for iOS
+          tintColor="#4f46e5" // iOS spinner color
+          progressBackgroundColor="#ffffff" // iOS background
+        />
+      }
+      extraScrollHeight={20} className="flex-1 bg-gray-50 p-4" showsVerticalScrollIndicator={false}>
       {/* Profile Header */}
       <View className="bg-white rounded-2xl p-4 shadow-lg shadow-black/5 items-center">
         <Image
-          source={{ uri: user.photo }}
+          source={{ uri: user.image }}
           className="w-24 h-24 rounded-full mb-3"
         />
-        <Text className="text-xl font-psemibold text-indigo-950">{user.name}</Text>
-        <Text className="text-sm text-gray-500">{user.role}</Text>
+        <Text className="text-xl font-psemibold text-indigo-950">{user.fullName}</Text>
+        <Text className="text-sm text-gray-500">{user.role === "DRIVER" && "Shofer"}</Text>
 
         <View className="flex-row items-center mt-1">
           <Ionicons name="star" size={16} color="#fbbf24" />
-          <Text className="ml-1 text-gray-700">{user.rating.toFixed(1)}</Text>
+          <Text className="ml-1 text-gray-700">4.8</Text>
         </View>
 
         <TouchableOpacity
@@ -58,15 +210,15 @@ const Profile = () => {
       {/* Stats Section */}
       <View className="flex-row justify-between mt-4">
         <View className="flex-1 bg-white rounded-2xl p-4 mr-2 shadow shadow-black/5 items-center">
-          <Text className="text-lg font-psemibold text-indigo-950">{user.totalDrives}</Text>
+          <Text className="text-lg font-psemibold text-indigo-950">100</Text>
           <Text className="text-xs text-gray-500 text-center font-pregular">Udhetime</Text>
         </View>
         <View className="flex-1 bg-white rounded-2xl p-4 mx-1 shadow shadow-black/5 items-center">
-          <Text className="text-lg font-psemibold text-indigo-950">{user.regularClients}</Text>
+          <Text className="text-lg font-psemibold text-indigo-950">100</Text>
           <Text className="text-xs text-gray-500 text-center font-pregular">Klientë të Rregullt</Text>
         </View>
         <View className="flex-1 bg-white rounded-2xl p-4 ml-2 shadow shadow-black/5 items-center">
-          <Text className="text-lg font-psemibold text-indigo-950">€{user.totalEarnings.toFixed(2)}</Text>
+          <Text className="text-lg font-psemibold text-indigo-950">€100</Text>
           <Text className="text-xs text-gray-500 text-center font-pregular">Fitime</Text>
         </View>
       </View>
@@ -75,7 +227,7 @@ const Profile = () => {
       <View className="bg-white rounded-2xl p-4 mt-4 shadow shadow-black/5">
         <Text className="text-sm text-gray-500 mb-1 font-pregular">Anëtar që nga</Text>
         <Text className="text-base font-pmedium text-indigo-950 ">
-          {dayjs(user.joinDate).format('D MMMM YYYY')}
+          {dayjs(user.createdAt).format('D MMMM YYYY')}
         </Text>
       </View>
 
@@ -155,26 +307,124 @@ const Profile = () => {
       {/* Update Profile Modal */}
       <Modal visible={showProfileModal} animationType="slide" transparent>
         <View className="flex-1 bg-black/40 justify-center items-center">
-          <View className="bg-white rounded-2xl p-5 w-11/12">
+          <View className="bg-white rounded-2xl p-5 w-11/12 m-auto ">
+          <KeyboardAwareScrollView>
             <Text className="text-lg font-psemibold text-indigo-950 mb-3">Përditëso Profilin</Text>
-            <TextInput
-              placeholder="Emri"
-              defaultValue={user.name}
-              className="border border-gray-200 font-pregular rounded-lg p-3 mb-3"
-            />
-            <TextInput
-              placeholder="Roli"
-              defaultValue={user.role}
-              className="border border-gray-200 font-pregular rounded-lg p-3 mb-3"
-            />
+
+            <View className='mb-3'>
+              <Controller 
+                control={control}
+                name="image"
+                render={({ field: { value, onChange } }) => (
+                  <View className="items-center">
+                    <TouchableOpacity 
+                      onPress={() => pickImage(onChange)}
+                      className="w-24 h-24 rounded-full bg-gray-200 items-center justify-center border-2 border-dashed border-gray-300"
+                    >
+                      {value ? (
+                        <Image 
+                          source={{ uri: value }} 
+                          className="w-full h-full rounded-full"
+                        />
+                      ) : (
+                        <Ionicons name="camera" size={32} color="#6b7280" />
+                      )}
+                    </TouchableOpacity>
+                    <Text className="text-sm text-gray-600 mt-2">
+                      Klikoni per te {value ? 'ndryshuar' : 'shtuar'} foton
+                    </Text>
+                  </View>
+                )}
+              />
+            </View>
+
+            <View className='mb-3'>
+              <Controller 
+                control={control}
+                name="fullName"
+                render={({field}) => (
+                  <TextField 
+                    title='Emri juaj'
+                    placeholder='Shkruani emrin tuaj ketu...'
+                    {...field}
+                    onChangeText={(e) => field.onChange(e)}
+                  />
+                )}
+              />
+            </View>
+            <View className='mb-3'>
+              <Controller 
+                control={control}
+                name="address"
+                render={({field}) => (
+                  <TextField 
+                    title='Adresa juaj'
+                    placeholder='Shkruani adresen tuaj ketu...'
+                    {...field}
+                    onChangeText={(e) => field.onChange(e)}
+                  />
+                )}
+              />
+            </View>
+            <View className='mb-3'>
+              <Controller 
+                control={control}
+                name="email"
+                render={({field}) => (
+                  <>
+                  <TextField 
+                    title='Emaili juaj'
+                    placeholder='Shkruani emailin tuaj ketu...'
+                    {...field}
+                    onChangeText={(e) => field.onChange(e)}
+                  />
+                  <Text className='text-xs font-plight text-gray-600 mt-1'><Text className='text-indigo-600 font-pmedium'>Vemendje:</Text> Emaili i ri duhet verifikuar per te vazhduar perdorimin e platformes Niso.</Text>
+                  </>
+                )}
+              />
+            </View>
+            <View className='mb-3'>
+              <Controller 
+                control={control}
+                name="gender"
+                render={({field}) => (
+                  <View className="mb-6  border-gray-200">
+                    <Text className="text-gray-700 mb-1 font-pmedium">Gjinia</Text>
+                    <View className="flex-row justify-between mt-2">
+                      <TouchableOpacity 
+                        className={`flex-1 mr-2 py-3 rounded-lg border ${field.value === 'MALE' ? 'bg-indigo-100 border-indigo-600' : 'border-gray-300'}`}
+                        onPress={() => field.onChange('MALE')}
+                      >
+                        <Text className={`text-center font-pmedium ${field.value === 'MALE' ? 'text-indigo-600' : 'text-gray-600'}`}>Mashkull</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        className={`flex-1 ml-2 py-3 rounded-lg border ${field.value === 'FEMALE' ? 'bg-indigo-100 border-indigo-600' : 'border-gray-300'}`}
+                        onPress={() => field.onChange('FEMALE')}
+                      >
+                        <Text className={`text-center font-pmedium ${field.value === 'FEMALE' ? 'text-indigo-600' : 'text-gray-600'}`}>Femër</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity 
+                      className={`flex-1 mt-2 py-3 rounded-lg border ${field.value === 'RATHER_NOT_SAY' ? 'bg-indigo-100 border-indigo-600' : 'border-gray-300'}`}
+                      onPress={() => field.onChange('RATHER_NOT_SAY')}
+                    >
+                      <Text className={`text-center font-pmedium ${field.value === 'RATHER_NOT_SAY' ? 'text-indigo-600' : 'text-gray-600'}`}>Tjeter</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              />
+            </View>
+            
+            
             <View className="flex-row justify-end">
               <TouchableOpacity onPress={() => setShowProfileModal(false)}>
                 <Text className="text-red-500 mr-4 font-pregular">Anulo</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setShowProfileModal(false)}>
+              <TouchableOpacity className={`${isSubmitting && "opacity-20"}`} disabled={isSubmitting} onPress={handleSubmit(updateUserDetails)}>
                 <Text className="text-indigo-600 font-pregular">Ruaj</Text>
               </TouchableOpacity>
             </View>
+          </KeyboardAwareScrollView>
           </View>
         </View>
       </Modal>

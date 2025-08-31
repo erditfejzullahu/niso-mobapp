@@ -1,4 +1,5 @@
 import SupportSection from '@/components/SupportSection';
+import { useAuth } from '@/context/AuthContext';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 import 'dayjs/locale/sq';
@@ -11,37 +12,28 @@ import Animated, { BounceInUp, Easing } from 'react-native-reanimated';
 dayjs.locale('sq');
 
 const ClientProfile = () => {
+  const {user} = useAuth();
+  if(!user) return;
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isContactingSupport, setIsContactingSupport] = useState(false);
 
-  const user = {
-    name: 'Elira Berisha',
-    role: 'Klient',
-    photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-    totalRides: 45,
-    totalSpent: 1280.50,
-    favoriteDrivers: 3,
-    rating: 4.9,
-    joinDate: '2024-01-20',
-  };
-
   return (
     <KeyboardAwareScrollView extraScrollHeight={20} className="flex-1 bg-gray-50 p-4" showsVerticalScrollIndicator={false}>
       {/* Profile Header */}
       <View className="bg-white rounded-2xl p-4 shadow-lg shadow-black/5 items-center">
         <Image
-          source={{ uri: user.photo }}
+          source={{ uri: user.image }}
           className="w-24 h-24 rounded-full mb-3"
         />
-        <Text className="text-xl font-psemibold text-indigo-950">{user.name}</Text>
+        <Text className="text-xl font-psemibold text-indigo-950">{user.fullName}</Text>
         <Text className="text-sm text-gray-500">{user.role}</Text>
 
         <View className="flex-row items-center mt-1">
           <Ionicons name="star" size={16} color="#fbbf24" />
-          <Text className="ml-1 text-gray-700">{user.rating.toFixed(1)}</Text>
+          <Text className="ml-1 text-gray-700">4.8</Text>
         </View>
 
         <TouchableOpacity
@@ -55,15 +47,15 @@ const ClientProfile = () => {
       {/* Stats Section */}
       <View className="flex-row justify-between mt-4">
         <View className="flex-1 bg-white rounded-2xl p-4 mr-2 shadow shadow-black/5 items-center">
-          <Text className="text-lg font-psemibold text-indigo-950">{user.totalRides}</Text>
+          <Text className="text-lg font-psemibold text-indigo-950">100</Text>
           <Text className="text-xs text-gray-500 text-center font-pregular">Udhëtime</Text>
         </View>
         <View className="flex-1 bg-white rounded-2xl p-4 mx-1 shadow shadow-black/5 items-center">
-          <Text className="text-lg font-psemibold text-indigo-950">{user.favoriteDrivers}</Text>
+          <Text className="text-lg font-psemibold text-indigo-950">10</Text>
           <Text className="text-xs text-gray-500 text-center font-pregular">Shoferë të preferuar</Text>
         </View>
         <View className="flex-1 bg-white rounded-2xl p-4 ml-2 shadow shadow-black/5 items-center">
-          <Text className="text-lg font-psemibold text-indigo-950">€{user.totalSpent.toFixed(2)}</Text>
+          <Text className="text-lg font-psemibold text-indigo-950">€100</Text>
           <Text className="text-xs text-gray-500 text-center font-pregular">Shpenzime</Text>
         </View>
       </View>
@@ -72,7 +64,7 @@ const ClientProfile = () => {
       <View className="bg-white rounded-2xl p-4 mt-4 shadow shadow-black/5">
         <Text className="text-sm text-gray-500 mb-1 font-pregular">Anëtar që nga</Text>
         <Text className="text-base font-pmedium text-indigo-950 ">
-          {dayjs(user.joinDate).format('D MMMM YYYY')}
+          {dayjs(user.createdAt).format('D MMMM YYYY')}
         </Text>
       </View>
 
@@ -157,7 +149,7 @@ const ClientProfile = () => {
             <Text className="text-lg font-psemibold text-indigo-950 mb-3">Përditëso Profilin</Text>
             <TextInput
               placeholder="Emri"
-              defaultValue={user.name}
+              defaultValue={user.fullName}
               className="border border-gray-200 font-pregular rounded-lg p-3 mb-3"
             />
             <TextInput

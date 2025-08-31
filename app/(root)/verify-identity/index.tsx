@@ -35,7 +35,7 @@ const VerifyIdentity = () => {
   // Get all Kosovo cities from the enum
   const allKosovoCities = Object.values(KosovoCity);
   
-  const { user, updateSession } = useAuth();
+  const { user, updateSession, logout } = useAuth();
   
   if(user && user.user_verified) {
     router.replace(user.role === "DRIVER" ? "/driver/section/active-routes" : "/client/section/client-home")
@@ -434,9 +434,9 @@ const VerifyIdentity = () => {
           </TouchableOpacity>
 
           <View className="mt-8 items-center">
-            <Text className="text-gray-600 font-pregular">Duke u kthyer prapa? </Text>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Text className="text-indigo-600 font-psemibold">Kthehu mbrapa</Text>
+            <Text className="text-gray-600 font-pregular">Deshironi te shkyceni? </Text>
+            <TouchableOpacity onPress={() => logout() }>
+              <Text className="text-indigo-600 font-psemibold">Shkycu</Text>
             </TouchableOpacity>
           </View>
         </View>

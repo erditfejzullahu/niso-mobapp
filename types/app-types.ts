@@ -99,6 +99,17 @@ export enum ConversationType {
 // Interfaces (Models)
 // ======================
 
+export interface UserProfileDetails {
+  profileDetails: {
+    userInformations: UserInformation,
+    preferredDrivers?: number | null;
+    completedRides?: number | null;
+    passengerExpenses?: number | null;
+    regularClients?: number | null;
+    driverNetEarnings?: number | null;
+  }
+}
+
 export interface RefreshToken {
   userId: string;
   token: string;

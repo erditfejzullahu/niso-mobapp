@@ -73,7 +73,7 @@ api.interceptors.response.use(
   (response: AxiosResponse) => {
     // Store cookies from response if they exist
     const cookies = extractCookiesFromResponse(response);
-    console.log(cookies,  ' cookie ninterceptor');
+    // console.log(cookies,  ' cookie ninterceptor');
     
     // if (cookies) {
     //   setStoredCookies(cookies);
