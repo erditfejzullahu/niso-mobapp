@@ -62,7 +62,7 @@ export default function ViewTarifs({ navigation }: any) {
   console.log(data?.data);
   
 
-  const handleEdit = (tarif: any) => {
+  const handleEdit = (tarif: DriverFixedTarifs) => {
     // Navigate to AddFixedTarif with pre-filled data
     router.push({pathname: "/(root)/driver/section/add-fixed-tarif", params: {tarif: JSON.stringify(tarif)}})
   };

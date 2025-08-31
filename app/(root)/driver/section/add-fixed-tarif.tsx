@@ -14,7 +14,7 @@ import Animated, { Easing, FadeInLeft } from "react-native-reanimated";
 
 export default function AddFixedTarif() {
 
-  const {tarif} = useLocalSearchParams();  
+  const {tarif} = useLocalSearchParams();
 
   const [areaName, setAreaName] = useState("");
   
