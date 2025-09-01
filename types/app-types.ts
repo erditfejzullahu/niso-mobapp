@@ -271,6 +271,16 @@ export interface PassengerRotation {
   user: User;
 }
 
+
+interface NotificationMetadatas {
+  modelAction?: boolean;
+  notificationSender?: User | null;
+  navigateAction?: {
+    connectedRide?: string | null,
+    rideRequest?: string | null
+  }
+}
+
 export interface Notification {
   id: string;
   userId: string;
@@ -278,7 +288,7 @@ export interface Notification {
   message: string;
   type: NotificationType;
   read: boolean;
-  metadata?: any | null;
+  metadata?: NotificationMetadatas;
   createdAt: Date;
   updatedAt: Date;
   user: User;

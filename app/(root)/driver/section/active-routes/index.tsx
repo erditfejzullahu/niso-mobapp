@@ -162,7 +162,7 @@ const ActiveRoutes = () => {
           />
         )}
         ListHeaderComponent={renderHeader}
-        ListEmptyComponent={<View><EmptyState textStyle='!font-plight !text-sm' onRetry={refetch} retryButtonText='Rifreskoni kerkesat' message='Nuk ka momentalisht kerkesa te udhetimeve aktive. Nese mendoni qe eshte gabim klikoni butonin me poshte.'/></View>}
+        ListEmptyComponent={<View className='mt-4'><EmptyState textStyle='!font-plight !text-sm' onRetry={refetch} retryButtonText='Rifreskoni kerkesat' message='Nuk ka momentalisht kerkesa te udhetimeve aktive. Nese mendoni qe eshte gabim klikoni butonin me poshte.'/></View>}
       />
     </View>
   );
