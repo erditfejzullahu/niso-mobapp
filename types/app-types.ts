@@ -194,10 +194,20 @@ export interface RideRequest {
   createdAt: Date;
   updatedAt: Date;
 
+  distanceKm: string;
+
+  isUrgent: boolean;
+  distanceCalculatedPriceRide: boolean;
+
   passenger: User;
   driver?: User | null;
   connectedRide?: ConnectedRide | null;
   rideRequestConversation?: Conversations | null;
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
 }
 
 export interface ConnectedRide {

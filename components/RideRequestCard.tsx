@@ -1,3 +1,4 @@
+import { RideRequest } from "@/types/app-types";
 import dayjs from "dayjs";
 import "dayjs/locale/sq";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -9,29 +10,17 @@ import { Image, Modal, Text, TouchableOpacity, View } from "react-native";
 dayjs.extend(relativeTime);
 dayjs.locale('sq')
 
-type RideRequestCardProps = {
-  clientName: string;
-  clientPhoto: string;
-  from: string;
-  to: string;
-  price?: number | null;
-  urgent?: boolean;
-  dateCreated: string;
-  distanceKm?: number; // new
-  id: number;
-};
-
 export default function RideRequestCard({
-  clientName,
-  clientPhoto,
-  from,
-  to,
+  passenger,
+  fromAddress,
+  toAddress,
   price,
-  urgent,
-  dateCreated,
+  isUrgent,
+  createdAt,
   distanceKm,
+  distanceCalculatedPriceRide,
   id
-}: RideRequestCardProps) {
+}: RideRequest) {
 
   const [proceedModal, setProceedModal] = useState(false)
 
@@ -41,23 +30,23 @@ export default function RideRequestCard({
       {/* Top: Client info */}
       <View className="flex-row items-center mb-3">
         <Image
-          source={{ uri: clientPhoto }}
+          source={{ uri: passenger.image }}
           className="w-12 h-12 rounded-full mr-3"
         />
         <View className="flex-1">
           <Text className="font-semibold text-lg text-gray-800">
-            {clientName}
+            {passenger.fullName}
           </Text>
           <View className="flex-row items-center">
             <Clock size={14} color="#6B7280" />
             <Text className="ml-1 text-gray-500 text-sm">
-              {dayjs(dateCreated).fromNow()}
+              {dayjs(createdAt).fromNow()}
             </Text>
           </View>
         </View>
 
         {/* Urgent badge */}
-        {urgent && (
+        {isUrgent && (
           <View className="bg-red-100 px-2 py-1 rounded-full flex-row items-center">
             <AlertTriangle size={14} color="#DC2626" />
             <Text className="ml-1 text-red-600 text-xs font-semibold">
@@ -70,10 +59,10 @@ export default function RideRequestCard({
       {/* Middle: From → To */}
       <View className="flex-row items-center mb-3">
         <MapPin size={18} color="#3B82F6" />
-        <Text className="ml-2 text-gray-800 flex-shrink">{from}</Text>
+        <Text className="ml-2 text-gray-800 flex-shrink">{fromAddress}</Text>
         <ArrowRight size={18} color="#9CA3AF" className="mx-2" />
         <MapPin size={18} color="#10B981" />
-        <Text className="ml-2 text-gray-800 flex-shrink">{to}</Text>
+        <Text className="ml-2 text-gray-800 flex-shrink">{toAddress}</Text>
       </View>
 
       {/* Bottom: Price + Distance */}
@@ -88,7 +77,7 @@ export default function RideRequestCard({
             </View>
           )}
           <Text className="font-semibold text-base text-gray-800">
-            {price ? `${price} €` : "Llogaritet sipas distancës"}
+            {distanceCalculatedPriceRide ? "Llogaritet sipas distancës" : `${price} €`}
           </Text>
         </View>
       </View>

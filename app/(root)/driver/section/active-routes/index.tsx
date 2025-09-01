@@ -1,8 +1,15 @@
 import ActiveRoutesFilterComponent from '@/components/ActiveRoutesFilterComponent'
 import HeaderComponent from '@/components/HeaderComponent'
 import RideRequestCard from '@/components/RideRequestCard'
+import EmptyState from '@/components/system/EmptyState'
+import ErrorState from '@/components/system/ErrorState'
+import LoadingState from '@/components/system/LoadingState'
+import api from '@/hooks/useApi'
+import { RideRequest } from '@/types/app-types'
+import { paginationDto } from '@/utils/paginationDto'
+import { useQuery } from '@tanstack/react-query'
 import React, { useCallback, useState } from 'react'
-import { View } from 'react-native'
+import { RefreshControl, View } from 'react-native'
 // import { FlatList } from 'react-native-gesture-handler'
 import { FlatList } from 'react-native'
 
@@ -70,7 +77,15 @@ export interface Filters {
   };
 }
 
+type RideRequestWithPaginationAndHasMore = {
+  rides: RideRequest[],
+  hasMore: boolean
+}
+
 const ActiveRoutes = () => {
+
+  const [pagination, setPagination] = useState(paginationDto)
+
   const [filters, setFilters] = useState<Filters>({
     sortOrder: 'latest',
     fromDate: null,
@@ -87,12 +102,25 @@ const ActiveRoutes = () => {
     }
   });
 
+  const {data, isLoading, isRefetching, refetch, error} = useQuery({
+    queryKey: ['availableRides', filters, pagination],
+    queryFn: async () => {
+      return await api.get<RideRequestWithPaginationAndHasMore>('/drivers/available-rides', {params: filters});
+    }
+  })
+
   const handleFiltersChange = useCallback((newFilters: Partial<Filters>) => {
     setFilters((prev) => ({
       ...prev,
       ...newFilters
     }));
   }, []);
+
+  const loadMore = () => {
+    if(!isLoading && data?.data.hasMore){
+      setPagination((prev) => ({...prev, page: prev.page + 1}))
+    }
+  }
 
   const renderHeader = () => (
     <View className='gap-4 mb-4'>
@@ -104,28 +132,37 @@ const ActiveRoutes = () => {
     </View>
   );
 
+  
+
+  if(isLoading || isRefetching) return (<LoadingState />);
+  if(!isLoading && error) return (<ErrorState onRetry={refetch}/>);
+
   return (
     <View className='flex-1 bg-gray-50'>
       <FlatList
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            colors={['#4f46e5']} // Indigo color for iOS
+            tintColor="#4f46e5" // iOS spinner color
+            progressBackgroundColor="#ffffff" // iOS background
+          />
+        }
         showsVerticalScrollIndicator={false}
-        data={rideRequests}
+        data={data?.data.rides}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.1}
         className='p-4 mb-20'
         keyExtractor={(item) => item.id.toString()}
         // contentContainerStyle={{gap: 16}}
         renderItem={({item}) => (
           <RideRequestCard 
-            id={item.id}
-            clientName={item.clientName}
-            clientPhoto={item.clientPhoto}
-            from={item.from}
-            to={item.to}
-            price={item.price}
-            urgent={item.urgent}
-            dateCreated={item.dateCreated}
-            distanceKm={item.distanceKm}
+            {...item}
           />
         )}
         ListHeaderComponent={renderHeader}
+        ListEmptyComponent={<View><EmptyState textStyle='!font-plight !text-sm' onRetry={refetch} retryButtonText='Rifreskoni kerkesat' message='Nuk ka momentalisht kerkesa te udhetimeve aktive. Nese mendoni qe eshte gabim klikoni butonin me poshte.'/></View>}
       />
     </View>
   );

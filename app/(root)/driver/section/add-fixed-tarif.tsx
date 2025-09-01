@@ -1,5 +1,6 @@
 import HeaderComponent from "@/components/HeaderComponent";
 import { kosovoCities } from "@/data/kosovoCities";
+import api from "@/hooks/useApi";
 import { Picker } from '@react-native-picker/picker';
 import axios from "axios";
 import * as Location from "expo-location";
@@ -11,6 +12,7 @@ import { ActivityIndicator, Alert, Platform, ScrollView, Text, TextInput, Toucha
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import MapView, { MapPressEvent, Marker, UrlTile } from "react-native-maps";
 import Animated, { Easing, FadeInLeft } from "react-native-reanimated";
+import Toast from "react-native-toast-message";
 
 export default function AddFixedTarif() {
 
@@ -75,7 +77,7 @@ export default function AddFixedTarif() {
 
   const getAreaNameData = async (areaName: string) => {    
     try {
-      const response = await axios.get(`https://photon.komoot.io/api/?q=${areaName}&lat=${region?.latitude}&lon=${region?.longitude}&limit=10`)
+      const response = await axios.get(`https://photon.komoot.io/api/?q=${areaName.trim()}&lat=${region?.latitude}&lon=${region?.longitude}&limit=10`)
       
       console.log(response.data)
       setAreaData(response.data || null)
@@ -122,35 +124,66 @@ export default function AddFixedTarif() {
     })();
   }, []);
 
-  const handleSubmit = () => {
-    if (!areaName.trim()) {
-      Alert.alert("Gabim", "Ju lutemi shkruani emrin e zonës.");
-      return;
-    }
-    if (!location) {
-      Alert.alert("Gabim", "Ju lutemi zgjidhni një lokacion në hartë.");
-      return;
-    }
-    if (!price || Number(price) <= 0) {
-      Alert.alert("Gabim", "Ju lutemi shkruani një çmim të vlefshëm.");
-      return;
-    }
+  const handleSubmit = async () => {
+    try {
+      if (!areaName.trim()) {
+        Toast.show({
+          type: "error",
+          text1: "Gabim!",
+          text2: "Ju lutemi shkruani emrin e zonës."
+        })
+        return;
+      }
+  
+      if (!location) {
+        Toast.show({
+          type: "error",
+          text1: "Gabim!",
+          text2: "Ju lutemi zgjidhni një lokacion në hartë."
+        })
+        return;
+      }
+  
+      if (!price || Number(price) <= 0) {
+        Toast.show({
+          type: "error",
+          text1: "Gabim!",
+          text2: "Ju lutemi zgjidhni një lokacion në hartë."
+        })
+        Alert.alert("Gabim", "Ju lutemi shkruani një çmim të vlefshëm.");
+        return;
+      }
+  
+      // Submit your form data here (e.g., API call)
+      const fixedTarifData = {
+        fixedTarifTitle: areaName,
+        price: Number(price),
+        description,
+        locationArea: location,
+      };
 
-    // Submit your form data here (e.g., API call)
-    const fixedTarifData = {
-      areaName,
-      price: Number(price),
-      description,
-      location,
-    };
-    console.log("Fixed Tarif Data", fixedTarifData);
-    Alert.alert("Sukses", "Tarifa u ruajt me sukses!");
-    
-    // Reset form
-    setAreaName("");
-    setPrice("");
-    setDescription("");
-    setLocation(null);
+      const res = await api.post('/drivers/add-tarif', fixedTarifData)
+      if(res.data.success){
+        Toast.show({
+          type: "success",
+          text1: "Sukses!",
+          text2: "Tarifa u ruajt me sukses!"
+        })
+      }
+      
+      // Reset form
+      setAreaName("");
+      setPrice("");
+      setDescription("");
+      setLocation(null);
+    } catch (error: any) {
+      console.error(error);
+      Toast.show({
+        type: "error",
+        text1: "Gabim!",
+        text2: error.response.data.message
+      })
+    }
   };
   
   

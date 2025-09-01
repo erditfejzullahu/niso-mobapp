@@ -1,5 +1,5 @@
 // components/EmptyState.tsx
-import React from 'react';
+import React, { ClassAttributes } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -8,19 +8,21 @@ interface EmptyStateProps {
   icon?: keyof typeof Ionicons.glyphMap;
   onRetry?: () => void;
   retryButtonText?: string;
+  textStyle?: string;
 }
 
 const EmptyState: React.FC<EmptyStateProps> = ({ 
   message = 'Nuk u gjeten te dhena', 
   icon = 'document-outline' ,
   retryButtonText = 'Provoni perseri',
+  textStyle = "",
   onRetry
 }) => {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         <Ionicons name={icon} size={48} color="#4f46e5" />
-        <Text className='font-pmedium' style={styles.message}>{message}</Text>
+        <Text className={`font-pmedium ${textStyle}`} style={styles.message}>{message}</Text>
         {onRetry && (
             <TouchableOpacity
             style={styles.retryButton} 
