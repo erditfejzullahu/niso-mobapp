@@ -196,6 +196,7 @@ export default function Statistics() {
               </View>
             ) : (
               <FlatList 
+                showsVerticalScrollIndicator={false}
                 data={allFinancesData}
                 keyExtractor={(item) => item.id}
                 renderItem={({item}) => (

@@ -50,12 +50,12 @@ const RegularClients = () => {
   const {data, isLoading, isRefetching, error, refetch} = useQuery({
     queryKey: ['regularPassengers', searchParam],
     queryFn: async () => {
-      console.log('///');
       
       return await api.get<RegularPassengers[]>(`/drivers/regular-clients`, {params: searchParam})
     },
     refetchOnWindowFocus: false
   })
+  
   
 
   if(isLoading || isRefetching) return <LoadingState />;
@@ -99,7 +99,7 @@ const RegularClients = () => {
             </View>
           </View>
         )}
-        ListEmptyComponent={<View className='items-center justify-center h-full mt-6'><EmptyState message='Nuk u gjeten klient te rregullt.' onRetry={refetch}  retryButtonText='Provoni perseri'/></View>}
+        ListEmptyComponent={<View className='items-center justify-center h-full mt-6 z-50'><EmptyState message='Nuk u gjeten klient te rregullt.' onRetry={refetch}  retryButtonText='Provoni perseri'/></View>}
       />
     </View>
   )

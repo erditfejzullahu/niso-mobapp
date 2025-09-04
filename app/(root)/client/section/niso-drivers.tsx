@@ -66,6 +66,7 @@ const Drivers = () => {
 
   return (
     <KeyboardAwareFlatList 
+      showsVerticalScrollIndicator={false}
       className='bg-gray-50'
       contentContainerStyle={{ padding: 16, paddingBottom: 80, gap:16 }}
       data={dummyActiveDrivers}

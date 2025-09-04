@@ -13,7 +13,8 @@ dayjs.extend(relativeTime);
 dayjs.locale('sq')
 
 const NotificationItem = ({ item, onDelete , user}: { item: Notification; onDelete: (id: string) => void, user: User }) => {
-  
+    console.log(item);
+    
     const [openModal, setOpenModal] = useState(false)
     const {isClosed, setToggled} = useToggleNotifications();
     
@@ -115,7 +116,7 @@ const NotificationItem = ({ item, onDelete , user}: { item: Notification; onDele
 
 
 
-    const hasNotificationSenderInfos = metadata && metadata.notificationSender
+    const hasNotificationSenderInfos = metadata && metadata?.notificationSender
 
 
   return (

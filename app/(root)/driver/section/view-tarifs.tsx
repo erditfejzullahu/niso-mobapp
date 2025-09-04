@@ -5,6 +5,7 @@ import ErrorState from "@/components/system/ErrorState";
 import LoadingState from "@/components/system/LoadingState";
 import api from "@/hooks/useApi";
 import { DriverFixedTarifs } from "@/types/app-types";
+import { toFixedNoRound } from "@/utils/toFixed";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Pencil, Trash2 } from "lucide-react-native";
@@ -20,7 +21,7 @@ export default function ViewTarifs({ navigation }: any) {
   const {data, isLoading, isRefetching, refetch, error} = useQuery({
     queryKey: ['driverTarifs', searchParam],
     queryFn: async () => {
-      return await api.get<DriverFixedTarifs[]>(`/drivers/all-tarifs?searchParam=${searchParam}`)
+      return await api.get<DriverFixedTarifs[]>(`/drivers/all-tarifs`, {params: searchParam})
     }
   })
 
@@ -90,14 +91,14 @@ export default function ViewTarifs({ navigation }: any) {
             className="bg-white rounded-2xl p-4 mb-3 shadow-lg shadow-black/5"
           >
             <Text className="text-lg font-psemibold text-indigo-950">{item.fixedTarifTitle}</Text>
-            <Text className="text-gray-600 text-sm mb-1">Çmimi: €{item.price}</Text>
+            <Text className="text-gray-600 text-sm mb-1">Çmimi: €{toFixedNoRound(item.price, 2)}</Text>
             {item.description ? (
               <Text className="text-gray-500 text-sm">{item.description}</Text>
             ) : null}
 
             <View className="flex-row justify-between items-center mt-3">
                 <View>
-                    <Text className="text-indigo-950 text-sm font-pregular bg-indigo-100 rounded-lg shadow-lg shadow-black/10 py-1 px-2">{item.city}</Text>
+                    <Text className="text-indigo-950 text-sm font-pregular bg-indigo-100 rounded-lg shadow-lg shadow-black/10 py-1 px-2">{item.city.replace("_", " ")}</Text>
                 </View>
                 <View className="flex-row items-center ">
                     <TouchableOpacity
