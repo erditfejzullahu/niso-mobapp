@@ -23,6 +23,7 @@ import Toast from 'react-native-toast-message';
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImageManipulator from "expo-image-manipulator"
 import { passwordResetSchema } from '@/schemas/passwordResetSchema';
+import { Check, Smile } from 'lucide-react-native';
 
 dayjs.locale('sq');
 
@@ -232,9 +233,13 @@ const Profile = () => {
           progressBackgroundColor="#ffffff" // iOS background
         />
       }
-      extraScrollHeight={20} className="flex-1 bg-gray-50 p-4" showsVerticalScrollIndicator={false}>
+      extraScrollHeight={20} className="flex-1 bg-gray-50 p-4 " showsVerticalScrollIndicator={false}>
       {/* Profile Header */}
-      <View className="bg-white rounded-2xl p-4 shadow-lg shadow-black/5 items-center">
+      <View className="bg-white rounded-2xl p-4 shadow-lg shadow-black/5 items-center relative">
+        <View className='absolute bg-indigo-600 rounded-full -top-1 -right-1 p-1 shadow-lg shadow-black/40'>
+          <Check color={"#fff"} size={16}/>
+        </View>
+
         <Image
           source={{ uri: user.image }}
           className="w-24 h-24 rounded-full mb-3"
@@ -257,19 +262,23 @@ const Profile = () => {
 
       {/* Stats Section */}
       <View className="flex-row justify-between mt-4">
-        <View className="flex-1 bg-white rounded-2xl p-4 mr-2 shadow shadow-black/5 items-center">
+        <View className="flex-1 bg-white rounded-2xl p-4 mr-2 shadow shadow-black/5 items-center justify-center">
           <Text className="text-lg font-psemibold text-indigo-950">{data.data.profileDetails.completedRides}</Text>
           <Text className="text-xs text-gray-500 text-center font-pregular">Udhetime</Text>
         </View>
-        <View className="flex-1 bg-white rounded-2xl p-4 mx-1 shadow shadow-black/5 items-center">
+        <View className="flex-1 bg-white rounded-2xl p-4 mx-1 shadow shadow-black/5 items-center justify-center">
           <Text className="text-lg font-psemibold text-indigo-950">{data.data.profileDetails.regularClients}</Text>
           <Text className="text-xs text-gray-500 text-center font-pregular">Klientë të Rregullt</Text>
         </View>
-        <View className="flex-1 bg-white rounded-2xl p-4 ml-2 shadow shadow-black/5 items-center">
+        <View className="flex-1 bg-white rounded-2xl p-4 ml-2 shadow shadow-black/5 items-center justify-center">
           <Text className="text-lg font-psemibold text-indigo-950">€{data.data.profileDetails.driverNetEarnings}</Text>
           <Text className="text-xs text-gray-500 text-center font-pregular">Fitime</Text>
         </View>
       </View>
+      <TouchableOpacity className='rounded-2xl py-3 mt-4 flex-row gap-1.5 bg-indigo-600 items-center justify-center'>
+        <Text className='text-white font-pmedium'>Shiko vleresimet ndaj teje</Text>
+        <Smile color={"#fff"}/>
+      </TouchableOpacity>
 
       {/* About Section */}
       <View className="bg-white rounded-2xl p-4 mt-4 shadow shadow-black/5">

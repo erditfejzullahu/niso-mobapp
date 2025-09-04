@@ -212,7 +212,7 @@ export default function Statistics() {
                 )}
                 ListEmptyComponent={() => (
                   <View>
-                    <EmptyState containerStyle="!bg-white" textStyle="!font-plight" message="Nuk u gjeten fitimet tua. Nese mendoni qe eshte gabim provoni perseri." onRetry={allFinancesRefetch}/>
+                    <EmptyState containerStyle="!bg-white" textStyle="!font-plight !text-sm" message="Nuk u gjeten fitimet tua. Nese mendoni qe eshte gabim provoni perseri." onRetry={allFinancesRefetch}/>
                   </View>
                 )}
               />

@@ -59,7 +59,7 @@ const RegularClients = () => {
   
 
   if(isLoading || isRefetching) return <LoadingState />;
-  if(!isLoading && error) return <ErrorState onRetry={refetch}/>
+  if((!isLoading && !isRefetching) && error) return <ErrorState onRetry={refetch}/>
   
 
   return (

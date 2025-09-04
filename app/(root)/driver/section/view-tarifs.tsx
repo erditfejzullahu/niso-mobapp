@@ -75,13 +75,13 @@ export default function ViewTarifs({ navigation }: any) {
         <View className="mb-4">
             <SearchBar placeholder="Kërkoni tarifat tua" onSearch={(e) => {setSearchParam(e)}}/>
         </View>
-        {isLoading ? (
+        {(isLoading || isRefetching) ? (
           <LoadingState />
-        ) : (!isLoading && error) ? (
+        ) : ((!isLoading && !isRefetching) && error) ? (
           <ErrorState onRetry={refetch}/>
         ) : (!data || data.data.length === 0) ? (
           <View className="h-full">
-          <EmptyState message="Nuk keni krijuar ende tarifa fikse. Nese mendoni qe eshte gabim provoni perseri." onRetry={refetch}/>
+          <EmptyState message="Nuk keni krijuar ende tarifa fikse. Nese mendoni qe eshte gabim provoni perseri." textStyle="!font-plight !text-sm" onRetry={refetch}/>
           </View>
         ) : (
           data.data.length > 0 && data.data.map(item => (
