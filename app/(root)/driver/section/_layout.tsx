@@ -90,6 +90,7 @@ export default function Layout() {
       <Tabs.Screen name="profile" options={{tabBarLabel: "Profili"}}/>
 
       <Tabs.Screen name="view-tarifs" options={{href: null}} />
+      <Tabs.Screen name="driver-reviews" options={{href: null}} />
     </Tabs>
   );
 }

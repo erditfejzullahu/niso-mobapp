@@ -275,7 +275,7 @@ const Profile = () => {
           <Text className="text-xs text-gray-500 text-center font-pregular">Fitime</Text>
         </View>
       </View>
-      <TouchableOpacity className='rounded-2xl py-3 mt-4 flex-row gap-1.5 bg-indigo-600 items-center justify-center'>
+      <TouchableOpacity onPress={() => router.push('/(root)/driver/section/driver-reviews')} className='rounded-2xl py-3 mt-4 flex-row gap-1.5 bg-indigo-600 items-center justify-center'>
         <Text className='text-white font-pmedium'>Shiko vleresimet ndaj teje</Text>
         <Smile color={"#fff"}/>
       </TouchableOpacity>

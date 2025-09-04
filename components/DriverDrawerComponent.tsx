@@ -1,5 +1,5 @@
 import { useAuth } from "@/context/AuthContext";
-import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { FontAwesome, FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { DrawerContentScrollView } from "@react-navigation/drawer";
 import { LinearGradient } from "expo-linear-gradient";
@@ -145,6 +145,13 @@ export default function DriverDrawerComponent(props: any) {
       label: "Shiko tarifat tua",
       icon: (color: string, size: number) => (
         <Ionicons name="pricetags" size={size} color={color} />
+      )
+    },
+    {
+      route: "driver-reviews",
+      label: "Vleresimet ndaj teje",
+      icon: (color: string, size: number) => (
+        <FontAwesome name="star" size={size} color={color} />
       )
     },
     {
