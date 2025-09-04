@@ -226,6 +226,31 @@ export interface ConnectedRide {
   passengerPayment?: PassengerPayment | null;
 }
 
+export interface ReviewItem {
+  id: string;
+  comment?: string | null;
+  rating: number;
+  createdAt: Date;
+  ride: {
+    price: string;
+    distanceKm: string;
+    fromAddress: string;
+    toAddress: string;
+    isUrgent: boolean;
+    updatedAt: Date;
+  };
+}
+
+export interface DriverReviewsInterface {
+  reviews: ReviewItem[],
+  averageRating: string;
+  totalReviews: number;
+}
+
+export interface PassengerReviews {
+  reviews: ReviewItem[]
+}
+
 export interface DriverEarning {
   id: string;
   driverId: string;
