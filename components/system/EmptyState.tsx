@@ -9,6 +9,7 @@ interface EmptyStateProps {
   onRetry?: () => void;
   retryButtonText?: string;
   textStyle?: string;
+  containerStyle?: string;
 }
 
 const EmptyState: React.FC<EmptyStateProps> = ({ 
@@ -16,22 +17,23 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   icon = 'document-outline' ,
   retryButtonText = 'Provoni perseri',
   textStyle = "",
+  containerStyle= "",
   onRetry
 }) => {
   return (
-    <View style={styles.container}>
+    <View style={styles.container} className={`${containerStyle}`}>
       <View style={styles.content}>
         <Ionicons name={icon} size={48} color="#4f46e5" />
         <Text className={`font-pmedium ${textStyle}`} style={styles.message}>{message}</Text>
         {onRetry && (
             <TouchableOpacity
-            style={styles.retryButton} 
-            onPress={onRetry}
-            activeOpacity={0.8}
-            className='!bg-indigo-600 mt-4'
+              style={styles.retryButton} 
+              onPress={onRetry}
+              activeOpacity={0.8}
+              className='!bg-indigo-600 mt-4'
             >
-            <Ionicons name="refresh" size={20} color="#ffffff" />
-            <Text style={styles.retryButtonText}>{retryButtonText}</Text>
+              <Ionicons name="refresh" size={20} color="#ffffff" />
+              <Text style={styles.retryButtonText}>{retryButtonText}</Text>
             </TouchableOpacity>
         )}
       </View>

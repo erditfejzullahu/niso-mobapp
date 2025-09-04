@@ -50,7 +50,9 @@ const RegularClients = () => {
   const {data, isLoading, isRefetching, error, refetch} = useQuery({
     queryKey: ['regularPassengers', searchParam],
     queryFn: async () => {
-      return await api.get<RegularPassengers[]>(`/drivers/regular-clients?searchParam=${searchParam}`)
+      console.log('///');
+      
+      return await api.get<RegularPassengers[]>(`/drivers/regular-clients`, {params: searchParam})
     },
     refetchOnWindowFocus: false
   })

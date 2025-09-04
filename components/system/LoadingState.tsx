@@ -4,13 +4,15 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 
 interface LoadingStateProps {
   message?: string;
+  contStyle?: string;
 }
 
 const LoadingState: React.FC<LoadingStateProps> = ({ 
-  message = 'Ju lutem prisni...' 
+  message = 'Ju lutem prisni...' ,
+  contStyle = ""
 }) => {
   return (
-    <View style={styles.container}>
+    <View style={styles.container} className={`${contStyle}`}>
       <View style={styles.content}>
         <ActivityIndicator size="large" color="#4f46e5" />
         <Text className='font-pmedium' style={styles.message}>{message}</Text>

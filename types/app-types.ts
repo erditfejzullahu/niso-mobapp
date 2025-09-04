@@ -272,6 +272,50 @@ export interface PassengerRotation {
 }
 
 
+// driver finances
+export interface DriverFinances {
+  totalEarned: string;
+  completedDrives: number;
+  pendingPayments: string;
+  refundedPayments: string;
+  averagePerDrive: string;
+  recentPayouts: DriverRecentPayouts[]
+}
+
+export interface DriverRecentPayouts {
+  id: string;
+  date: Date;
+  amount: string;
+}
+
+export interface DriverAllPayoutsList {
+  id: string;
+  amount: string;
+  fee: string;
+  netEarnings: string;
+  status: PaymentStatus;
+  paymentDate: Date | null;
+  createdAt: string;
+  ride: {
+    id: string;
+    passenger: User;
+    status: ConnectedRideStatus;
+    updatedAt: string;
+    rideRequest: {
+      price: string;
+      distanceKm: string;
+      fromAddress: string;
+      toAddress: string;
+      isUrgent: boolean
+    }
+  }
+}
+
+// driver finances
+
+
+
+
 export interface NotificationMetadatas {
   modalAction?: boolean;
   notificationSender?: User | null;

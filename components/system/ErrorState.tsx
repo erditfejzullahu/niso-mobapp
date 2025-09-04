@@ -7,15 +7,17 @@ interface ErrorStateProps {
   message?: string;
   onRetry?: () => void;
   retryButtonText?: string;
+  contStyle?: string;
 }
 
 const ErrorState: React.FC<ErrorStateProps> = ({ 
   message = 'Dicka shkoi gabim', 
   onRetry,
-  retryButtonText = 'Provoni perseri' 
+  retryButtonText = 'Provoni perseri' ,
+  contStyle = ""
 }) => {
   return (
-    <View style={styles.container}>
+    <View style={styles.container} className={`${contStyle}`}>
       <View style={styles.content}>
         <Ionicons name="alert-circle-outline" size={48} color="#dc2626" />
         <Text className='font-pmedium' style={styles.message}>{message}</Text>
