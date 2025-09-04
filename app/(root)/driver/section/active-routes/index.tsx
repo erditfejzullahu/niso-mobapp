@@ -105,8 +105,19 @@ const ActiveRoutes = () => {
   const {data, isLoading, isRefetching, refetch, error} = useQuery({
     queryKey: ['availableRides', filters, pagination],
     queryFn: async () => {
-      return await api.get<RideRequestWithPaginationAndHasMore>('/drivers/available-rides', {params: filters});
-    }
+      const {usedFilters, ...apiFilters} = filters;
+
+      const params = {
+        ...apiFilters,
+        fromDate: apiFilters.fromDate ? apiFilters.fromDate.toISOString() : undefined,
+        toDate: apiFilters.toDate ? apiFilters.toDate.toISOString() : undefined,
+        distanceRange: apiFilters.distanceRange ?? undefined
+      }
+      
+      return await api.get<RideRequestWithPaginationAndHasMore>('/drivers/available-rides', {params});
+    },
+    refetchOnWindowFocus: false,
+    retry: 2
   })
 
   const handleFiltersChange = useCallback((newFilters: Partial<Filters>) => {
@@ -130,12 +141,10 @@ const ActiveRoutes = () => {
       />
       <ActiveRoutesFilterComponent filters={filters} setFilters={handleFiltersChange} />
     </View>
-  );
+  );  
 
-  
-
-  if(isLoading || isRefetching) return (<LoadingState />);
-  if(!isLoading && error) return (<ErrorState onRetry={refetch}/>);
+  if(isLoading || isRefetching) return (<View className='h-full bg-gray-50'><LoadingState /></View>);
+  if(!isLoading && error) return (<View className='h-full bg-gray-50'><ErrorState onRetry={refetch}/></View>);
 
   return (
     <View className='flex-1 bg-gray-50'>
@@ -162,7 +171,7 @@ const ActiveRoutes = () => {
           />
         )}
         ListHeaderComponent={renderHeader}
-        ListEmptyComponent={<View className='mt-4'><EmptyState textStyle='!font-plight !text-sm' onRetry={refetch} retryButtonText='Rifreskoni kerkesat' message='Nuk ka momentalisht kerkesa te udhetimeve aktive. Nese mendoni qe eshte gabim klikoni butonin me poshte.'/></View>}
+        ListEmptyComponent={<View className='mt-6'><EmptyState textStyle='!font-plight !text-sm' onRetry={refetch} retryButtonText='Rifreskoni kerkesat' message='Nuk ka momentalisht kerkesa te udhetimeve aktive. Nese mendoni qe eshte gabim klikoni butonin me poshte.'/></View>}
       />
     </View>
   );

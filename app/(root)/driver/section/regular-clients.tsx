@@ -97,7 +97,7 @@ const RegularClients = () => {
             </View>
           </View>
         )}
-        ListEmptyComponent={<View className='items-center justify-center h-full'><EmptyState message='Nuk u gjeten klient te rregullt.' onRetry={refetch}  retryButtonText='Provoni perseri'/></View>}
+        ListEmptyComponent={<View className='items-center justify-center h-full mt-6'><EmptyState message='Nuk u gjeten klient te rregullt.' onRetry={refetch}  retryButtonText='Provoni perseri'/></View>}
       />
     </View>
   )

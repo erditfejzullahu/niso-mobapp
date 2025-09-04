@@ -1,7 +1,7 @@
 import api from "@/hooks/useApi";
 import { useToggleNotifications } from "@/store/useToggleNotifications";
 import { BottomSheetModal, BottomSheetModalProvider, BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import "dayjs/locale/sq";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -13,6 +13,8 @@ import EmptyState from "./system/EmptyState";
 import { Notification } from "@/types/app-types";
 import { CarTaxiFront, DollarSign, MessageCircleMore, Settings, Trophy } from "lucide-react-native";
 import NotificationItem from "./NotificationItem";
+import Toast from "react-native-toast-message";
+import { useAuth } from "@/context/AuthContext";
 
 dayjs.extend(relativeTime);
 dayjs.locale('sq')
@@ -20,6 +22,8 @@ dayjs.locale('sq')
 
 
 const NotificationsComponent = () => {
+  const {user} = useAuth();
+  if(!user) return null;
   const fakeNotifications = [
     {message: "Tarifa juaj u aprovua ✅", isRead: true},
     {message: "Keni një udhëtim të ri 📍", isRead: false},
@@ -37,7 +41,7 @@ const NotificationsComponent = () => {
 
   
 
-  
+  const queryClient = useQueryClient();
 
 
   const bottomSheetRef = useRef<BottomSheetModal>(null)
@@ -64,9 +68,39 @@ const NotificationsComponent = () => {
       enabled: !isClosed
     })
 
-    const deleteNotification = (id: string) => {
-      
-    }
+    const deleteNotification = useMutation({
+      mutationFn: async (id: string) => {
+        return await api.delete(`/notifications/delete-notification/${id}`)
+      },
+      onMutate: async (id: string) => {
+        await queryClient.cancelQueries({queryKey: ['notifications']});
+        const previousNotifications = queryClient.getQueryData(['notifications']);
+
+        queryClient.setQueryData(['notifications'], (old: any) => {
+          return {
+            ...old,
+            data: old.data.filter((item: Notification) => item.id !== id)
+          }
+        })
+
+        return {previousNotifications}
+      },
+      onError: (err: any, id, context) => {
+        queryClient.setQueryData(['notifications'], context?.previousNotifications);
+        Toast.show({
+          type: "error",
+          text1: "Gabim!",
+          text2: err.response.data.message || "Dicka shkoi gabim ne fshirjen e njoftimit."
+        })
+      },
+      onSuccess: () => {
+        Toast.show({
+          type: "success",
+          text1: "Sukses!",
+          text2: "Njoftimi u fshi me sukses."
+        })
+      }
+    })
     
 
     const handleSheetChange = () => {
@@ -101,7 +135,7 @@ const NotificationsComponent = () => {
                   ) : (
                     <View className="w-full gap-2.5">
                     {data.data.map((item) => (
-                      <NotificationItem item={item} onDelete={(id) => deleteNotification(id)}/>
+                      <NotificationItem key={item.id} item={item} onDelete={(id) => deleteNotification.mutate(id)} user={user}/>
                     ))}
                     </View>
                   ))}
