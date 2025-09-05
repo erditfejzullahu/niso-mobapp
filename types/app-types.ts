@@ -340,6 +340,44 @@ export interface DriverAllPayoutsList {
 
 
 
+export interface NotificationConnectedRide {
+  id: string;
+  passenger: {
+    id: string;
+    image: string;
+    fullName: string;
+  } | null;
+  driver: {
+    id: string;
+    image: string;
+    fullName: string;
+  }
+  status: ConnectedRideStatus;
+  rideRequest: {
+    id: string;
+    price: string;
+    distanceKm: string;
+    fromAddress: string;
+    toAddress: string;
+    isUrgent: string;
+  }
+}
+
+export interface NotificationRideRequest {
+  id: string;
+  driver: {
+    id: string;
+    image: string;
+    fullName: string;
+  }
+  status: RideRequestStatus;
+  price: string;
+  distanceKm: string;
+  fromAddress: string;
+  toAddress: string;
+  isUrgent: string
+}
+
 
 export interface NotificationMetadatas {
   modalAction?: boolean;
