@@ -10,11 +10,14 @@ import { useRouter } from "expo-router";
 import { useToggleNotifications } from "@/store/useToggleNotifications";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/hooks/useApi";
+import LoadingState from "./system/LoadingState";
 
 dayjs.extend(relativeTime);
 dayjs.locale('sq')
 
 const NotificationItem = ({ item, onDelete , user}: { item: Notification; onDelete: (id: string) => void, user: UserType }) => {
+  console.log(item);
+  
     const router = useRouter();
     const [openModal, setOpenModal] = useState(false)
     const {setToggled} = useToggleNotifications();
@@ -29,7 +32,7 @@ const NotificationItem = ({ item, onDelete , user}: { item: Notification; onDele
         </TouchableOpacity>
     );
 
-    const metadata: NotificationMetadatas | null = item.metadata ? JSON.parse(item.metadata || "{}") : null;
+    const metadata: NotificationMetadatas | null = item.metadata ? JSON.parse(item.metadata || "{}") : null;    
 
     const connectedRideId = metadata?.navigateAction?.connectedRide || null;
     const connectedRideRequestId = metadata?.navigateAction?.rideRequest || null;
@@ -149,7 +152,7 @@ const NotificationItem = ({ item, onDelete , user}: { item: Notification; onDele
         default:
           return "Ky është një njoftim i përgjithshëm.";
       }
-    }, [item.type, connectedRideData, rideRequestData]);
+    }, [item.type]);
 
 
     const actionButtonText = useMemo(() => {
@@ -230,31 +233,25 @@ const NotificationItem = ({ item, onDelete , user}: { item: Notification; onDele
 
       if (connectedRideRequestId && (connectedRideLoading || connectedRideRefetching)) {
         return (
-          <View className="p-4 items-center">
-            <ActivityIndicator size="small" color="#4338ca" />
-            <Text className="text-gray-600 mt-2">Duke ngarkuar të dhënat e udhëtimit...</Text>
-          </View>
+          <LoadingState contStyle="!bg-white !mt-12" />
         );
       }
 
       if(connectedRideId && (connectedRideLoading || connectedRideRefetching)){
         return(
-          <View className="p-4 items-center">
-            <ActivityIndicator size="small" color="#4338ca" />
-            <Text className="text-gray-600 mt-2">Duke ngarkuar të dhënat e udhëtimit...</Text>
-          </View>
+          <LoadingState contStyle="!bg-white !mt-12" />
         )
       }
 
       if(connectedRideId && !connectedRideLoading && connectedRideError) return (
-        <View className="gap-2 bg-gray-600 py-3">
+        <View className="gap-2 bg-white shadow-lg shadow-black/10 rounded-2xl p-3 mb-3">
           <Text className="text-indigo-950 font-pmedium text-sm text-center">Dicka shkoi gabim ne ngarkimin e te dhenave te udhetimit(Udhetim i lidhur).</Text>
           <TouchableOpacity onPress={() => connectedRideRefetch()} className="bg-red-600 rounded-md py-3"><Text className="text-white font-pmedium text-center">Provo perseri</Text></TouchableOpacity>
         </View>
       )
 
       if(connectedRideRequestId && !rideRequestLoading && rideRequestError) return (
-        <View className="gap-2 bg-gray-600 py-3">
+        <View className="gap-2 bg-white shadow-lg shadow-black/10 rounded-2xl p-3 mb-3">
           <Text className="text-indigo-950 font-pmedium text-sm text-center">Dicka shkoi gabim ne ngarkimin e te dhenave te udhetimit(Kerkesa e udhetimit).</Text>
           <TouchableOpacity onPress={() => rideRequestRefetch()} className="bg-red-600 rounded-md py-3"><Text className="text-white font-pmedium text-center">Provo perseri</Text></TouchableOpacity>
         </View>
@@ -266,23 +263,23 @@ const NotificationItem = ({ item, onDelete , user}: { item: Notification; onDele
           <View className="p-3 shadow-lg shadow-black/10 bg-white border border-gray-200 rounded-lg mb-4">
             <Text className="font-psemibold text-indigo-900 text-base mb-2">Informacione për udhëtimin</Text>
             
-            <View className="flex-row items-center mb-2">
+            <View className="flex-row items-center self-start mx-auto mb-2 bg-indigo-50 justify-center p-2 rounded-md">
               {getStatusIcon(connectedRideData.status)}
-              <Text className="ml-2 font-pmedium text-gray-800">
-                Statusi: {getStatusText(connectedRideData.status)}
+              <Text className="ml-2 font-pregular text-gray-800 text-sm">
+                Statusi: <Text className="text-indigo-900 font-pbold">{getStatusText(connectedRideData.status)}</Text>
               </Text>
             </View>
             
             <View className="flex-row items-start mb-2">
               <MapPin size={14} color="#4338ca" className="mt-1" />
-              <Text className="ml-2 text-gray-600 flex-1 font-pregular">
+              <Text className="ml-2 text-gray-600 flex-1 font-pregular text-sm">
                 Nga: {connectedRideData.rideRequest.fromAddress}
               </Text>
             </View>
             
             <View className="flex-row items-start mb-2">
               <MapPin size={14} color="#4338ca" className="mt-1" />
-              <Text className="ml-2 text-gray-600 flex-1 font-pregular">
+              <Text className="ml-2 text-gray-600 flex-1 font-pregular text-sm">
                 Deri: {connectedRideData.rideRequest.toAddress}
               </Text>
             </View>
@@ -290,16 +287,16 @@ const NotificationItem = ({ item, onDelete , user}: { item: Notification; onDele
             <View className="flex-row justify-between">
               <View className="flex-row items-center">
                 <DollarSign size={14} color="#4338ca" />
-                <Text className="ml-1 text-gray-600 font-pregular">Çmimi:</Text>
-                <Text className="ml-1 font-pmedium text-indigo-900 ">
+                <Text className="ml-2 text-gray-600 font-pregular text-sm">Çmimi:</Text>
+                <Text className="ml-1 font-pbold text-sm text-indigo-900 ">
                   {connectedRideData.rideRequest.price} €
                 </Text>
               </View>
               
               <View className="flex-row items-center">
                 <Car size={14} color="#4338ca" />
-                <Text className="ml-1 text-gray-600 font-pregular">Distanca:</Text>
-                <Text className="ml-1 font-pmedium text-indigo-900">
+                <Text className="ml-1 text-gray-600 font-pregular text-sm">Distanca:</Text>
+                <Text className="ml-1 font-pbold text-indigo-900 text-sm">
                   {connectedRideData.rideRequest.distanceKm} km
                 </Text>
               </View>
@@ -308,7 +305,7 @@ const NotificationItem = ({ item, onDelete , user}: { item: Notification; onDele
             {connectedRideData.rideRequest.isUrgent && (
               <View className="mt-2 flex-row items-center bg-yellow-50 p-2 rounded-md">
                 <AlertCircle size={14} color="#f59e0b" />
-                <Text className="ml-2 text-yellow-800 text-sm font-pregular">Udhëtim urgent</Text>
+                <Text className="ml-2 text-yellow-800 text-sm font-pregular ">Udhëtim urgent</Text>
               </View>
             )}
             
@@ -335,23 +332,23 @@ const NotificationItem = ({ item, onDelete , user}: { item: Notification; onDele
           <View className="p-3 shadow-lg shadow-black/10 bg-white border border-gray-200 rounded-lg mb-4">
             <Text className="font-psemibold text-indigo-900 text-base mb-2">Informacione për kërkesën e udhëtimit</Text>
             
-            <View className="flex-row items-center mb-2">
+            <View className="flex-row items-center self-start mx-auto mb-2 bg-indigo-50 justify-center p-2 rounded-md">
               {getStatusIcon(rideRequestData.status)}
-              <Text className="ml-2 font-pmedium text-gray-800">
-                Statusi: {getStatusText(rideRequestData.status)}
+              <Text className="ml-2 font-pmedium text-sm text-gray-800">
+                Statusi: <Text className="text-indigo-900 font-pbold">{getStatusText(rideRequestData.status)}</Text>
               </Text>
             </View>
             
             <View className="flex-row items-start mb-2">
               <MapPin size={14} color="#4338ca" className="mt-1" />
-              <Text className="ml-2 text-gray-600 flex-1 font-pregular">
+              <Text className="ml-2 text-gray-600 text-sm flex-1 font-pregular">
                 Nga: {rideRequestData.fromAddress}
               </Text>
             </View>
             
             <View className="flex-row items-start mb-2">
               <MapPin size={14} color="#4338ca" className="mt-1" />
-              <Text className="ml-2 text-gray-600 flex-1 font-pregular">
+              <Text className="ml-2 text-gray-600 text-sm flex-1 font-pregular">
                 Deri: {rideRequestData.toAddress}
               </Text>
             </View>
@@ -360,7 +357,7 @@ const NotificationItem = ({ item, onDelete , user}: { item: Notification; onDele
               <View className="flex-row items-center">
                 <DollarSign size={14} color="#4338ca" />
                 <Text className="ml-1 text-gray-600 font-pregular">Çmimi:</Text>
-                <Text className="ml-1 font-pmedium text-indigo-900">
+                <Text className="ml-1 font-pbold text-sm text-indigo-900">
                   {rideRequestData.price} €
                 </Text>
               </View>
@@ -368,7 +365,7 @@ const NotificationItem = ({ item, onDelete , user}: { item: Notification; onDele
               <View className="flex-row items-center">
                 <Car size={14} color="#4338ca" />
                 <Text className="ml-1 text-gray-600 font-pregular">Distanca:</Text>
-                <Text className="ml-1 font-pmedium text-indigo-900">
+                <Text className="ml-1 font-pbold text-sm text-indigo-900">
                   {rideRequestData.distanceKm} km
                 </Text>
               </View>
@@ -469,7 +466,7 @@ const NotificationItem = ({ item, onDelete , user}: { item: Notification; onDele
             {/* Ride Information (only for RIDE_UPDATE) */}
             {item.type === "RIDE_UPDATE" && renderRideInfo()}
 
-            <View className="p-3 shadow-lg shadow-black/10 bg-indigo-50 border border-gray-200 rounded-lg mb-4">
+            <View className="p-3 shadow-lg shadow-black/10 bg-indigo-50 border border-gray-200 rounded-2xl mb-4">
               <View className="flex-row items-center gap-1 mb-1">
                 <Text className="font-pmedium text-indigo-900 text-base">Konteksti i njoftimit</Text>
                 {item.type === "SYSTEM_ALERT" && <Settings color={"#4338ca"} size={16} />}
