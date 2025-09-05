@@ -13,54 +13,6 @@ import { RefreshControl, View } from 'react-native'
 // import { FlatList } from 'react-native-gesture-handler'
 import { FlatList } from 'react-native'
 
-export const rideRequests = [
-  {
-    id: 1,
-    clientName: "Arben Hoxha",
-    clientPhoto: "https://randomuser.me/api/portraits/men/32.jpg",
-    from: "Rruga Dëshmorët e Kombit, Tiranë",
-    to: "Sheshi Skënderbej, Tiranë",
-    price: 8,
-    urgent: true,
-    dateCreated: "2025-08-09T14:22:00Z",
-    distanceKm: 3.2,
-  },
-  {
-    id: 2,
-    clientName: "Elda Kola",
-    clientPhoto: "https://randomuser.me/api/portraits/women/45.jpg",
-    from: "Rruga e Elbasanit, Tiranë",
-    to: "Durres Beach, Durrës",
-    price: null,
-    urgent: false,
-    dateCreated: "2025-08-09T10:15:00Z",
-    distanceKm: 37.8,
-  },
-  {
-    id: 3,
-    clientName: "Gentian Pasha",
-    clientPhoto: "https://randomuser.me/api/portraits/men/21.jpg",
-    from: "Rruga e Kavajës, Tiranë",
-    to: "Berat Castle, Berat",
-    price: 35,
-    urgent: false,
-    dateCreated: "2025-08-08T18:05:00Z",
-    distanceKm: 120,
-  },
-  {
-    id: 4,
-    clientName: "Arta Dervishi",
-    clientPhoto: "https://randomuser.me/api/portraits/women/12.jpg",
-    from: "Airport Nënë Tereza, Rinas",
-    to: "Sheshi Skënderbej, Tiranë",
-    price: 15,
-    urgent: true,
-    dateCreated: "2025-08-09T07:45:00Z",
-    distanceKm: 17.5,
-  },
-];
-
-
 export interface Filters {
   sortOrder: 'oldest' | 'latest';
   fromDate: Date | null;

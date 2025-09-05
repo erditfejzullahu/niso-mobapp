@@ -445,3 +445,43 @@ export interface Message {
   conversation: Conversations;
   sender: User;
 }
+
+
+
+//passenger home interface
+export interface ActivePassengerRide {
+  driver: {
+    fullName: string;
+  },
+  rideInfo: {
+    createdAt: Date;
+    fromAddress: string;
+    toAddress: string;
+    price: string;
+    distance: string;
+  },
+  status: ConnectedRideStatus;
+  id: string;
+}
+
+export interface PassengerSectionDrivers {
+  id: string;
+  fullName: string;
+  image: string;
+  createdAt: Date;
+  userVerified: boolean;
+  carInfo: {
+    model?: string | null;
+    licensePlates?: string | null;
+  },
+  rating: string;
+  isPreferred: boolean,
+  whyPreferred?: string | null
+}
+
+export interface PassengersHomeResponse {
+  userActiveRide: ActivePassengerRide | null;
+  systemStats: {totalActiveRides: number};
+  topAvailableDrivers: PassengerSectionDrivers[] 
+}
+//passenger home interface

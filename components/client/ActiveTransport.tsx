@@ -1,3 +1,5 @@
+import { ActivePassengerRide, User } from "@/types/app-types";
+import { toFixedNoRound } from "@/utils/toFixed";
 import dayjs from "dayjs";
 import "dayjs/locale/sq";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -23,7 +25,7 @@ type ActiveTransportProps = {
   hasTransport: boolean;
 };
 
-const ActiveTransports = () => {
+const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePassengerRide | null}) => {
   // Dummy data
   const activeTransport: ActiveTransportProps = {
     driverName: "Arben Hoxha",
@@ -54,7 +56,7 @@ const ActiveTransports = () => {
     setRateNowImmidiately(false)
   }
 
-  if(!activeTransport.hasTransport) return (
+  if(!activeRide) return (
     <View className="bg-white items-center gap-1 rounded-2xl p-4 shadow-md shadow-black/5 border-gray-100 flex-row">
         <MapPin color={"#6366F1"} size={18}/>
         <Text className="font-pregular text-sm">Nuk keni transport aktiv.</Text>
@@ -67,18 +69,18 @@ const ActiveTransports = () => {
         onPress={() => setProceedModal(true)}
         className="bg-white rounded-2xl p-4 shadow-md shadow-black/5 border-gray-100 animate-pulse"
       >
-        <Text className="font-pregular text-xs text-indigo-600">{activeTransport.inProgress ? "Transporti aktiv..." : "Transporti në pritje..."}</Text>
+        <Text className="font-pregular text-xs text-indigo-600">{activeRide.status === "DRIVING" ? "Transporti aktiv..." : "Transporti në pritje..."}</Text>
         {/* Top: Driver & Passenger */}
         <View className="flex-row items-center mb-3">
           <Image
-            source={{ uri: activeTransport.passengerPhoto }}
+            source={{ uri: user.image }}
             className="w-12 h-12 rounded-full mr-3"
           />
           <View className="flex-1">
             <Text className="font-semibold text-lg text-gray-800">
-              {activeTransport.passengerName}
+              {user.fullName}
             </Text>
-            <Text className="text-gray-500 text-xs">Shofer: {activeTransport.driverName}</Text>
+            <Text className="text-gray-500 text-xs">Shofer: {}</Text>
             <View className="flex-row items-center">
               <Clock size={14} color="#6B7280" />
               <Text className="ml-1 text-gray-500 text-sm">
@@ -90,15 +92,15 @@ const ActiveTransports = () => {
           {/* Status badge */}
           <View
             className={`px-2 py-1 rounded-full flex-row items-center ${
-              activeTransport.inProgress ? "bg-green-100" : "bg-yellow-100"
+              activeRide.status === "DRIVING" ? "bg-green-100" : "bg-yellow-100"
             }`}
           >
             <Text
               className={`text-xs font-semibold ${
-                activeTransport.inProgress ? "text-green-600" : "text-yellow-600"
+                activeRide.status === "DRIVING" ? "text-green-600" : "text-yellow-600"
               }`}
             >
-              {activeTransport.inProgress ? "Në proces" : "Nuk ka filluar"}
+              {activeRide.status === "DRIVING" ? "Në proces" : "Nuk ka filluar"}
             </Text>
           </View>
         </View>
@@ -106,17 +108,17 @@ const ActiveTransports = () => {
         {/* Middle: From → To */}
         <View className="flex-row items-center mb-3">
           <MapPin size={18} color="#3B82F6" />
-          <Text className="ml-2 text-gray-800 flex-shrink">{activeTransport.from}</Text>
+          <Text className="ml-2 text-gray-800 flex-shrink">{activeRide.rideInfo.fromAddress}</Text>
           <ArrowRight size={18} color="#9CA3AF" className="mx-2" />
           <MapPin size={18} color="#10B981" />
-          <Text className="ml-2 text-gray-800 flex-shrink">{activeTransport.to}</Text>
+          <Text className="ml-2 text-gray-800 flex-shrink">{activeRide.rideInfo.toAddress}</Text>
         </View>
 
         {/* Bottom: Price */}
         <View className="mt-1 flex-row items-center gap-2 rounded-xl shadow-md bg-white shadow-black/10 self-start p-2">
           <Text className="text-gray-500 text-sm">Çmimi</Text>
           <Text className="font-semibold text-base text-gray-800">
-            {activeTransport.price} €
+            {toFixedNoRound(activeRide.rideInfo.price, 2)} €
           </Text>
         </View>
       </TouchableOpacity>
@@ -129,11 +131,11 @@ const ActiveTransports = () => {
               Detajet e transportit aktiv
             </Text>
             <Text className="text-gray-700 text-sm mb-3">
-              Ky transport është {activeTransport.inProgress ? "aktualisht në proces" : "ende nuk ka filluar"}.  
-              Shoferi <Text className="text-indigo-600 font-psemibold">{activeTransport.driverName} </Text>  
-              po transporton <Text className="text-indigo-600 font-psemibold">{activeTransport.passengerName} </Text>  
-              nga <Text className="text-indigo-600">{activeTransport.from} </Text>  
-              deri te <Text className="text-indigo-600">{activeTransport.to} </Text>.
+              Ky transport është {activeRide.status === "DRIVING" ? "aktualisht në proces" : "ende nuk ka filluar"}.  
+              Shoferi <Text className="text-indigo-600 font-psemibold">{activeRide.driver.fullName} </Text>  
+              po transporton <Text className="text-indigo-600 font-psemibold">{user.fullName} </Text>  
+              nga <Text className="text-indigo-600">{activeRide.rideInfo.fromAddress} </Text>  
+              deri te <Text className="text-indigo-600">{activeRide.rideInfo.toAddress} </Text>.
             </Text>
 
             <View className="flex-row justify-between">
@@ -151,7 +153,7 @@ const ActiveTransports = () => {
 
               <TouchableOpacity
                 onPress={() => {
-                  router.push(`/(root)/driver/section/active-routes/${activeTransport.id}`);
+                  router.push(`/(root)/driver/section/active-routes/${activeRide.id}`);
                   setProceedModal(false);
                 }}
                 className="bg-indigo-600 px-4 py-2 rounded-lg flex-row items-center gap-1"

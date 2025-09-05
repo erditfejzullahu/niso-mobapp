@@ -1,67 +1,59 @@
 import ActiveTransport from '@/components/client/ActiveTransport'
 import HeaderComponent from '@/components/HeaderComponent'
 import { Plus } from 'lucide-react-native'
-import React from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import React, { Suspense, useEffect, useState } from 'react'
+import { RefreshControl, Text, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import Animated, { Easing, FadeInLeft } from 'react-native-reanimated'
 
 import ActiveRidesCount from '@/components/ActiveRidesCount'
 import HomeActiveDriversWrapper from '@/components/client/HomeActiveDriversWrapper'
 import dayjs from "dayjs"
-import { router } from 'expo-router'
-
-
-
-export const dummyActiveDrivers = [
-  {
-    id: 1,
-    name: "Ardit Leka",
-    photo: "https://randomuser.me/api/portraits/men/45.jpg",
-    rating: 4.7,
-    car: {
-      brand: "Mercedes",
-      model: "E-Class",
-      plate: "TR-456-AB",
-    },
-    registeredAt: dayjs().subtract(8, "month").toISOString(),
-    onDuty: true,
-  },
-  {
-    id: 2,
-    name: "Eriona Krasniqi",
-    photo: "https://randomuser.me/api/portraits/women/44.jpg",
-    rating: 4.9,
-    car: {
-      brand: "BMW",
-      model: "X5",
-      plate: "AA-789-CC",
-    },
-    registeredAt: dayjs().subtract(1, "year").toISOString(),
-    onDuty: true,
-  },
-  {
-    id: 3,
-    name: "Blerim Dervishi",
-    photo: "https://randomuser.me/api/portraits/men/53.jpg",
-    rating: 4.3,
-    car: {
-      brand: "Audi",
-      model: "A4",
-      plate: "DR-654-DF",
-    },
-    registeredAt: dayjs().subtract(2, "year").toISOString(),
-    onDuty: false,
-  },
-];
-
+import { router, useRouter } from 'expo-router'
+import { useAuth } from '@/context/AuthContext'
+import { QueryObserverResult, useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import api from '@/hooks/useApi'
+import { PassengersHomeResponse, User } from '@/types/app-types'
+import LoadingState from '@/components/system/LoadingState'
 
 const ClientHome = () => {
+  const router = useRouter();
+  const {user} = useAuth();
+  const [refetchFunction, setRefetchFunction] = useState<(() => Promise<QueryObserverResult>) | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  if(!user){router.push('/sign-in');return;}
+  
+  const handleRefresh = async () => {
+    if (refetchFunction) {
+      setIsRefreshing(true);
+      try {
+        await refetchFunction();
+      } catch (error) {
+        console.error('Error refreshing data:', error);
+      } finally {
+        setIsRefreshing(false);
+      }
+    }
+  };
+
   return (
-    <KeyboardAwareScrollView className='bg-gray-50' contentContainerStyle={{ padding: 16, paddingBottom: 80 }}>
+    <KeyboardAwareScrollView
+      className='bg-gray-50' 
+      contentContainerStyle={{ padding: 16, paddingBottom: 80 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          colors={['#4f46e5']}
+          tintColor="#4f46e5"
+          progressBackgroundColor="#ffffff"
+        />
+      }
+      >
       <View className='gap-3'>
         <HeaderComponent 
-          title={<>Mirësevini, <Text className='text-indigo-600'>Erdit Fejzullahu</Text></>} textStyle={"!font-pmedium !text-2xl"}
+          title={<>Mirësevini, <Text className='text-indigo-600'>{user.fullName}</Text></>} textStyle={"!font-pmedium !text-2xl"}
           subtitle={"Këtu mund të ndërveproni me veçoritë kyçe të Niso."} imageStyle={"!-bottom-[15px]"}
         />
         <Animated.View entering={FadeInLeft.easing(Easing.bounce).duration(1000)}>
@@ -70,13 +62,48 @@ const ClientHome = () => {
             <Plus color={"white"}/>
           </TouchableOpacity>
         </Animated.View>
-        <ActiveTransport />
-        <ActiveRidesCount count={17}/>
 
-        <HomeActiveDriversWrapper activeDrivers={dummyActiveDrivers}/>
+        <Suspense fallback={<View className='h-full'><LoadingState message='Duke perpunuar te dhenat aktive ne kohe reale te Niso...'/></View>}>
+          <PassengerHomeData 
+            user={user} 
+            onRefetchFunction={(refetch) => setRefetchFunction(() => refetch)}
+          />
+        </Suspense>
       </View>
     </KeyboardAwareScrollView>
   )
 }
 
 export default ClientHome
+
+const PassengerHomeData = ({ user, onRefetchFunction }: {user: User, onRefetchFunction: (refetch: () => Promise<QueryObserverResult>) => void}) => {
+  const { data, refetch, isRefetching } = useSuspenseQuery({
+    queryKey: ['passengerHomeData'],
+    queryFn: async () => {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      const res = await api.get<PassengersHomeResponse>('/rides/passenger-home-data');
+      return res.data;
+    },
+    retry: 2,
+    refetchOnWindowFocus: false,
+  });
+
+  // Pass the refetch function to the parent
+  useEffect(() => {
+    onRefetchFunction(refetch);
+  }, [refetch, onRefetchFunction]);
+
+  return (
+    <>
+    {isRefetching ? (
+      <View className='h-full'><LoadingState message='Duke riperpunuar te dhenat aktive te Niso...'/></View>
+    ) : (
+      <>
+      <ActiveTransport user={user} activeRide={data.userActiveRide}/>
+      <ActiveRidesCount count={data.systemStats.totalActiveRides}/>
+      <HomeActiveDriversWrapper activeDrivers={data.topAvailableDrivers} onRetry={refetch}/>
+      </>
+    )}
+    </>
+  );
+};
