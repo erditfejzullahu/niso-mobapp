@@ -20,15 +20,17 @@ const RegularClients = () => {
     queryKey: ['regularPassengers', searchParam],
     queryFn: async () => {
       
-      return await api.get<RegularPassengers[]>(`/drivers/regular-clients`, {params: searchParam})
+      return await api.get<RegularPassengers[]>(`/drivers/regular-clients?searchParams=${searchParam}`)
     },
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    retry: 1
   })
   
+  console.log(error);
   
 
-  if(isLoading || isRefetching) return <LoadingState />;
-  if((!isLoading && !isRefetching) && error) return <ErrorState onRetry={refetch}/>
+  if(isLoading || isRefetching) return <View className='h-full bg-gray-50'><LoadingState /></View>;
+  if((!isLoading && !isRefetching) && error) return <View className='h-full bg-gray-50'><ErrorState onRetry={() => searchParam ? setSearchParam("") : refetch()}/></View>
   
 
   return (

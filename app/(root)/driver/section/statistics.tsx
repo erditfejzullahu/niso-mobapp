@@ -57,7 +57,11 @@ export default function Statistics() {
   const headerComp = useMemo(() => (
     <View>
       <View className="mb-4">
-        <HeaderComponent title="Financat e tua" style={'!bg-transparent'}/>
+        <HeaderComponent
+          title="Financat e tua" 
+          style={'!bg-transparent'} 
+          subtitle={"Pagesat behen zakonisht deri me daten 15 te muajit, pasi qe te vleresohen te gjitha pagesat si te 'PERFUNDUARA'"}
+        />
       </View>
       {/* Summary cards row */}
       <View className="mb-4 gap-4">

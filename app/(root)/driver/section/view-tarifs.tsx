@@ -21,7 +21,7 @@ export default function ViewTarifs({ navigation }: any) {
   const {data, isLoading, isRefetching, refetch, error} = useQuery({
     queryKey: ['driverTarifs', searchParam],
     queryFn: async () => {
-      return await api.get<DriverFixedTarifs[]>(`/drivers/all-tarifs`, {params: searchParam})
+      return await api.get<DriverFixedTarifs[]>(`/drivers/all-tarifs?searchParam=${searchParam}`)
     }
   })
 
@@ -77,11 +77,11 @@ export default function ViewTarifs({ navigation }: any) {
             <SearchBar placeholder="Kërkoni tarifat tua" onSearch={(e) => {setSearchParam(e)}}/>
         </View>
         {(isLoading || isRefetching) ? (
-          <LoadingState />
+          <View className="h-full bg-gray-50"><LoadingState /></View>
         ) : ((!isLoading && !isRefetching) && error) ? (
-          <ErrorState onRetry={refetch}/>
+          <View className="h-full bg-gray-50"><ErrorState onRetry={refetch}/></View>
         ) : (!data || data.data.length === 0) ? (
-          <View className="h-full">
+          <View className="h-full bg-gray-50">
           <EmptyState message="Nuk keni krijuar ende tarifa fikse. Nese mendoni qe eshte gabim provoni perseri." textStyle="!font-plight !text-sm" onRetry={refetch}/>
           </View>
         ) : (
