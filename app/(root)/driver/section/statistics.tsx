@@ -1,9 +1,11 @@
+import FinancialItemCard from "@/components/client/FinancialItemCard";
 import HeaderComponent from "@/components/HeaderComponent";
 import EmptyState from "@/components/system/EmptyState";
 import ErrorState from "@/components/system/ErrorState";
 import LoadingState from "@/components/system/LoadingState";
 import api from "@/hooks/useApi";
 import { DriverAllPayoutsList, DriverFinances } from "@/types/app-types";
+import { toFixedNoRound } from "@/utils/toFixed";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { ChartColumn, ChartColumnIncreasing, CheckCircle, CircleX, Clock, DollarSign, Euro, X } from "lucide-react-native";
@@ -196,20 +198,12 @@ export default function Statistics() {
               </View>
             ) : (
               <FlatList 
+                className="max-h-[80%]"
                 showsVerticalScrollIndicator={false}
                 data={allFinancesData}
                 keyExtractor={(item) => item.id}
                 renderItem={({item}) => (
-                  <TouchableOpacity>
-                    <View className="flex-row justify-between bg-white rounded-xl p-4 mb-2 shadow-sm shadow-black/10 border border-gray-100">
-                      <Text className="text-gray-600 font-pmedium">
-                        {dayjs(item.paymentDate || item.createdAt).format("DD MMM YYYY")}
-                      </Text>
-                      <Text className="text-indigo-900 font-psemibold">
-                        {item.amount} €
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
+                  <FinancialItemCard item={item}/>
                 )}
                 ListEmptyComponent={() => (
                   <View>
