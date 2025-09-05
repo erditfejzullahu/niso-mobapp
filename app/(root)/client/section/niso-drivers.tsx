@@ -2,6 +2,7 @@ import ActiveDrivers from '@/components/client/ActiveDrivers'
 import DriverSortFilterComponent, { DriverFilters } from '@/components/client/DriverSortFilterComponent'
 import HeaderComponent from '@/components/HeaderComponent'
 import SearchBar from '@/components/SearchBar'
+import { paginationDto } from '@/utils/paginationDto'
 import dayjs from "dayjs"
 import { Tally3, UserStar } from 'lucide-react-native'
 import React, { useCallback, useState } from 'react'
@@ -12,6 +13,8 @@ import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view'
 const Drivers = () => {
   const [driversFilter, setDriversFilter] = useState<'all' | 'favorite'>('all')
   const [sorter, setSorter] = useState<DriverFilters>({sortBy: "rating", sortOrder: "desc"})
+  const [pagination, setPagination] = useState({...paginationDto})
+  
   const dummyActiveDrivers = [
   {
     id: 1,

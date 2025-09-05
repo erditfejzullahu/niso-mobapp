@@ -81,7 +81,7 @@ const PassengerHomeData = ({ user, onRefetchFunction }: {user: User, onRefetchFu
     queryKey: ['passengerHomeData'],
     queryFn: async () => {
       await new Promise((resolve) => setTimeout(resolve, 2000))
-      const res = await api.get<PassengersHomeResponse>('/rides/passenger-home-data');
+      const res = await api.get<PassengersHomeResponse>('/passengers/passenger-home-data');
       return res.data;
     },
     retry: 2,
