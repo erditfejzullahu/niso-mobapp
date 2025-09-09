@@ -38,13 +38,22 @@ const Drivers = () => {
     retry: 2,
     refetchOnWindowFocus: false,
   })  
+
+  const loadMore = useCallback(() => {
+    if(data?.hasMore && !isLoading){
+      setPagination((prev) => ({
+        ...prev,
+        page: prev.page + 1
+      }))
+    }
+  }, [setPagination, data?.hasMore, isLoading])
   
   const handleFiltersChange = useCallback((newFilters: Partial<DriverFilters>) => {
     setSorter((prev) => ({
       ...prev,
       ...newFilters
     }))
-  }, [])
+  }, [setSorter])
 
   const searchDrivers = useCallback((data: string) => {
     console.log(data);
@@ -83,7 +92,8 @@ const Drivers = () => {
   if((!isLoading && !isLoading) && error) return (
     <View className='h-full bg-gray-50'><ErrorState onRetry={refetch}/></View> 
   )
-
+  
+  
   return (
     <KeyboardAwareFlatList 
       refreshControl={
@@ -96,6 +106,8 @@ const Drivers = () => {
         />
       }
       showsVerticalScrollIndicator={false}
+      onEndReached={loadMore}
+      onEndReachedThreshold={0.1}
       className='bg-gray-50'
       contentContainerStyle={{ padding: 16, paddingBottom: 80, gap:16 }}
       data={data?.drivers || []}

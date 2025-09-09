@@ -1,5 +1,11 @@
 import ActiveDrivers from '@/components/client/ActiveDrivers'
 import HeaderComponent from '@/components/HeaderComponent'
+import EmptyState from '@/components/system/EmptyState'
+import ErrorState from '@/components/system/ErrorState'
+import LoadingState from '@/components/system/LoadingState'
+import api from '@/hooks/useApi'
+import { PassengerSectionDrivers } from '@/types/app-types'
+import { useQuery } from '@tanstack/react-query'
 import dayjs from "dayjs"
 import { ArrowDownLeft, CirclePlus, UserStar } from 'lucide-react-native'
 import React, { useState } from 'react'
@@ -8,52 +14,18 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import Toast from 'react-native-toast-message'
 
 const FavoriteDrivers = () => {
-    const dummyActiveDrivers = [
-      {
-        id: 1,
-        name: "Ardit Leka",
-        photo: "https://randomuser.me/api/portraits/men/45.jpg",
-        rating: 4.7,
-        car: {
-          brand: "Mercedes",
-          model: "E-Class",
-          plate: "TR-456-AB",
-        },
-        registeredAt: dayjs().subtract(8, "month").toISOString(),
-        onDuty: true,
-        preferedDriverInfo: "Djali me X5"
-      },
-      {
-        id: 2,
-        name: "Eriona Krasniqi",
-        photo: "https://randomuser.me/api/portraits/women/44.jpg",
-        rating: 4.9,
-        car: {
-          brand: "BMW",
-          model: "X5",
-          plate: "AA-789-CC",
-        },
-        registeredAt: dayjs().subtract(1, "year").toISOString(),
-        onDuty: true,
-        preferedDriverInfo: "Djali me Audi"
-      },
-      {
-        id: 3,
-        name: "Blerim Dervishi",
-        photo: "https://randomuser.me/api/portraits/men/53.jpg",
-        rating: 4.3,
-        car: {
-          brand: "Audi",
-          model: "A4",
-          plate: "DR-654-DF",
-        },
-        registeredAt: dayjs().subtract(2, "year").toISOString(),
-        onDuty: false,
-        preferedDriverInfo: "Djali me X6"
-      },
-    ];
 
-    const [favoriteDrivers, setFavoriteDrivers] = useState<'favorites' | 'add'>('favorites')
+  const [favoriteDrivers, setFavoriteDrivers] = useState<'favorites' | 'add'>('favorites')
+    
+  const {data, isLoading, isRefetching, refetch, error} = useQuery({
+    queryKey: ['passenger_preferred_drivers', favoriteDrivers],
+    queryFn: async () => {
+      const res = await api.get<PassengerSectionDrivers[]>(`/passengers/preferred-drivers?preferredDrivers=${favoriteDrivers}`)
+      return res.data;
+    },
+    retry: 2,
+    refetchOnWindowFocus: false,
+  })
 
     const handleAddDriver = (text?: string | null) => {
         //logic
@@ -81,9 +53,17 @@ const FavoriteDrivers = () => {
         </View>
         {favoriteDrivers === 'favorites' ? (
             <View className='gap-3 mt-3'>
-                {dummyActiveDrivers.map((item) => (
-                    <ActiveDrivers driverActive={item} key={item.id}/>
-                ))}
+              {(isLoading || isRefetching) ? (
+                <LoadingState />
+              ) : ((!isLoading && !isRefetching) && error) ? (
+                <ErrorState onRetry={refetch}/>
+              ) : !data || data.length === 0 ? (
+                <EmptyState onRetry={refetch} message='Nuk u gjeten shofere te preferuar. Nese mendoni qe eshte gabim, ju lutem provoni perseri!' textStyle='!font-plight !text-sm'/>
+              ) : (
+                data.map(item => (
+                  <ActiveDrivers driverActive={item} key={item.id}/>
+                ))
+              )}
             </View>
         ) : (
             <View className='mt-3'>
@@ -91,10 +71,19 @@ const FavoriteDrivers = () => {
                     <ArrowDownLeft size={16} color={"#4f46e5"}/>
                     <Text className='font-pregular text-sm'>Shoferët që keni udhëtuar me ta</Text>
                 </View>
-                <View className='gap-3 mt-2'>
-                    {dummyActiveDrivers.map((item) => (
-                        <ActiveDrivers driverActive={item} key={item.id} favoriteAddPage addDriver={handleAddDriver}/>
-                    ))}
+
+                <View className='gap-3 mt-3'>
+                  {(isLoading || isRefetching) ? (
+                    <LoadingState />
+                  ) : ((!isLoading && !isRefetching) && error) ? (
+                    <ErrorState onRetry={refetch}/>
+                  ) : !data || data.length === 0 ? (
+                    <EmptyState onRetry={refetch} message='Nuk u gjeten shofere te preferuar. Nese mendoni qe eshte gabim, ju lutem provoni perseri!' textStyle='!font-plight !text-sm'/>
+                  ) : (
+                    data.map(item => (
+                      <ActiveDrivers driverActive={item} key={item.id} favoriteAddPage addDriver={handleAddDriver}/>
+                    ))
+                  )}
                 </View>
             </View>
         )}

@@ -475,8 +475,9 @@ export interface PassengerSectionDrivers {
     licensePlates?: string | null;
   },
   rating: string;
-  isPreferred: boolean,
-  whyPreferred?: string | null
+  isPreferred: boolean;
+  whyPreferred?: string | null;
+  preferredId?: string | null;
 }
 
 export interface PassengersHomeResponse {
@@ -485,3 +486,4 @@ export interface PassengersHomeResponse {
   topAvailableDrivers: PassengerSectionDrivers[] 
 }
 //passenger home interface
+
