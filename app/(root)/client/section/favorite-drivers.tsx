@@ -5,8 +5,7 @@ import ErrorState from '@/components/system/ErrorState'
 import LoadingState from '@/components/system/LoadingState'
 import api from '@/hooks/useApi'
 import { PassengerSectionDrivers } from '@/types/app-types'
-import { useQuery } from '@tanstack/react-query'
-import dayjs from "dayjs"
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowDownLeft, CirclePlus, UserStar } from 'lucide-react-native'
 import React, { useState } from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
@@ -14,7 +13,8 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import Toast from 'react-native-toast-message'
 
 const FavoriteDrivers = () => {
-
+  
+  const queryClient = useQueryClient();
   const [favoriteDrivers, setFavoriteDrivers] = useState<'favorites' | 'add'>('favorites')
     
   const {data, isLoading, isRefetching, refetch, error} = useQuery({
@@ -27,16 +27,86 @@ const FavoriteDrivers = () => {
     refetchOnWindowFocus: false,
   })
 
-    const handleAddDriver = (text?: string | null) => {
-        //logic
-        // console.log(!!text);
-        Toast.show({
-            type: "success",
-            text1: "Shoferi i preferuar u shtua me sukses",
-            text2: "Ndërveproni me të duke u drejtuar tek seksioni 'Të preferuar'"
+    const handleAddDriver = useMutation({
+      mutationFn: async (data: { id: string, text?: string | null }) => {
+        const payload = {
+          driverId: data.id,
+          whyPreferred: data.text
+        }
+        return await api.post('/passengers/preferred-drivers', payload);
+      },
+      onMutate: async (data: {id: string, text?: string | null}) => {
+        await queryClient.cancelQueries({queryKey: ['passenger_preferred_drivers', favoriteDrivers]});
+
+        const previousTarifs = queryClient.getQueryData(['passenger_preferred_drivers', favoriteDrivers]);
+
+        queryClient.setQueryData(['passenger_preferred_drivers', favoriteDrivers], (old: any) => {
+          return {
+            ...old,
+            data: old.data.filter((item: PassengerSectionDrivers) => item.id !== data.id)
+          }
         })
-        
-    }
+
+        return {previousTarifs};
+      },
+      onError: (err: any, id, context) => {
+        queryClient.setQueryData(['passenger_preferred_drivers', favoriteDrivers], context?.previousTarifs);
+
+        Toast.show({
+          type: "error",
+          text1: "Gabim!",
+          text2: err.response.data.message || "Dicka shkoi gabim ne shtimin e shoferit te preferuar."
+        })
+
+      },
+      onSuccess: () => {
+        setFavoriteDrivers("favorites");
+        queryClient.invalidateQueries({queryKey: ['passenger_preferred_drivers', favoriteDrivers]})
+
+        Toast.show({
+          type: "success",
+          text1: "Sukses!",
+          text2: "Shoferi i preferuar u shtua me sukses!"
+        })
+      }
+    })
+
+    const deletePreferredDriver = useMutation({
+      mutationFn: async (id: string) => {
+        return await api.delete(`/passangers/delete-preferred/${id}`)
+      },
+      onMutate: async (id: string) => {
+        await queryClient.cancelQueries({queryKey: ['passenger_preferred_drivers', favoriteDrivers]});
+
+        const previousTarifs = queryClient.getQueryData(['passenger_preferred_drivers', favoriteDrivers]);
+
+        queryClient.setQueryData(['passenger_preferred_drivers', favoriteDrivers], (old: any) => {
+          return {
+            ...old,
+            data: old.data.filter((item: PassengerSectionDrivers) => item.id !== id)
+          }
+        })
+
+        return {previousTarifs};
+      },
+      onError: (err: any, id, context) => {
+        queryClient.setQueryData(['passenger_preferred_drivers', favoriteDrivers], context?.previousTarifs);
+
+        Toast.show({
+          type: "error",
+          text1: "Gabim!",
+          text2: err.response.data.message || "Dicka shkoi gabim ne fshirjen e shoferit te preferuar."
+        })
+
+      },
+      onSuccess: () => {
+        Toast.show({
+          type: "success",
+          text1: "Sukses!",
+          text2: "Shoferi i preferuar u fshi me sukses!"
+        })
+      }
+    })
     
   return (
     <KeyboardAwareScrollView className='p-4 bg-gray-50'>
@@ -61,7 +131,7 @@ const FavoriteDrivers = () => {
                 <EmptyState onRetry={refetch} message='Nuk u gjeten shofere te preferuar. Nese mendoni qe eshte gabim, ju lutem provoni perseri!' textStyle='!font-plight !text-sm'/>
               ) : (
                 data.map(item => (
-                  <ActiveDrivers driverActive={item} key={item.id}/>
+                  <ActiveDrivers driverActive={item} key={item.id} favoritePage deletePreferredDriver={(id) => deletePreferredDriver.mutate(id!)}/>
                 ))
               )}
             </View>
@@ -81,7 +151,7 @@ const FavoriteDrivers = () => {
                     <EmptyState onRetry={refetch} message='Nuk u gjeten shofere te preferuar. Nese mendoni qe eshte gabim, ju lutem provoni perseri!' textStyle='!font-plight !text-sm'/>
                   ) : (
                     data.map(item => (
-                      <ActiveDrivers driverActive={item} key={item.id} favoriteAddPage addDriver={handleAddDriver}/>
+                      <ActiveDrivers driverActive={item} key={item.id} favoriteAddPage addDriver={(id, text) => handleAddDriver.mutate({ id, text })}/>
                     ))
                   )}
                 </View>
