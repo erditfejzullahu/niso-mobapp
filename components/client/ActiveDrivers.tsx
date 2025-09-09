@@ -256,7 +256,7 @@ const ActiveDrivers = ({addDriver, driverActive, favoritePage = false, favoriteA
 
 
             <TouchableOpacity
-              onPress={() => deletePreferredDriver && deletePreferredDriver(driverActive.preferredId)}
+              onPress={() => {deletePreferredDriver && deletePreferredDriver(driverActive.preferredId); setDeletePreferredModal(false)}}
               className="bg-red-600 px-4 py-2 rounded-xl flex-row items-center mb-3 gap-1 justify-center"
             >
               <Text className="text-white font-pregular">Fshini</Text>

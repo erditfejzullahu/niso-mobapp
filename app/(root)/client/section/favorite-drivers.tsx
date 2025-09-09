@@ -8,7 +8,7 @@ import { PassengerSectionDrivers } from '@/types/app-types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowDownLeft, CirclePlus, UserStar } from 'lucide-react-native'
 import React, { useState } from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { RefreshControl, Text, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import Toast from 'react-native-toast-message'
 
@@ -27,89 +27,76 @@ const FavoriteDrivers = () => {
     refetchOnWindowFocus: false,
   })
 
-    const handleAddDriver = useMutation({
-      mutationFn: async (data: { id: string, text?: string | null }) => {
-        const payload = {
-          driverId: data.id,
-          whyPreferred: data.text
+    const handleAddDriver = async (data: {id: string, text?: string | null}) => {
+      const payload = {
+        driverId: data.id,
+        whyPreferred: data.text
+      }
+      try {
+        const res = await api.post('/passengers/preferred-driver', payload);
+        if(res.data.success){
+          Toast.show({
+            type: "success",
+            text1: "Sukses!",
+            text2: "Shoferi i preferuar u shtua me sukses!"
+          })
+          queryClient.invalidateQueries({ 
+            queryKey: ['passenger_preferred_drivers', 'add'] 
+          });
+          queryClient.invalidateQueries({ 
+            queryKey: ['passenger_preferred_drivers', 'favorites'] 
+          });
         }
-        return await api.post('/passengers/preferred-drivers', payload);
-      },
-      onMutate: async (data: {id: string, text?: string | null}) => {
-        await queryClient.cancelQueries({queryKey: ['passenger_preferred_drivers', favoriteDrivers]});
-
-        const previousTarifs = queryClient.getQueryData(['passenger_preferred_drivers', favoriteDrivers]);
-
-        queryClient.setQueryData(['passenger_preferred_drivers', favoriteDrivers], (old: any) => {
-          return {
-            ...old,
-            data: old.data.filter((item: PassengerSectionDrivers) => item.id !== data.id)
-          }
-        })
-
-        return {previousTarifs};
-      },
-      onError: (err: any, id, context) => {
-        queryClient.setQueryData(['passenger_preferred_drivers', favoriteDrivers], context?.previousTarifs);
-
+      } catch (error: any) {
+        console.error(error);
         Toast.show({
           type: "error",
           text1: "Gabim!",
-          text2: err.response.data.message || "Dicka shkoi gabim ne shtimin e shoferit te preferuar."
+          text2: error.response.data.message || "Dicka shkoi gabim ne shtimin e shoferit te preferuar."
         })
+        
+      }      
+    }
 
-      },
-      onSuccess: () => {
-        setFavoriteDrivers("favorites");
-        queryClient.invalidateQueries({queryKey: ['passenger_preferred_drivers', favoriteDrivers]})
-
-        Toast.show({
-          type: "success",
-          text1: "Sukses!",
-          text2: "Shoferi i preferuar u shtua me sukses!"
-        })
-      }
-    })
-
-    const deletePreferredDriver = useMutation({
-      mutationFn: async (id: string) => {
-        return await api.delete(`/passangers/delete-preferred/${id}`)
-      },
-      onMutate: async (id: string) => {
-        await queryClient.cancelQueries({queryKey: ['passenger_preferred_drivers', favoriteDrivers]});
-
-        const previousTarifs = queryClient.getQueryData(['passenger_preferred_drivers', favoriteDrivers]);
-
-        queryClient.setQueryData(['passenger_preferred_drivers', favoriteDrivers], (old: any) => {
-          return {
-            ...old,
-            data: old.data.filter((item: PassengerSectionDrivers) => item.id !== id)
-          }
-        })
-
-        return {previousTarifs};
-      },
-      onError: (err: any, id, context) => {
-        queryClient.setQueryData(['passenger_preferred_drivers', favoriteDrivers], context?.previousTarifs);
-
+    const deletePreferredDriver = async (id: string) => {
+      try {
+        const res = await api.delete(`/passengers/delete-preferred/${id}`)
+        if(res.data.success){
+          Toast.show({
+            type: "success",
+            text1: "Sukses!",
+            text2: "Shoferi i preferuar u fshi me sukses!"
+          })
+          queryClient.invalidateQueries({ 
+            queryKey: ['passenger_preferred_drivers', 'add'] 
+          });
+          queryClient.invalidateQueries({ 
+            queryKey: ['passenger_preferred_drivers', 'favorites'] 
+          });
+        }
+      } catch (error:any) {
+        console.error(error.response.data.message);
         Toast.show({
           type: "error",
           text1: "Gabim!",
-          text2: err.response.data.message || "Dicka shkoi gabim ne fshirjen e shoferit te preferuar."
-        })
-
-      },
-      onSuccess: () => {
-        Toast.show({
-          type: "success",
-          text1: "Sukses!",
-          text2: "Shoferi i preferuar u fshi me sukses!"
+          text2: error.response.data.message || "Dicka shkoi gabim ne fshirjen e shoferit te preferuar."
         })
       }
-    })
+    }
     
   return (
-    <KeyboardAwareScrollView className='p-4 bg-gray-50'>
+    <KeyboardAwareScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          colors={['#4f46e5']}
+          tintColor="#4f46e5"
+          progressBackgroundColor="#ffffff"
+        />
+      }
+      className='p-4 bg-gray-50'  
+    >
         <HeaderComponent title={'Shoferët e preferuar'} subtitle={"Në këtë seksion mund të ndërveproni me shoferët tuaj të preferuar apo mund të shtoni shofer tjetër të preferuar"}/>
         <View className='flex-row flex-1 rounded-xl bg-white shadow-md shadow-black/5 mt-3'>
             <TouchableOpacity className='flex-1 border-r border-gray-300 flex-row items-center justify-center my-2 gap-1' onPress={() => setFavoriteDrivers("favorites")}>
@@ -122,7 +109,7 @@ const FavoriteDrivers = () => {
             </TouchableOpacity>
         </View>
         {favoriteDrivers === 'favorites' ? (
-            <View className='gap-3 mt-3'>
+            <View className='gap-3 mt-3 flex-1'>
               {(isLoading || isRefetching) ? (
                 <LoadingState />
               ) : ((!isLoading && !isRefetching) && error) ? (
@@ -131,7 +118,7 @@ const FavoriteDrivers = () => {
                 <EmptyState onRetry={refetch} message='Nuk u gjeten shofere te preferuar. Nese mendoni qe eshte gabim, ju lutem provoni perseri!' textStyle='!font-plight !text-sm'/>
               ) : (
                 data.map(item => (
-                  <ActiveDrivers driverActive={item} key={item.id} favoritePage deletePreferredDriver={(id) => deletePreferredDriver.mutate(id!)}/>
+                  <ActiveDrivers driverActive={item} key={item.id} favoritePage deletePreferredDriver={(id) => deletePreferredDriver(id!)}/>
                 ))
               )}
             </View>
@@ -148,15 +135,16 @@ const FavoriteDrivers = () => {
                   ) : ((!isLoading && !isRefetching) && error) ? (
                     <ErrorState onRetry={refetch}/>
                   ) : !data || data.length === 0 ? (
-                    <EmptyState onRetry={refetch} message='Nuk u gjeten shofere te preferuar. Nese mendoni qe eshte gabim, ju lutem provoni perseri!' textStyle='!font-plight !text-sm'/>
+                    <EmptyState onRetry={refetch} message="Nuk u gjeten shofere te cilet mund t'i shtoni si te preferuar. Nese mendoni qe eshte gabim, ju lutem provoni perseri!" textStyle='!font-plight !text-sm'/>
                   ) : (
                     data.map(item => (
-                      <ActiveDrivers driverActive={item} key={item.id} favoriteAddPage addDriver={(id, text) => handleAddDriver.mutate({ id, text })}/>
+                      <ActiveDrivers driverActive={item} key={item.id} favoriteAddPage addDriver={(id, text) => handleAddDriver({ id, text })}/>
                     ))
                   )}
                 </View>
             </View>
         )}
+        <View className='mb-[85px]'/>
     </KeyboardAwareScrollView>
   )
 }
