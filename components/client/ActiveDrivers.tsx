@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import "dayjs/locale/sq";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { Car, CheckCircle2, Clock, InfoIcon, Send, Star, X } from "lucide-react-native";
+import { Car, CheckCircle2, Clock, Heart, InfoIcon, Send, Star, X } from "lucide-react-native";
 import React, { memo, useState } from "react";
 import { Image, Modal, Text, TouchableOpacity, View } from "react-native";
 import Animated, { Easing, FadeInLeft } from "react-native-reanimated";
@@ -30,8 +30,11 @@ const ActiveDrivers = ({addDriver, driverActive, favoritePage = false, favoriteA
     <Animated.View entering={FadeInLeft.easing(Easing.bounce).duration(1000)}>
       <TouchableOpacity
         onPress={() => favoriteAddPage ? setFavoriteAddModal(true) : setModalVisible(true)}
-        className="bg-white rounded-2xl p-4 shadow-lg shadow-black/10 border border-gray-100"
+        className={`${driverActive.isPreferred ? "bg-red-100" : "bg-white"} rounded-2xl p-4 shadow-lg shadow-black/10 border border-gray-100 relative`}
       >
+        {driverActive.isPreferred && <View className="absolute left-0.5 top-0.5">
+          <Heart color={"red"} fill={"red"}/>
+        </View>}
         {/* Top: Driver Info */}
         <View className="flex-row items-center mb-3">
           <Image

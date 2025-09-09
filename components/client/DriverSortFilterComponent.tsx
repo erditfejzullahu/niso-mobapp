@@ -1,13 +1,15 @@
+import { Fontisto } from '@expo/vector-icons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import React, { useState } from 'react';
+import { Star, Users } from 'lucide-react-native';
+import React, { memo, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import Animated, { BounceIn, BounceOut, Easing, FadeInLeft, FadeOutRight } from "react-native-reanimated";
 
 export interface DriverFilters {
   sortBy: 'name' | 'rating' | 'createdAt' | null;
-  sortOrder: 'asc' | 'desc';
+  sortOrder: 'asc' | 'desc' | null;
 }
 
 interface Props {
@@ -160,10 +162,41 @@ const DriverSortFilterComponent = ({ filters, setFilters }: Props) => {
               </View>
             </Animated.View>
           )}
+
+
+          {/* Used filters display */}
+        {filters.sortBy && (
+            <View className='flex-row flex-wrap gap-2 justify-center items-center mt-2'>
+            <Text className='text-xs font-pmedium'>Filtrat e perdorur:</Text>
+            {filters.sortBy === "createdAt" && (
+                <View className='flex-row gap-1 items-center'>
+                  <Fontisto name="date" size={16} color="#6366f1" />
+                  <Text className='text-indigo-500 text-xs font-pmedium'>Data e krijimit</Text>
+                </View>
+            )}
+            {filters.sortBy === "name" && (
+                <View className='flex-row gap-1 items-center'>
+                  <Users color={"22c55e"} size={16}/>
+                  <Text className='text-green-500 text-xs font-pmedium'>Nga Emri</Text>
+                </View>
+            )}
+            {filters.sortBy === "rating" && (
+                <View className='flex-row gap-1 items-center'>
+                  <Star color={"#eab308"} size={16}/>
+                  <Text className='text-yellow-500 text-xs font-pmedium'>Nga Vleresimi</Text>
+                </View>
+            )}
+            <TouchableOpacity onPress={() => setFilters({sortBy: null, sortOrder: null})}>
+                <MaterialCommunityIcons name="close-thick" size={24} color="#1e1b4b" />
+            </TouchableOpacity>
+            </View>
+        )}
+        
+
         </Animated.View>
       )}
     </View>
   );
 };
 
-export default DriverSortFilterComponent;
+export default memo(DriverSortFilterComponent);
