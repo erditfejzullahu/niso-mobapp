@@ -63,7 +63,7 @@ const ClientHome = () => {
           </TouchableOpacity>
         </Animated.View>
 
-        <Suspense fallback={<View className='h-full'><LoadingState message='Duke perpunuar te dhenat aktive ne kohe reale te Niso...'/></View>}>
+        <Suspense fallback={<View className='h-full bg-gray-50'><LoadingState message='Duke perpunuar te dhenat aktive ne kohe reale te Niso...'/></View>}>
           <PassengerHomeData 
             user={user} 
             onRefetchFunction={(refetch) => setRefetchFunction(() => refetch)}
@@ -96,7 +96,7 @@ const PassengerHomeData = ({ user, onRefetchFunction }: {user: User, onRefetchFu
   return (
     <>
     {isRefetching ? (
-      <View className='h-full'><LoadingState message='Duke riperpunuar te dhenat aktive te Niso...'/></View>
+      <View className='h-full bg-gray-50'><LoadingState message='Duke riperpunuar te dhenat aktive te Niso...'/></View>
     ) : (
       <>
       <ActiveTransport user={user} activeRide={data.userActiveRide}/>

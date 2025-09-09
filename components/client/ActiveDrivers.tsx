@@ -74,13 +74,13 @@ const ActiveDrivers = ({addDriver, driverActive, favoritePage = false, favoriteA
         <View className="flex-row items-center mb-3">
           <Car size={18} color="#3B82F6" />
           <Text className="ml-2 text-gray-800 flex-shrink">
-            {driverActive.carInfo.model} ({driverActive.carInfo.licensePlates})
+            {driverActive.carInfo?.model} ({driverActive.carInfo?.licensePlates})
           </Text>
         </View>
 
         {driverActive.whyPreferred && <View className="flex-row items-center mb-2 bg-indigo-100 self-start shadow-lg shadow-black/10 rounded-xl p-2">
           <InfoIcon size={16} color="#3B82F6"/>
-          <Text className="ml-2 text-gray-800 text-sm flex-shrink-0">
+          <Text className="ml-2 text-gray-800 text-sm flex-shrink">
             {driverActive.whyPreferred}
           </Text>
         </View>}
@@ -117,7 +117,7 @@ const ActiveDrivers = ({addDriver, driverActive, favoritePage = false, favoriteA
             </View>
 
             <Text className="text-gray-700 mb-1 font-pregular">
-              🚗 Makina: <Text className="text-red-600 font-psemibold">{driverActive.carInfo.model} ({driverActive.carInfo.licensePlates})</Text>
+              🚗 Makina: <Text className="text-red-600 font-psemibold">{driverActive.carInfo?.model} ({driverActive.carInfo?.licensePlates})</Text>
             </Text>
             <Text className="text-gray-700 mb-1 font-pregular">
               📅 Që nga: <Text className="text-indigo-600 font-psemibold">{dayjs(driverActive.createdAt).format("DD MMMM YYYY")}</Text>
@@ -171,7 +171,7 @@ const ActiveDrivers = ({addDriver, driverActive, favoritePage = false, favoriteA
               Emri: <Text className="text-yellow-600 font-psemibold">{driverActive.fullName}</Text>
             </Text>
             <Text className="text-gray-700 text-sm mb-1 font-pregular">
-              🚗 Makina: <Text className="text-red-600 font-psemibold">{driverActive.carInfo.model} ({driverActive.carInfo.licensePlates})</Text>
+              🚗 Makina: <Text className="text-red-600 font-psemibold">{driverActive.carInfo?.model} ({driverActive.carInfo?.licensePlates})</Text>
             </Text>
             <Text className="text-gray-700 mb-1 text-sm font-pregular">
               📅 Që nga: <Text className="text-indigo-600 font-psemibold">{dayjs(driverActive.createdAt).format("DD MMMM YYYY")}</Text>
