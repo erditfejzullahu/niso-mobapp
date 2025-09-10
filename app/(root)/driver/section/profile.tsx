@@ -34,7 +34,7 @@ const Profile = () => {
   const {user, updateSession} = useAuth();
 
   if(!user) return (
-    <ErrorState message='Sesioni juaj ka skaduar, ju lutem kycuni perseri...'/>
+    <ErrorState message='Sesioni juaj ka skaduar, ju lutem kycuni perseri...' onRetry={updateSession} retryButtonText='Rifreskoni sesionin'/>
   )
 
   const {data, isLoading, error, refetch, isRefetching} = useQuery({
@@ -218,7 +218,7 @@ const Profile = () => {
   
   if(isLoading || isRefetching) return ( <LoadingState /> )
 
-  if(!isLoading && error) return (<ErrorState onRetry={refetch} />)
+  if((!isLoading || !isRefetching) && error) return (<ErrorState onRetry={refetch} />)
 
   if(!data) return (<ErrorState onRetry={refetch} retryButtonText='Provoni perseri' message='Nuk u gjeten te dhenat tua. Nese mendoni qe eshte gabim klikoni me poshte'/>)
 
@@ -236,9 +236,9 @@ const Profile = () => {
       extraScrollHeight={20} className="flex-1 bg-gray-50 p-4 " showsVerticalScrollIndicator={false}>
       {/* Profile Header */}
       <View className="bg-white rounded-2xl p-4 shadow-lg shadow-black/5 items-center relative">
-        <View className='absolute bg-indigo-600 rounded-full -top-1 -right-1 p-1 shadow-lg shadow-black/40'>
+        {user.user_verified && <View className='absolute bg-indigo-600 rounded-full -top-1 -right-1 p-1 shadow-lg shadow-black/40'>
           <Check color={"#fff"} size={16}/>
-        </View>
+        </View>}
 
         <Image
           source={{ uri: user.image }}
