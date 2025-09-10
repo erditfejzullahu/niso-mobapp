@@ -1,11 +1,11 @@
 import { View, Text, TouchableOpacity, Modal, ScrollView } from 'react-native'
 import React, { memo, useState } from 'react'
 import { toFixedNoRound } from '@/utils/toFixed'
-import { DriverAllPayoutsList } from '@/types/app-types'
+import { PassengerAllExpensesList } from '@/types/app-types'
 import dayjs from "dayjs";
 import { X, Car, MapPin, Calendar, Clock, DollarSign, TrendingUp, User, CheckCircle, Clock as ClockIcon, AlertCircle } from 'lucide-react-native';
 
-const FinancialItemCard = ({item}: {item: DriverAllPayoutsList}) => {
+const PassengerFinancialItemCard = ({item}: {item: PassengerAllExpensesList}) => {
     const [openModal, setOpenModal] = useState(false)
 
     const getStatusIcon = (status: string) => {
@@ -58,7 +58,7 @@ const FinancialItemCard = ({item}: {item: DriverAllPayoutsList}) => {
             <TouchableOpacity onPress={() => setOpenModal(true)}>
                 <View className="flex-row justify-between bg-white rounded-xl p-4 mb-2 shadow-sm shadow-black/10 border border-gray-100">
                     <Text className="text-gray-600 font-pmedium">
-                        {dayjs(item.paymentDate || item.createdAt).format("DD MMM YYYY")}
+                        {dayjs(item.paidAt || item.createdAt).format("DD MMM YYYY")}
                     </Text>
                     <Text className="text-indigo-900 font-psemibold">
                         {toFixedNoRound(item.amount, 2)} €
@@ -92,7 +92,7 @@ const FinancialItemCard = ({item}: {item: DriverAllPayoutsList}) => {
                             <View className="bg-indigo-50 rounded-xl p-4 mb-4">
                                 <View className="flex-row justify-between items-center mb-2">
                                     <Text className="text-2xl font-psemibold text-indigo-900">
-                                        {toFixedNoRound(item.amount, 2)} €
+                                        {toFixedNoRound(item.totalPaid, 2)} €
                                     </Text>
                                     <View className="flex-row items-center">
                                         {getStatusIcon(item.status)}
@@ -102,7 +102,7 @@ const FinancialItemCard = ({item}: {item: DriverAllPayoutsList}) => {
                                     </View>
                                 </View>
                                 <Text className="text-gray-600 text-sm">
-                                    Shuma totale e pagesës
+                                    Shuma totale e pagesës/shpenzimit tuaj
                                 </Text>
                             </View>
 
@@ -126,7 +126,7 @@ const FinancialItemCard = ({item}: {item: DriverAllPayoutsList}) => {
                                         <Text className="ml-2 text-gray-600">Tarifa e platformës:</Text>
                                     </View>
                                     <Text className="font-pmedium text-red-600">
-                                        -{toFixedNoRound(item.fee, 2)} €
+                                        -{toFixedNoRound(item.surcharge, 2)} €
                                     </Text>
                                 </View>
 
@@ -135,10 +135,10 @@ const FinancialItemCard = ({item}: {item: DriverAllPayoutsList}) => {
                                 <View className="flex-row justify-between items-center">
                                     <View className="flex-row items-center">
                                         <DollarSign size={16} color="#4338ca" />
-                                        <Text className="ml-2 font-psemibold text-gray-800">Fitimi neto:</Text>
+                                        <Text className="ml-2 font-psemibold text-gray-800">Shpenzimi neto:</Text>
                                     </View>
                                     <Text className="font-psemibold text-green-600">
-                                        {toFixedNoRound(item.netEarnings, 2)} €
+                                        {toFixedNoRound(item.totalPaid, 2)} €
                                     </Text>
                                 </View>
                             </View>
@@ -197,13 +197,13 @@ const FinancialItemCard = ({item}: {item: DriverAllPayoutsList}) => {
 
                             {/* Passenger Information */}
                             <View className="bg-gray-50 rounded-xl p-4 mb-4">
-                                <Text className="font-psemibold text-gray-800 mb-3">Informacione për pasagjerin</Text>
+                                <Text className="font-psemibold text-gray-800 mb-3">Informacione për shoferin</Text>
                                 
                                 <View className="flex-row items-center mb-2">
                                     <User size={16} color="#4338ca" />
                                     <Text className="ml-2 text-gray-600">Emri:</Text>
                                     <Text className="ml-2 font-pmedium text-gray-800">
-                                        {item.ride.passenger.fullName}
+                                        {item.ride.driver.fullName}
                                     </Text>
                                 </View>
                             </View>
@@ -218,8 +218,8 @@ const FinancialItemCard = ({item}: {item: DriverAllPayoutsList}) => {
                                         <Text className="ml-2 text-gray-600">Data e pagesës:</Text>
                                     </View>
                                     <Text className="font-pmedium text-gray-800">
-                                        {item.paymentDate 
-                                            ? dayjs(item.paymentDate).format("DD MMM YYYY")
+                                        {item.paidAt 
+                                            ? dayjs(item.paidAt).format("DD MMM YYYY")
                                             : 'N/A'
                                         }
                                     </Text>
@@ -261,4 +261,4 @@ const FinancialItemCard = ({item}: {item: DriverAllPayoutsList}) => {
     )
 }
 
-export default memo(FinancialItemCard)
+export default memo(PassengerFinancialItemCard)

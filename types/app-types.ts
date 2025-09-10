@@ -296,6 +296,47 @@ export interface PassengerRotation {
   user: User;
 }
 
+// passenger finances
+
+export interface PassengerFinances {
+  totalSpent: string;
+  completedDrives: number;
+  pendingPayments: string;
+  refundedPayments: string;
+  averagePerDrive: string;
+  recentSpents: PassengerRecentSpents[];
+}
+
+export interface PassengerRecentSpents {
+  id: string;
+  date: Date;
+  amount: string;
+}
+
+export interface PassengerAllExpensesList {
+  id: string;
+  amount: string;
+  surcharge: string;
+  totalPaid: string;
+  status: PaymentStatus;
+  paidAt?: Date | null;
+  createdAt: Date;
+  ride: {
+    id: string;
+    driver: User;
+    status: ConnectedRideStatus;
+    updatedAt: string;
+    rideRequest: {
+      price: string;
+      distanceKm: string;
+      fromAddress: string;
+      toAddress: string;
+      isUrgent: boolean
+    }
+  } 
+}
+
+// passenger finances
 
 // driver finances
 export interface DriverFinances {
@@ -306,6 +347,8 @@ export interface DriverFinances {
   averagePerDrive: string;
   recentPayouts: DriverRecentPayouts[]
 }
+
+
 
 export interface DriverRecentPayouts {
   id: string;
@@ -319,7 +362,7 @@ export interface DriverAllPayoutsList {
   fee: string;
   netEarnings: string;
   status: PaymentStatus;
-  paymentDate: Date | null;
+  paymentDate?: Date | null;
   createdAt: string;
   ride: {
     id: string;

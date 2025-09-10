@@ -1,24 +1,20 @@
+import PassengerFinancialItemCard from "@/components/client/PassengerFinancialItemCard";
+import FinancialItemCard from "@/components/DriverFinancialItemCard";
 import HeaderComponent from "@/components/HeaderComponent";
+import EmptyState from "@/components/system/EmptyState";
+import ErrorState from "@/components/system/ErrorState";
+import LoadingState from "@/components/system/LoadingState";
+import api from "@/hooks/useApi";
+import { PassengerAllExpensesList, PassengerFinances, PassengerRecentSpents } from "@/types/app-types";
+import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import { Clock, CreditCard, Euro, Receipt } from "lucide-react-native";
-import React from "react";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import { ChartColumn, CheckCircle, Clock, CreditCard, Euro, Receipt, X } from "lucide-react-native";
+import React, { useState } from "react";
+import { FlatList, Modal, RefreshControl, Text, TouchableOpacity, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 
-const expensesData = {
-  totalSpent: 1840.30,
-  completedRides: 78,
-  pendingPayments: 120.5,
-  averagePerRide: 23.6,
-  recentPayments: [
-    { id: "1", date: "2025-08-12", amount: 65 },
-    { id: "2", date: "2025-08-01", amount: 120 },
-    { id: "3", date: "2025-07-28", amount: 45 },
-    { id: "4", date: "2025-07-20", amount: 80 },
-  ],
-};
-
 export default function ClientExpenses() {
+  const [openedAllFinancesModal, setOpenedAllFinancesModal] = useState(false)
   const pulse = useSharedValue(1);
   const pulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulse.value }]
@@ -32,10 +28,50 @@ export default function ClientExpenses() {
     );
   }, []);
 
+  const {data, isLoading, isRefetching, refetch, error} = useQuery({
+    queryKey: ['finances'],
+    queryFn: async () => {
+      const res = await api.get<PassengerFinances>('/finances/passenger-finances');
+      return res.data;
+    },
+    refetchOnWindowFocus: false, 
+    retry: 2
+  })  
+
+
+  const {data: allFinancesData, isLoading: allFinancesLoading, isRefetching: allFinancesRefetching, refetch: allFinancesRefetch, error: allFinancesError} = useQuery({
+    queryKey: ['allFinancesList'],
+    queryFn: async () => {
+      const res = await api.get<PassengerAllExpensesList[]>('/finances/all-passenger-finances');
+      return res.data;
+    },
+    refetchOnWindowFocus: false,
+    enabled: openedAllFinancesModal,
+    retry: 2
+  })
+  
+  console.log(allFinancesData);
+  
+
+  if(isLoading || isRefetching) return (<View className="h-full bg-gray-50"><LoadingState /></View>);
+  if(error) return (<View className="h-full bg-gray-50"><ErrorState onRetry={refetch}/></View>)
+
+
   return (
+    <>
+    
     <View className="flex-1 bg-gray-50">
       <FlatList
-        data={expensesData.recentPayments}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            colors={['#4f46e5']} // Indigo color for iOS
+            tintColor="#4f46e5" // iOS spinner color
+            progressBackgroundColor="#ffffff" // iOS background
+          />
+        }
+        data={data?.recentSpents}
         keyExtractor={(item) => item.id}
         className="p-4"
         contentContainerStyle={{ paddingBottom: 80 }}
@@ -52,14 +88,19 @@ export default function ClientExpenses() {
         )}
         ListHeaderComponent={() => (
           <>
-            <HeaderComponent title="Shpenzimet e tua" style={'!bg-transparent !mb-2 -mt-2'}/>
-            
+            <View className="mb-4">
+              <HeaderComponent
+                title="Financat e tua" 
+                style={'!bg-transparent'} 
+                subtitle={"Ketu mund te percillni gjendjen tuaj te financave. Kur keni paguar per udhetim, sa, detaje udhetimi, e shume opsione tjera."}
+              />
+            </View>
             <View className="mb-4 gap-4">
               {/* Total Spent */}
               <View className="bg-white rounded-2xl p-5 shadow-md shadow-black/5 border border-gray-50">
                 <Euro size={28} color="#4338ca" />
                 <Text className="text-3xl font-psemibold mt-3 text-indigo-900">
-                  {expensesData.totalSpent.toFixed(2)} €
+                  {data?.totalSpent || 0} €
                 </Text>
                 <Text className="text-gray-500 mt-1 font-pmedium">
                   Shpenzimet totale
@@ -67,23 +108,34 @@ export default function ClientExpenses() {
               </View>
 
               {/* Completed Rides */}
-              <View className="bg-white rounded-2xl p-5 shadow-md shadow-black/5 border border-gray-50">
-                <Receipt size={28} color="#4338ca" />
-                <Text className="text-3xl font-psemibold mt-3 text-indigo-900">
-                  {expensesData.completedRides}
-                </Text>
-                <Text className="text-gray-500 mt-1 font-pmedium">
-                  Udhëtime të kryera
-                </Text>
+              <View className="flex-row justify-between">
+                <View className="bg-white flex-1 rounded-2xl p-5 shadow-md shadow-black/5 border border-gray-50 mr-2">
+                  <CheckCircle size={28} color="#4338ca" />
+                  <Text className="text-3xl font-psemibold mt-3 text-indigo-900">
+                    {data?.completedDrives || 0}
+                  </Text>
+                  <Text className="text-gray-500 mt-1 font-pmedium">
+                    Udhëtime të kryera
+                  </Text>
+                </View>
+                <View className="bg-white flex-1 rounded-2xl p-5 shadow-md shadow-black/5 border border-gray-50 ml-2">
+                  <Receipt size={28} color="#4338ca" />
+                  <Text className="text-3xl font-psemibold mt-3 text-indigo-900">
+                    {data?.refundedPayments || 0} €
+                  </Text>
+                  <Text className="text-gray-500 mt-1 font-pmedium">
+                    Pagesa të kthyera
+                  </Text>
+                </View>
               </View>
             </View>
 
             {/* Average + Pending */}
             <View className="flex-row justify-between mb-6">
               <View className="flex-1 bg-white rounded-2xl p-5 shadow-md shadow-black/5 mr-2 border border-gray-50">
-                <Euro size={28} color="#4338ca" />
+                <ChartColumn size={28} color="#4338ca" />
                 <Text className="text-3xl font-psemibold mt-3 text-indigo-900">
-                  {expensesData.averagePerRide.toFixed(2)} €
+                  {data?.averagePerDrive || 0} €
                 </Text>
                 <Text className="text-gray-500 mt-1 font-pmedium">
                   Mesatarisht për udhëtim
@@ -93,7 +145,7 @@ export default function ClientExpenses() {
               <View className="flex-1 bg-white rounded-2xl p-5 shadow-md shadow-black/5 ml-2 border border-gray-50">
                 <Clock size={28} color="#4338ca" />
                 <Text className="text-3xl font-psemibold mt-3 text-indigo-900">
-                  {expensesData.pendingPayments.toFixed(2)} €
+                  {data?.pendingPayments || 0} €
                 </Text>
                 <Text className="text-gray-500 mt-1 font-pmedium">
                   Pagesa në pritje
@@ -107,7 +159,7 @@ export default function ClientExpenses() {
                 Pagesat e fundit
               </Text>
               <Animated.View style={pulseStyle}>
-                <TouchableOpacity className="shadow-lg shadow-black/5 bg-white p-1 rounded-lg">
+                <TouchableOpacity onPress={() => setOpenedAllFinancesModal(true)} className="shadow-lg shadow-black/5 bg-white p-1 rounded-lg">
                   <CreditCard color={"#312e81"} />
                 </TouchableOpacity>
               </Animated.View>
@@ -115,11 +167,67 @@ export default function ClientExpenses() {
           </>
         )}
         ListEmptyComponent={() => (
-          <Text className="text-center text-gray-400 mt-6">
-            Nuk ka pagesa të regjistruara
-          </Text>
+          <View className="bg-gray-50 my-4">
+            <EmptyState textStyle='!font-plight !text-sm' message="Nuk ka statistika financore ende. Nese mendoni qe eshte gabim ju lutem provoni perseri." onRetry={refetch}/>
+          </View>
         )}
       />
     </View>
+
+    <Modal
+        visible={openedAllFinancesModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setOpenedAllFinancesModal(false)}
+      >
+        <View className="flex-1 justify-end bg-black/50">
+          <View className="bg-white rounded-t-2xl p-5 shadow-lg shadow-black/30">
+            {/* Header */}
+            <View className="flex-row justify-between items-center mb-3">
+              <Text className="text-lg font-psemibold text-indigo-900">Te gjitha fitimet tua</Text>
+              <TouchableOpacity onPress={() => setOpenedAllFinancesModal(false)}>
+                <X size={22} color="#4338ca" />
+              </TouchableOpacity>
+            </View>
+
+            {(allFinancesLoading || allFinancesRefetching) ? (
+              <View className=" mt-8">
+                <LoadingState contStyle="!bg-white"/>
+              </View>
+            ) : ((!allFinancesLoading && !allFinancesRefetching) && allFinancesError) ? (
+              <View className="h-[300px] mt-6">
+                <ErrorState contStyle="!bg-white" onRetry={allFinancesRefetch}/>
+              </View>
+            ) : (
+              <FlatList 
+                className="max-h-[80%]"
+                showsVerticalScrollIndicator={false}
+                data={allFinancesData}
+                keyExtractor={(item) => item.id}
+                renderItem={({item}) => (
+                  <PassengerFinancialItemCard item={item}/>
+                )}
+                ListEmptyComponent={() => (
+                  <View>
+                    <EmptyState containerStyle="!bg-white" textStyle="!font-plight !text-sm" message="Nuk u gjeten fitimet tua. Nese mendoni qe eshte gabim provoni perseri." onRetry={allFinancesRefetch}/>
+                  </View>
+                )}
+              />
+            )}
+
+
+            {/* Action Buttons */}
+            <View className="justify-end">
+              <TouchableOpacity
+                onPress={() => setOpenedAllFinancesModal(false)}
+                className="px-4 py-3 rounded-xl bg-indigo-600"
+              >
+                <Text className="text-white font-pmedium text-center">Mbyll</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+    </Modal>
+    </>
   );
 }

@@ -1,4 +1,4 @@
-import FinancialItemCard from "@/components/client/FinancialItemCard";
+import FinancialItemCard from "@/components/DriverFinancialItemCard";
 import HeaderComponent from "@/components/HeaderComponent";
 import EmptyState from "@/components/system/EmptyState";
 import ErrorState from "@/components/system/ErrorState";
@@ -24,6 +24,7 @@ export default function Statistics() {
       return res.data;
     },
     refetchOnWindowFocus: false, 
+    retry: 2
   })
 
   const {data: allFinancesData, isLoading: allFinancesLoading, isRefetching: allFinancesRefetching, refetch: allFinancesRefetch, error: allFinancesError} = useQuery({
@@ -33,7 +34,8 @@ export default function Statistics() {
       return res.data;
     },
     refetchOnWindowFocus: false,
-    enabled: openedAllFinancesModal
+    enabled: openedAllFinancesModal,
+    retry: 2
   })
   
 
