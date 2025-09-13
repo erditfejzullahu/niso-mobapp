@@ -12,7 +12,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/sq';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Image, Modal, RefreshControl, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Modal, RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Animated, { BounceInUp, Easing } from 'react-native-reanimated';
 import * as ImagePicker from "expo-image-picker"
@@ -455,6 +455,59 @@ const ClientProfile = () => {
             <View className='mb-3'>
               <Controller 
                 control={control}
+                name='city'
+                render={({field}) => {
+                  const [showSuggestions, setShowSuggestions] = useState(false);
+                  
+                  const filteredCities = Object.values(KosovoCity).filter(city => 
+                    city.toLowerCase().includes(field.value.toLowerCase())
+                  );
+
+                  const handleSelectCity = (city: string) => {
+                    field.onChange(city);
+                    setShowSuggestions(false); // Hide dropdown after selection
+                  };
+
+                  const handleFocus = () => {
+                    setShowSuggestions(true); // Show dropdown when input is focused
+                  };
+
+                  return (
+                    <>
+                      <TextField 
+                        title='Qyteti'
+                        placeholder='Shkruani qytetin ku jeni ketu...'
+                        {...field}
+                        value={field.value.replace("_", " ")}
+                        onChangeText={(text) => {
+                          field.onChange(text);
+                          setShowSuggestions(true); // Show dropdown when typing
+                        }}
+                        onFocus={handleFocus}
+                      />
+                      {showSuggestions && field.value && filteredCities.length > 0 && (
+                        <ScrollView className='h-[80px] shadow-sm shadow-black/10 border border-gray-200 rounded-2xl p-2 mt-2'>
+                          <Text className='text-[8px] font-plight text-indigo-950'>Zgjidhni qytetin tuaj</Text>
+                          {filteredCities.map((item, idx) => (
+                            <TouchableOpacity 
+                              key={item} 
+                              onPress={() => handleSelectCity(item)}
+                            >
+                              <Text className={`font-pregular bg-gray-50 py-1 rounded-lg px-2 text-sm text-indigo-950 ${idx !== filteredCities.length - 1 ? "border-b border-gray-200" : ""}`}>
+                                {item.replace("_", " ")}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      )}
+                    </>
+                  );
+                }}
+              />
+            </View>
+            <View className='mb-3'>
+              <Controller 
+                control={control}
                 name="email"
                 render={({field}) => (
                   <>
@@ -478,7 +531,7 @@ const ClientProfile = () => {
                 name="gender"
                 render={({field}) => (
                   <View className="mb-6  border-gray-200">
-                    <Text className="text-gray-700 mb-1 font-pmedium">Gjinia</Text>
+                    <Text className="text-gray-700  font-pmedium text-sm">Gjinia</Text>
                     <View className="flex-row justify-between mt-2">
                       <TouchableOpacity 
                         className={`flex-1 mr-2 py-3 rounded-lg border ${field.value === 'MALE' ? 'bg-indigo-100 border-indigo-600' : 'border-gray-300'}`}
@@ -506,6 +559,7 @@ const ClientProfile = () => {
                 <Text className='text-xs font-plight text-red-500 mt-1'>Ju lutem zgjidhni mes opsioneve</Text>
               )}
             </View>
+            
             
             
             <View className="flex-row justify-end">

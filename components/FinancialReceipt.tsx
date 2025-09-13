@@ -71,8 +71,6 @@ const [makeReq, setMakeReq] = useState(false)
     refetchOnWindowFocus: false
   })
   
-  console.log(data);
-  
 
   return (
     <>

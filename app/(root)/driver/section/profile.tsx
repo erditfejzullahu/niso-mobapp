@@ -14,7 +14,7 @@ import 'dayjs/locale/sq';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Alert, Image, Modal, RefreshControl, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Modal, RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Animated, { BounceInUp, Easing } from 'react-native-reanimated';
 import {z} from 'zod';
@@ -461,6 +461,59 @@ const Profile = () => {
               {errors.address && (
                 <Text className='text-xs font-plight text-red-500 mt-1'>{errors.address.message}</Text>
               )}
+            </View>
+            <View className='mb-3'>
+              <Controller 
+                control={control}
+                name='city'
+                render={({field}) => {
+                  const [showSuggestions, setShowSuggestions] = useState(false);
+                  
+                  const filteredCities = Object.values(KosovoCity).filter(city => 
+                    city.toLowerCase().includes(field.value.toLowerCase())
+                  );
+
+                  const handleSelectCity = (city: string) => {
+                    field.onChange(city);
+                    setShowSuggestions(false); // Hide dropdown after selection
+                  };
+
+                  const handleFocus = () => {
+                    setShowSuggestions(true); // Show dropdown when input is focused
+                  };
+
+                  return (
+                    <>
+                      <TextField 
+                        title='Qyteti'
+                        placeholder='Shkruani qytetin ku jeni ketu...'
+                        {...field}
+                        value={field.value.replace("_", " ")}
+                        onChangeText={(text) => {
+                          field.onChange(text);
+                          setShowSuggestions(true); // Show dropdown when typing
+                        }}
+                        onFocus={handleFocus}
+                      />
+                      {showSuggestions && field.value && filteredCities.length > 0 && (
+                        <ScrollView className='h-[80px] shadow-sm shadow-black/10 border border-gray-200 rounded-2xl p-2 mt-2'>
+                          <Text className='text-[8px] font-plight text-indigo-950'>Zgjidhni qytetin tuaj</Text>
+                          {filteredCities.map((item, idx) => (
+                            <TouchableOpacity 
+                              key={item} 
+                              onPress={() => handleSelectCity(item)}
+                            >
+                              <Text className={`font-pregular bg-gray-50 py-1 rounded-lg px-2 text-sm text-indigo-950 ${idx !== filteredCities.length - 1 ? "border-b border-gray-200" : ""}`}>
+                                {item.replace("_", " ")}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      )}
+                    </>
+                  );
+                }}
+              />
             </View>
             <View className='mb-3'>
               <Controller 
