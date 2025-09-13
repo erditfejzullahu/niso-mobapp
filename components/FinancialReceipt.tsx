@@ -26,8 +26,8 @@ const FinancialReceipt = ({
 const [showFromDate, setShowFromDate] = useState(false)
 const [showToDate, setShowToDate] = useState(false)
 
-const [fromDate, setFromDate] = useState(new Date());
-const [toDate, setToDate] = useState(new Date());
+const [fromDate, setFromDate] = useState<Date>(new Date());
+const [toDate, setToDate] = useState<Date>(new Date());
 
   const formatDate = (date: Date) => date.toISOString().split('T')[0]; // YYYY-MM-DD
 
@@ -53,6 +53,13 @@ const [toDate, setToDate] = useState(new Date());
     const fileUri = await generateCSV();
     await Sharing.shareAsync(fileUri);
   };
+
+  useEffect(() => {
+    if(toDate < fromDate){
+        setFromDate(toDate)
+    }
+  }, [toDate, fromDate])
+  
 
 
   return (
@@ -83,7 +90,7 @@ const [toDate, setToDate] = useState(new Date());
               >
                 <Calendar color="#4f46e5" size={18} />
                 <Text className="ml-2 text-indigo-900">
-                  Nga: {formatDate(fromDate)}
+                  {"Nga: " + formatDate(fromDate)} 
                 </Text>
               </TouchableOpacity>
 
@@ -93,7 +100,7 @@ const [toDate, setToDate] = useState(new Date());
               >
                 <Calendar color="#4f46e5" size={18} />
                 <Text className="ml-2 text-indigo-900">
-                  Deri: {formatDate(toDate)}
+                  {"Deri: " + formatDate(toDate)} 
                 </Text>
               </TouchableOpacity>
             </View>
@@ -151,13 +158,19 @@ const [toDate, setToDate] = useState(new Date());
         </View>
       {showFromDate && (
         <View className='absolute justify-end items-center border w-full h-full m-auto'>
-            <View className='bg-indigo-50 rounded-2xl p-4 items-center justify-center'>
-                <Text className='text-sm text-center font-psemibold text-indigo-600'>Zgjidhni prej kur e deshironi pasqyren financiare</Text>
+            <View className='bg-indigo-50 rounded-2xl p-4 items-center justify-center w-[95%]'>
+                <View className='flex-row items-center gap-1'>
+                    <Text className='text-sm text-center flex-1 font-psemibold text-indigo-600'>Zgjidhni prej kur e deshironi pasqyren financiare</Text>
+                    <TouchableOpacity onPress={() => setShowFromDate(false)}>
+                        <X color={"#4f46e5"}/>
+                    </TouchableOpacity>
+                </View>
                 <DateTimePicker
-                    value={fromDate}
+                    value={fromDate || new Date()}
                     mode="date"
                     locale='sq-AL'
                     display="inline"
+                    maximumDate={toDate || new Date()}
                     onChange={(_, selectedDate) => {
                     setShowFromDate(false);
                     if (selectedDate) setFromDate(selectedDate);
@@ -169,10 +182,15 @@ const [toDate, setToDate] = useState(new Date());
 
       {showToDate && (
         <View className='absolute justify-end items-center border w-full h-full m-auto'>
-            <View className='bg-indigo-50 rounded-2xl p-4 items-center justify-center'>
-                <Text className='text-sm text-center font-psemibold text-indigo-600'>Zgjidhni deri kur e deshironi pasqyren financiare</Text>
+            <View className='bg-indigo-50 rounded-2xl p-4 items-center justify-center w-[95%]'>
+                <View className='flex-row items-center gap-1'>
+                    <Text className='text-sm flex-1 text-center font-psemibold text-indigo-600'>Zgjidhni deri kur e deshironi pasqyren financiare</Text>
+                    <TouchableOpacity onPress={() => setShowToDate(false)}>
+                        <X color={"#4f46e5"}/>
+                    </TouchableOpacity>
+                </View>
                 <DateTimePicker
-                    value={toDate}
+                    value={toDate || new Date()}
                     mode="date"
                     locale='sq-AL'
                     display="inline"
