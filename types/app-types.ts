@@ -344,7 +344,12 @@ export interface FinancialReceiptItemInterface {
   id: string;
   dateProcessed: Date;
   paid: string;
-  status: PaymentStatus
+  status: PaymentStatus;
+}
+
+export interface FinancialMirrorList {
+  financeItems: FinancialReceiptItemInterface[];
+  totalSum: string;
 }
 
 //finances

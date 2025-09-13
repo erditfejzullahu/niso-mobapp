@@ -4,7 +4,7 @@ import { X, Download, Share2, Calendar, Search } from 'lucide-react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { FinancialReceiptItemInterface, User } from '@/types/app-types';
+import { FinancialMirrorList, FinancialReceiptItemInterface, User } from '@/types/app-types';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/hooks/useApi';
 import LoadingState from './system/LoadingState';
@@ -12,6 +12,7 @@ import ErrorState from './system/ErrorState';
 import EmptyState from './system/EmptyState';
 import FinancialReceiptItem from './FinancialReceiptItem';
 import dayjs from 'dayjs';
+import { toFixedNoRound } from '@/utils/toFixed';
 
 const mockTransactions = [
   { id: '1', date: '2025-09-01', description: 'ajsdiasjdiasjd129388923jrasj', debit: 3.5, credit: 0, balance: 996.5 },
@@ -63,7 +64,7 @@ const [makeReq, setMakeReq] = useState(false)
   const {data, isLoading, isRefetching, error, refetch} = useQuery({
     queryKey: ['financialMirror', fromDate, toDate],
     queryFn: async () => {
-        const res = await api.get<FinancialReceiptItemInterface[]>('/finances/financial-mirror', {params: {fromDate, toDate}});
+        const res = await api.get<FinancialMirrorList>('/finances/financial-mirror', {params: {fromDate, toDate}});
         return res.data
     },
     enabled: makeReq,
@@ -128,7 +129,7 @@ const [makeReq, setMakeReq] = useState(false)
                     <ErrorState onRetry={refetch}/>
                 ) : (
                     <FlatList
-                      data={data}
+                      data={data?.financeItems}
                       keyExtractor={(item) => item.id}
                       className="mb-4"
                       renderItem={({ item }) => (
@@ -147,29 +148,31 @@ const [makeReq, setMakeReq] = useState(false)
             )}
 
             {/* Summary */}
-            <View className="mt-3 p-3 bg-indigo-50 rounded-xl">
+            {data && data.totalSum && <View className="mt-3 p-3 bg-indigo-50 rounded-xl">
               <Text className="text-sm text-indigo-950 font-psemibold">
-                Totali i {user.role === "DRIVER" ? "fituar" : "shpenzuar"}: <Text className='text-indigo-600 font-pbold'>{mockTransactions[mockTransactions.length - 1].balance} € </Text>
+                Totali i {user.role === "DRIVER" ? "fituar" : "shpenzuar"}: <Text className='text-indigo-600 font-pbold'>{toFixedNoRound(data.totalSum || 0, 2)} € </Text>
               </Text>
-            </View>
+            </View>}
 
             {/* Actions */}
-            <View className="flex-row justify-around mt-5">
-              <TouchableOpacity
-                className="flex-row items-center bg-indigo-600 px-4 py-2 rounded-xl"
-                onPress={handleDownload}
-              >
-                <Download color="white" size={18} />
-                <Text className="text-white ml-2 font-pregular">Shkarko</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-row items-center bg-green-600 px-4 py-2 rounded-xl"
-                onPress={handleShare}
-              >
-                <Share2 color="white" size={18} />
-                <Text className="text-white ml-2 font-pregular">Ndaj</Text>
-              </TouchableOpacity>
-            </View>
+            {data && data.financeItems.length > 0 && (
+                <View className="flex-row justify-around mt-5">
+                <TouchableOpacity
+                    className="flex-row items-center bg-indigo-600 px-4 py-2 rounded-xl"
+                    onPress={handleDownload}
+                >
+                    <Download color="white" size={18} />
+                    <Text className="text-white ml-2 font-pregular">Shkarko</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    className="flex-row items-center bg-green-600 px-4 py-2 rounded-xl"
+                    onPress={handleShare}
+                >
+                    <Share2 color="white" size={18} />
+                    <Text className="text-white ml-2 font-pregular">Ndaj</Text>
+                </TouchableOpacity>
+                </View>
+            )}
           </View>
         </View>
       {showFromDate && (
