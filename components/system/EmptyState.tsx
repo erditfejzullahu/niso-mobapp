@@ -33,7 +33,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
               className='!bg-indigo-600 mt-4'
             >
               <Ionicons name="refresh" size={20} color="#ffffff" />
-              <Text style={styles.retryButtonText}>{retryButtonText}</Text>
+              <Text className='font-pmedium' style={styles.retryButtonText}>{retryButtonText}</Text>
             </TouchableOpacity>
         )}
       </View>

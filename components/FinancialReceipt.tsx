@@ -1,10 +1,17 @@
-import { View, Text, Modal, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import React, { Dispatch, memo, SetStateAction, useCallback, useEffect, useState } from 'react';
-import { X, Download, Share2, Calendar } from 'lucide-react-native';
+import { X, Download, Share2, Calendar, Search } from 'lucide-react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { User } from '@/types/app-types';
+import { FinancialReceiptItemInterface, User } from '@/types/app-types';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/hooks/useApi';
+import LoadingState from './system/LoadingState';
+import ErrorState from './system/ErrorState';
+import EmptyState from './system/EmptyState';
+import FinancialReceiptItem from './FinancialReceiptItem';
+import dayjs from 'dayjs';
 
 const mockTransactions = [
   { id: '1', date: '2025-09-01', description: 'ajsdiasjdiasjd129388923jrasj', debit: 3.5, credit: 0, balance: 996.5 },
@@ -29,7 +36,12 @@ const [showToDate, setShowToDate] = useState(false)
 const [fromDate, setFromDate] = useState<Date>(new Date());
 const [toDate, setToDate] = useState<Date>(new Date());
 
-  const formatDate = useCallback((date: Date) => date.toISOString().split('T')[0], []); // YYYY-MM-DD
+const [makeReq, setMakeReq] = useState(false)
+
+    const formatDate = useCallback((date: any) => {
+        if (!date) return 'N/A';
+        return dayjs(date).format('YYYY-MM-DD');
+    }, []);
 
   const handleDownload = async () => {
     // const fileUri = await generateCSV();
@@ -41,13 +53,25 @@ const [toDate, setToDate] = useState<Date>(new Date());
     // await Sharing.shareAsync(fileUri);
   };
 
+
   useEffect(() => {
     if(toDate < fromDate){
         setFromDate(toDate)
     }
   }, [toDate, fromDate])
-  
 
+  const {data, isLoading, isRefetching, error, refetch} = useQuery({
+    queryKey: ['financialMirror', fromDate, toDate],
+    queryFn: async () => {
+        const res = await api.get<FinancialReceiptItemInterface[]>('/finances/financial-mirror', {params: {fromDate, toDate}});
+        return res.data
+    },
+    enabled: makeReq,
+    refetchOnWindowFocus: false
+  })
+  
+  console.log(data);
+  
 
   return (
     <>
@@ -70,7 +94,7 @@ const [toDate, setToDate] = useState<Date>(new Date());
             </View>
 
             {/* Date Pickers */}
-            <View className="flex-row justify-between mb-4">
+            <View className="flex-row justify-between mb-3">
               <TouchableOpacity
                 className="flex-row items-center bg-indigo-50 px-3 py-2 rounded-lg flex-1 mr-2"
                 onPress={() => setShowFromDate(true)}
@@ -91,31 +115,36 @@ const [toDate, setToDate] = useState<Date>(new Date());
                 </Text>
               </TouchableOpacity>
             </View>
+            <TouchableOpacity disabled={isLoading || isRefetching} className='bg-indigo-600 mb-3 flex-row py-2 items-center gap-2 justify-center rounded-lg' onPress={() => setMakeReq(true)}>
+                <Search color={"#fff"} size={14}/>
+                <Text className='text-white font-pmedium text-sm'>{(isLoading || isRefetching) ? "Duke u ngarkuar..." : "Kerkoni pasqyren e llogarise"}</Text>
+            </TouchableOpacity>
 
             {/* Transaction List */}
-            <FlatList
-              data={mockTransactions}
-              keyExtractor={(item) => item.id}
-              className="mb-4"
-              renderItem={({ item }) => (
-                <View className="flex-row justify-between py-2 border-b border-gray-200">
-                  <Text className="text-xs font-plight w-[20%]">{item.date}</Text>
-                  <Text className="text-xs flex-1 font-pregular" numberOfLines={1}>{item.description}</Text>
-                  <Text className="text-xs font-pregular w-[15%] text-red-500">
-                    {item.debit ? `- ${item.debit}` : ''}
-                  </Text>
-                  <Text className="text-xs w-[15%] font-pregular text-green-600">
-                    {item.credit ? `+ ${item.credit}` : ''}
-                  </Text>
-
-                  {/* it can be expense refund */}
-                  <Text className="text-xs w-[20%] font-psemibold text-right">
-                    Shpenzim 
-                  </Text>
-
-                </View>
-              )}
-            />
+            {makeReq && (
+                (isLoading || isRefetching) ? (
+                    <LoadingState />
+                ) : (!isLoading && !isRefetching) && error ? (
+                    <ErrorState onRetry={refetch}/>
+                ) : (
+                    <FlatList
+                      data={data}
+                      keyExtractor={(item) => item.id}
+                      className="mb-4"
+                      renderItem={({ item }) => (
+                        <FinancialReceiptItem item={item} user={user}/>
+                      )}
+                      ListEmptyComponent={() => (
+                        <EmptyState 
+                            containerStyle='!bg-white'
+                            message={`Nuk u gjeten te dhena me datat ${formatDate(fromDate)} deri me ${formatDate(toDate)}. Nese mendoni qe eshte gabim, provoni perseri.`}
+                            textStyle='!font-pregular !text-sm'
+                            onRetry={refetch}
+                        />
+                      )}
+                    />
+                )
+            )}
 
             {/* Summary */}
             <View className="mt-3 p-3 bg-indigo-50 rounded-xl">

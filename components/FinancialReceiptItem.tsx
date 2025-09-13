@@ -11,8 +11,13 @@ import EmptyState from './system/EmptyState';
 import dayjs from 'dayjs';
 
 const FinancialReceiptItem = ({item, user}: {item: FinancialReceiptItemInterface; user: UserType}) => {
+    console.log(item,  "  item");
+    
     const [openModal, setOpenModal] = useState(false)
-    const formatDate = useCallback((date: Date) => date.toISOString().split('T')[0], []); // YYYY-MM-DD
+    const formatDate = useCallback((date: any) => {
+        if (!date) return 'N/A';
+        return dayjs(date).format('YYYY-MM-DD');
+    }, []);
 
     const getStatusIcon = useCallback((status: string) => {
         switch (status) {
@@ -79,9 +84,9 @@ const FinancialReceiptItem = ({item, user}: {item: FinancialReceiptItemInterface
         <TouchableOpacity onPress={() => setOpenModal(true)} className="flex-row justify-between py-2 border-b border-gray-200">
             <Text className="text-xs font-plight w-[20%] text-indigo-950">{formatDate(item.dateProcessed)}</Text>
             <Text className="text-xs flex-1 font-pregular text-indigo-950" numberOfLines={1}>{item.id}</Text>
-            {item.status === "PAID" && <Text className={`text-xs font-pregular w-[15%] ${user.role === "DRIVER" ? "text-green-500" : "text-red-500"} `}>+ {item.paid}€</Text>}
-            {item.status === "PENDING" && <Text className={`text-xs font-pregular w-[15%] text-gray-500`}>{user.role === "DRIVER" ? "+" : "-"} {item.paid}€</Text>}
-            {item.status === "REFUNDED" && <Text className={`text-xs font-pregular w-[15%] ${user.role === "DRIVER" ? "text-red-500" : "text-green-500"}`}>
+            {item.status === "PAID" && <Text className={`text-xs mx-2 font-pregular w-[15%] ${user.role === "DRIVER" ? "text-green-500" : "text-red-500"} `}>{user.role === "DRIVER" ? "+" : "-"} {item.paid}€</Text>}
+            {item.status === "PENDING" && <Text className={`text-xs mx-2 font-pregular w-[15%] text-gray-500`}>{user.role === "DRIVER" ? "+" : "-"} {item.paid}€</Text>}
+            {item.status === "REFUNDED" && <Text className={`text-xs mx-2 font-pregular w-[15%] ${user.role === "DRIVER" ? "text-red-500" : "text-green-500"}`}>
                 {user.role === "DRIVER" ? "- " + item.paid + "€" : "+ " + item.paid + "€"}    
             </Text>}
 
@@ -91,7 +96,7 @@ const FinancialReceiptItem = ({item, user}: {item: FinancialReceiptItemInterface
             </Text>
         </TouchableOpacity>
 
-        {user.role === "DRIVER" && (
+        {user.role === "DRIVER" && data && (
             <Modal
                 visible={openModal}
                 transparent
@@ -99,7 +104,7 @@ const FinancialReceiptItem = ({item, user}: {item: FinancialReceiptItemInterface
                 onRequestClose={() => setOpenModal(false)}
             >
                 <View className="flex-1 justify-end bg-black/50">
-                    {(isLoading || isRefetching) ? (
+                    {/* {(isLoading || isRefetching) ? (
                         <View className='bg-white p-4 h-[300px]'>
                             <LoadingState />
                         </View>
@@ -109,7 +114,7 @@ const FinancialReceiptItem = ({item, user}: {item: FinancialReceiptItemInterface
                         </View>
                     ) : !data ? (
                         <EmptyState message='Nuk u gjet gjendja financore e kerkeses tuaj. Ju lutem provoni perseri!' textStyle='!font-plight !text-sm' onRetry={refetch}/>
-                    ) : (
+                    ) : ( */}
                     <View style={{maxHeight: "90%", height: "100%"}} className="bg-white rounded-t-2xl p-5 shadow-lg shadow-black/30">
                         {/* Header */}
                         <View className="flex-row justify-between items-center mb-4">
@@ -297,12 +302,12 @@ const FinancialReceiptItem = ({item, user}: {item: FinancialReceiptItemInterface
                             <Text className="text-white font-pmedium text-center">Mbyll</Text>
                         </TouchableOpacity>
                     </View>
-                    )}
+                    {/* )} */}
                 </View>
             </Modal>
         )}
 
-        {user.role === "PASSENGER" && (
+        {user.role === "PASSENGER" && data && (
             <Modal
                 visible={openModal}
                 transparent
@@ -310,7 +315,7 @@ const FinancialReceiptItem = ({item, user}: {item: FinancialReceiptItemInterface
                 onRequestClose={() => setOpenModal(false)}
             >
                 <View className="flex-1 justify-end bg-black/50">
-                    {(isLoading || isRefetching) ? (
+                    {/* {(isLoading || isRefetching) ? (
                         <View className='bg-white p-4 h-[300px]'>
                             <LoadingState />
                         </View>
@@ -320,7 +325,7 @@ const FinancialReceiptItem = ({item, user}: {item: FinancialReceiptItemInterface
                         </View>
                     ) : !data ? (
                         <EmptyState message='Nuk u gjet gjendja financore e kerkeses tuaj. Ju lutem provoni perseri!' textStyle='!font-plight !text-sm' onRetry={refetch}/>
-                    ) : (
+                    ) : ( */}
                     <View style={{maxHeight: "90%", height: "100%"}} className="bg-white rounded-t-2xl p-5 shadow-lg shadow-black/30">
                         {/* Header */}
                         <View className="flex-row justify-between items-center mb-4">
@@ -507,7 +512,7 @@ const FinancialReceiptItem = ({item, user}: {item: FinancialReceiptItemInterface
                             <Text className="text-white font-pmedium text-center">Mbyll</Text>
                         </TouchableOpacity>
                     </View>
-                    )}
+                    {/* )} */}
                 </View>
             </Modal>
         )}
