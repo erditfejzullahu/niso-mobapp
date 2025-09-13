@@ -338,6 +338,17 @@ export interface PassengerAllExpensesList {
 
 // passenger finances
 
+//finances
+
+export interface FinancialReceiptItemInterface {
+  id: string;
+  dateProcessed: Date;
+  paid: string;
+  status: PaymentStatus
+}
+
+//finances
+
 // driver finances
 export interface DriverFinances {
   totalEarned: string;

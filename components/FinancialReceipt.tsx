@@ -1,5 +1,5 @@
 import { View, Text, Modal, TouchableOpacity, FlatList } from 'react-native';
-import React, { Dispatch, memo, SetStateAction, useEffect, useState } from 'react';
+import React, { Dispatch, memo, SetStateAction, useCallback, useEffect, useState } from 'react';
 import { X, Download, Share2, Calendar } from 'lucide-react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -29,29 +29,16 @@ const [showToDate, setShowToDate] = useState(false)
 const [fromDate, setFromDate] = useState<Date>(new Date());
 const [toDate, setToDate] = useState<Date>(new Date());
 
-  const formatDate = (date: Date) => date.toISOString().split('T')[0]; // YYYY-MM-DD
-
-  const generateCSV = async () => {
-    let csv = 'Date,Description,Debit,Credit,Balance\n';
-    mockTransactions.forEach((t) => {
-      csv += `${t.date},${t.description},${t.debit},${t.credit},${t.balance}\n`;
-    });
-
-    const fileUri = FileSystem.documentDirectory + 'financial_receipt.csv';
-    await FileSystem.writeAsStringAsync(fileUri, csv, {
-      encoding: FileSystem.EncodingType.UTF8,
-    });
-    return fileUri;
-  };
+  const formatDate = useCallback((date: Date) => date.toISOString().split('T')[0], []); // YYYY-MM-DD
 
   const handleDownload = async () => {
-    const fileUri = await generateCSV();
-    alert(`File saved at: ${fileUri}`);
+    // const fileUri = await generateCSV();
+    // alert(`File saved at: ${fileUri}`);
   };
 
   const handleShare = async () => {
-    const fileUri = await generateCSV();
-    await Sharing.shareAsync(fileUri);
+    // const fileUri = await generateCSV();
+    // await Sharing.shareAsync(fileUri);
   };
 
   useEffect(() => {
