@@ -99,9 +99,9 @@ const PassengerHomeData = ({ user, onRefetchFunction }: {user: User, onRefetchFu
       <View className='h-full bg-gray-50'><LoadingState message='Duke riperpunuar te dhenat aktive te Niso...'/></View>
     ) : (
       <>
-      <ActiveTransport user={user} activeRide={data.userActiveRide}/>
-      <ActiveRidesCount count={data.systemStats.totalActiveRides}/>
-      <HomeActiveDriversWrapper activeDrivers={data.topAvailableDrivers} onRetry={refetch}/>
+      <ActiveTransport user={user} activeRide={data?.userActiveRide}/>
+      <ActiveRidesCount count={data?.systemStats?.totalActiveRides}/>
+      <HomeActiveDriversWrapper activeDrivers={data?.topAvailableDrivers} onRetry={refetch}/>
       </>
     )}
     </>

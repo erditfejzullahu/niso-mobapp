@@ -3,12 +3,12 @@ import { toFixedNoRound } from "@/utils/toFixed";
 import dayjs from "dayjs";
 import "dayjs/locale/sq";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 import { ArrowRight, Clock, Frown, Laugh, MapPin, MapPinCheck, Meh, Smile, Star, X } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { Image, Modal, Text, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
-import Animated, { interpolate, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { usePulseAnimation } from "@/hooks/usePulseAnimation";
 dayjs.extend(relativeTime);
 dayjs.locale("sq");
@@ -27,19 +27,8 @@ type ActiveTransportProps = {
 };
 
 const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePassengerRide | null}) => {
-  // Dummy data
-  const activeTransport: ActiveTransportProps = {
-    driverName: "Arben Hoxha",
-    passengerName: "Eriona Krasniqi",
-    passengerPhoto: "https://randomuser.me/api/portraits/women/44.jpg",
-    from: "Sheshi Skënderbej, Tiranë",
-    to: "Rruga e Elbasanit, Tiranë",
-    price: 6.5,
-    dateStarted: dayjs().subtract(15, "minute").toISOString(),
-    inProgress: true,
-    id: 101,
-    hasTransport: true
-  };
+
+  const router = useRouter()
 
   const animatedStyle = usePulseAnimation({});
   
@@ -82,14 +71,14 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
             className="w-12 h-12 rounded-full mr-3"
           />
           <View className="flex-1">
-            <Text className="font-semibold text-lg text-gray-800">
+            <Text className="font-psemibold text-lg text-indigo-950">
               {user.fullName}
             </Text>
-            <Text className="text-gray-500 text-xs">Shofer: {}</Text>
+            <Text className="text-gray-500 text-xs font-pregular">Shofer: <Text className="text-indigo-600">{activeRide.driver.fullName}</Text></Text>
             <View className="flex-row items-center">
               <Clock size={14} color="#6B7280" />
-              <Text className="ml-1 text-gray-500 text-sm">
-                {dayjs(activeTransport.dateStarted).fromNow()}
+              <Text className="ml-1 text-gray-500 mt-0.5 text-xs font-pregular">
+                {dayjs(activeRide.rideInfo.createdAt).fromNow()}
               </Text>
             </View>
           </View>
@@ -101,7 +90,7 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
             }`}
           >
             <Text
-              className={`text-xs font-semibold ${
+              className={`text-xs font-psemibold ${
                 activeRide.status === "DRIVING" ? "text-green-600" : "text-yellow-600"
               }`}
             >
@@ -112,19 +101,25 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
 
         {/* Middle: From → To */}
         <View className="flex-row items-center mb-3">
-          <MapPin size={18} color="#3B82F6" />
-          <Text className="ml-2 text-gray-800 flex-shrink">{activeRide.rideInfo.fromAddress}</Text>
-          <ArrowRight size={18} color="#9CA3AF" className="mx-2" />
-          <MapPin size={18} color="#10B981" />
-          <Text className="ml-2 text-gray-800 flex-shrink">{activeRide.rideInfo.toAddress}</Text>
+          <MapPin size={16} color="#3B82F6" />
+          <Text className="ml-1 text-gray-800 flex-shrink font-pregular text-sm" numberOfLines={1}>{activeRide.rideInfo.fromAddress}</Text>
+          <View className="mx-2"><ArrowRight size={16} color="#9CA3AF" /></View>
+          <MapPin size={16} color="#10B981" />
+          <Text className="ml-1 text-gray-800 flex-shrink font-pregular text-sm" numberOfLines={1}>{activeRide.rideInfo.toAddress}</Text>
         </View>
 
         {/* Bottom: Price */}
-        <View className="mt-1 flex-row items-center gap-2 rounded-xl shadow-md bg-white shadow-black/10 self-start p-2">
-          <Text className="text-gray-500 text-sm">Çmimi</Text>
-          <Text className="font-semibold text-base text-gray-800">
-            {toFixedNoRound(activeRide.rideInfo.price, 2)} €
-          </Text>
+        <View className="flex-row items-center justify-between">
+          <View className="mt-1 flex-row items-center gap-2 rounded-xl shadow-md bg-white shadow-black/10 self-start p-2">
+            <Text className="text-gray-500 text-sm font-pregular">Çmimi</Text>
+            <Text className="font-psemibold text-base text-indigo-950">
+              {toFixedNoRound(activeRide.rideInfo.price, 2)} €
+            </Text>
+          </View>
+          <View className="flex-row items-center gap-2">
+              <Text className="text-gray-500 text-sm font-pregular">Distanca</Text>
+              <Text className="font-psemibold text-base text-indigo-950">{toFixedNoRound(activeRide.rideInfo.distance, 2)} Km</Text>
+          </View>
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -136,12 +131,12 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
             <Text className="text-lg font-psemibold text-indigo-950 mb-3">
               Detajet e transportit aktiv
             </Text>
-            <Text className="text-gray-700 text-sm mb-3">
+            <Text className="text-gray-700 font-pregular text-sm mb-3">
               Ky transport është {activeRide.status === "DRIVING" ? "aktualisht në proces" : "ende nuk ka filluar"}.  
               Shoferi <Text className="text-indigo-600 font-psemibold">{activeRide.driver.fullName} </Text>  
               po transporton <Text className="text-indigo-600 font-psemibold">{user.fullName} </Text>  
-              nga <Text className="text-indigo-600">{activeRide.rideInfo.fromAddress} </Text>  
-              deri te <Text className="text-indigo-600">{activeRide.rideInfo.toAddress} </Text>.
+              nga <Text className="text-red-600 font-psemibold">{activeRide.rideInfo.fromAddress} </Text>  
+              deri te <Text className="text-red-600 font-psemibold">{activeRide.rideInfo.toAddress} </Text>.
             </Text>
 
             <View className="flex-row justify-between">
@@ -179,7 +174,7 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
             <Text className="text-lg font-psemibold text-indigo-950 mb-3">
               Dëshironi të vlerësoni shoferin?
             </Text>
-            <Text className="text-gray-700 text-sm">Ky modal shërben për vlerësimin e shoferit <Text className="font-psemibold text-indigo-600">{activeTransport.driverName}</Text></Text>
+            <Text className="text-gray-700 text-sm">Ky modal shërben për vlerësimin e shoferit <Text className="font-psemibold text-indigo-600">{activeRide.driver.fullName}</Text></Text>
             <Text className="text-indigo-600 text-sm mb-3">Për të proceduar në vlerësimin e shoferit shtypni butonin <Text className="font-psemibold">"Procedo"</Text></Text>
 
             <View className="flex-row justify-between">
@@ -215,7 +210,7 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
             </Text>
             <Text className="text-gray-700 text-sm text-center leading-none mb-1">
                 Ky modal për vlerësimin e shoferit{" "}
-                <Text className="text-indigo-600">{activeTransport.driverName}</Text>{" "}
+                <Text className="text-indigo-600">{activeRide.driver.fullName}</Text>{" "}
                 duhet të jap vlerësime të sinqerta në lidhje me sjelljen apo udhëtimin tuaj.
             </Text>
             <Text className="font-psemibold text-sm text-center mb-3">

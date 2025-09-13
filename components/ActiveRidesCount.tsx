@@ -1,3 +1,4 @@
+import { usePulseAnimation } from "@/hooks/usePulseAnimation";
 import { Activity, Car } from "lucide-react-native";
 import React from "react";
 import { Text, View } from "react-native";
@@ -8,6 +9,7 @@ type ActiveRidesCountProps = {
 };
 
 const ActiveRidesCount = ({ count }: ActiveRidesCountProps) => {
+  const pulseStyle = usePulseAnimation({duration: 1000});
   return (
     <Animated.View entering={FadeIn.easing(Easing.linear)} className="bg-white rounded-2xl p-5 shadow-md shadow-black/5 border border-gray-100 items-center justify-center">
       <View className="flex-row items-center mb-2">
@@ -17,7 +19,7 @@ const ActiveRidesCount = ({ count }: ActiveRidesCountProps) => {
         </Text>
       </View>
 
-      <Text className="text-4xl font-pbold text-indigo-600 mb-1">{count}</Text>
+      <Animated.Text style={pulseStyle} className="text-4xl font-pbold text-indigo-600 mb-1">{count}</Animated.Text>
 
       <View className="flex-row items-center">
         <Activity size={16} color="#10B981" />
