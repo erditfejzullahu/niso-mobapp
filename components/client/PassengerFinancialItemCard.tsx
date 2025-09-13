@@ -3,7 +3,7 @@ import React, { memo, useState } from 'react'
 import { toFixedNoRound } from '@/utils/toFixed'
 import { PassengerAllExpensesList } from '@/types/app-types'
 import dayjs from "dayjs";
-import { X, Car, MapPin, Calendar, Clock, DollarSign, TrendingUp, User, CheckCircle, Clock as ClockIcon, AlertCircle } from 'lucide-react-native';
+import { X, Car, MapPin, Calendar, Clock, DollarSign, TrendingUp, User, CheckCircle, Clock as ClockIcon, AlertCircle, Download } from 'lucide-react-native';
 
 const PassengerFinancialItemCard = ({item}: {item: PassengerAllExpensesList}) => {
     const [openModal, setOpenModal] = useState(false)
@@ -245,6 +245,10 @@ const PassengerFinancialItemCard = ({item}: {item: PassengerAllExpensesList}) =>
                                     </Text>
                                 </View>
                             </View>
+                            <TouchableOpacity className="bg-indigo-900 mt-3 gap-2 justify-center flex-row items-center rounded-xl p-4">
+                                <Text className='font-psemibold text-white'>Shkarko dokumentin</Text>
+                                <Download color={"#fff"}/>
+                            </TouchableOpacity>
                         </ScrollView>
 
                         {/* Close Button */}
