@@ -5,10 +5,11 @@ import "dayjs/locale/sq";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { router } from "expo-router";
 import { ArrowRight, Clock, Frown, Laugh, MapPin, MapPinCheck, Meh, Smile, Star, X } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Image, Modal, Text, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
-
+import Animated, { interpolate, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
+import { usePulseAnimation } from "@/hooks/usePulseAnimation";
 dayjs.extend(relativeTime);
 dayjs.locale("sq");
 
@@ -40,6 +41,9 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
     hasTransport: true
   };
 
+  const animatedStyle = usePulseAnimation({});
+  
+
   const [proceedModal, setProceedModal] = useState(false);
   const [rateNowModal, setRateNowModal] = useState(false);
 
@@ -65,9 +69,10 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
 
   return (
     <>
+    <Animated.View style={animatedStyle}>
       <TouchableOpacity
         onPress={() => setProceedModal(true)}
-        className="bg-white rounded-2xl p-4 shadow-md shadow-black/5 border-gray-100 animate-pulse"
+        className="bg-white rounded-2xl p-4 shadow-md shadow-black/5 border-gray-100"
       >
         <Text className="font-pregular text-xs text-indigo-600">{activeRide.status === "DRIVING" ? "Transporti aktiv..." : "Transporti në pritje..."}</Text>
         {/* Top: Driver & Passenger */}
@@ -122,6 +127,7 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
           </Text>
         </View>
       </TouchableOpacity>
+    </Animated.View>
 
       {/* Modal */}
       <Modal visible={proceedModal} animationType="slide" transparent>
@@ -147,7 +153,7 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
                 <X color={"white"} size={18} />
               </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => {setProceedModal(false); setRateNowModal(true);}} className="bg-yellow-600 animate-pulse gap-1 px-4 py-1.5 rounded-lg flex-row items-center justify-center">
+                <TouchableOpacity style={animatedStyle} onPress={() => {setProceedModal(false); setRateNowModal(true);}} className="bg-yellow-600 gap-1 px-4 py-1.5 rounded-lg flex-row items-center justify-center">
                     <Star color={"white"} size={18}/>
                 </TouchableOpacity>
 
