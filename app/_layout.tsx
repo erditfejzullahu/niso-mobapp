@@ -24,7 +24,16 @@ export default function RootLayout() {
 
   useEffect(() => {
     if(loaded || error){
-      SplashScreen.hideAsync();
+      async function prepare() {
+        try {
+          
+        } catch (error) {
+          
+        } finally {
+          await SplashScreen.hideAsync();
+        }
+      }
+      prepare()
     }
   }, [error, loaded])
 

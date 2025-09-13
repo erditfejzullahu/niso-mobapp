@@ -157,6 +157,7 @@ const CreateRotationForm = () => {
             <DateTimePicker
               value={time || new Date()}
               mode="time"
+              locale='sq-AL'
               is24Hour
               style={{marginLeft: -10, marginTop: 10}}
               display="default"

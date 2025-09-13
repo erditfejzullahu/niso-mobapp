@@ -23,7 +23,8 @@ import Toast from 'react-native-toast-message';
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImageManipulator from "expo-image-manipulator"
 import { passwordResetSchema } from '@/schemas/passwordResetSchema';
-import { Check, Smile } from 'lucide-react-native';
+import { Check, ReceiptText, Smile } from 'lucide-react-native';
+import FinancialReceipt from '@/components/FinancialReceipt';
 
 dayjs.locale('sq');
 
@@ -50,11 +51,11 @@ const Profile = () => {
 
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmNewPassword, setConfirmNewPassword] = useState("")
+  
   const [isChangingPassword, setIsChangingPassword] = useState(false)
 
   const [isContactingSupport, setIsContactingSupport] = useState(false)
+  const [financialReceiptOpened, setFinancialReceiptOpened] = useState(false)
 
   
   const {control, reset, handleSubmit, formState: {errors, isSubmitting}} = useForm<z.infer<typeof userDetailsSchema>>({
@@ -297,6 +298,13 @@ const Profile = () => {
           <Ionicons name="wallet" size={20} color="#4338ca" />
           <Text className="ml-3 text-indigo-950 font-pmedium">Shiko Financat</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          className="flex-row items-center py-3 border-b border-gray-100"
+          onPress={() => router.push('/client/section/expenses')}
+        >
+          <ReceiptText color={"#4338ca"} size={20}/>
+          <Text className="ml-3 text-indigo-950 font-pmedium">Pasqyra juaj</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           className="flex-row items-center py-3 border-b border-gray-100"
@@ -522,6 +530,8 @@ const Profile = () => {
           </View>
         </View>
       </Modal>
+
+      <FinancialReceipt user={user} open={financialReceiptOpened} setOpen={setFinancialReceiptOpened}/>
 
       <View className='pb-[80px]'/>
     </KeyboardAwareScrollView>

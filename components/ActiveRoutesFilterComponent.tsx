@@ -174,6 +174,7 @@ const ActiveRoutesFilterComponent = ({ filters, setFilters }: Props) => {
                     {showPicker.target === "from" ? "Zgjidhni datën nga një kohë e caktuar" : "Zgjidhni datën deri në nje kohë të caktuar"}
                 </Text>
                 <DateTimePicker
+                    locale='sq-AL'
                     value={showPicker.target === 'from' ? (filters.fromDate || new Date()) : (filters.toDate || new Date())}
                     mode="datetime"
                     display={Platform.OS === 'ios' ? 'spinner' : 'default'}

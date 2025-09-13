@@ -21,8 +21,9 @@ import Toast from 'react-native-toast-message';
 import LoadingState from '@/components/system/LoadingState';
 import { Controller, useForm } from 'react-hook-form';
 import {z} from "zod"
-import { Check } from 'lucide-react-native';
+import { Check, ReceiptText } from 'lucide-react-native';
 import TextField from '@/components/TextField';
+import FinancialReceipt from '@/components/FinancialReceipt';
 
 dayjs.locale('sq');
 
@@ -47,11 +48,10 @@ const ClientProfile = () => {
 
   const [showProfileModal, setShowProfileModal] = useState(false);
   
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmNewPassword, setConfirmNewPassword] = useState("")
   const [isChangingPassword, setIsChangingPassword] = useState(false)
 
   const [isContactingSupport, setIsContactingSupport] = useState(false)
+  const [financialReceiptOpened, setFinancialReceiptOpened] = useState(false)
 
   
   const {control, reset, handleSubmit, formState: {errors, isSubmitting}} = useForm<z.infer<typeof userDetailsSchema>>({
@@ -297,6 +297,14 @@ const ClientProfile = () => {
 
         <TouchableOpacity
           className="flex-row items-center py-3 border-b border-gray-100"
+          onPress={() => setFinancialReceiptOpened(true)}
+        >
+          <ReceiptText color={"#4338ca"} size={20}/>
+          <Text className="ml-3 text-indigo-950 font-pmedium">Pasqyra juaj</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="flex-row items-center py-3 border-b border-gray-100"
           onPress={() => router.push('/client/section/favorite-drivers')}
         >
           <Ionicons name="people" size={20} color="#4338ca" />
@@ -374,7 +382,7 @@ const ClientProfile = () => {
       </View>
 
       {/* Update Profile Modal */}
-      <Modal visible={showProfileModal} animationType="slide" transparent>
+      <Modal visible={showProfileModal} animationType="slide" transparent onRequestClose={() => setShowProfileModal(false)}>
         <View className="flex-1 bg-black/40 justify-center items-center">
           <View className="bg-white rounded-2xl p-5 w-11/12 m-auto ">
           <KeyboardAwareScrollView>
@@ -512,6 +520,8 @@ const ClientProfile = () => {
           </View>
         </View>
       </Modal>
+
+      <FinancialReceipt user={user} open={financialReceiptOpened} setOpen={setFinancialReceiptOpened}/>
 
       <View className='pb-[80px]'/>
     </KeyboardAwareScrollView>
