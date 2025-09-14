@@ -1,5 +1,10 @@
 import ClientRotationCard from '@/components/client/ClientRotationCard'
 import HeaderComponent from '@/components/HeaderComponent'
+import ErrorState from '@/components/system/ErrorState'
+import LoadingState from '@/components/system/LoadingState'
+import api from '@/hooks/useApi'
+import { PassengerRotation } from '@/types/app-types'
+import { useQuery } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { Plus } from 'lucide-react-native'
 import React from 'react'
@@ -31,14 +36,28 @@ const DefaultRotations = () => { //psh rotacion tperditshem prej pune shpi prej 
     },
   ]
 
+  const {data, isLoading, isRefetching, error, refetch} = useQuery({
+    queryKey: ['default-rotations'],
+    queryFn: async () => {
+      const res = await api.get<PassengerRotation[]>('/passengers/passenger-rotations')
+      return res.data;
+    }
+  })
+
+  if(isLoading || isRefetching) return ( <LoadingState /> )
+
+  if((!isLoading || !isRefetching) && error) return (<ErrorState onRetry={refetch} />)
+    console.log(data);
+    
+
   return (
     <KeyboardAwareFlatList 
       showsVerticalScrollIndicator={false}
       className='bg-gray-50'
       contentContainerStyle={{ padding: 16, paddingBottom: 80, gap: 16 }}
-      data={rotations}
+      data={data}
       renderItem={({item}) => (
-        <ClientRotationCard fromAddress={item.fromAddress} toAddress={item.toAddress} days={item.days} time={item.time}/>
+        <ClientRotationCard onDelete={(id) => {}} {...item}/>
       )}
       ListHeaderComponent={() => (
         <View className='gap-3'>

@@ -1,30 +1,33 @@
+import { PassengerRotation } from "@/types/app-types";
 import { router } from "expo-router";
 import { Clock, MapPin, Pencil, Trash2, X } from "lucide-react-native";
 import React, { useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
+import dayjs from "dayjs";
+import "dayjs/locale/sq"
+import relativeTime from "dayjs/plugin/relativeTime";
 
-type RotationProps = {
-  fromAddress: string;
-  toAddress: string;
-  time?: string | null;
-  days?: string[]; // e.g. ["E Hënë", "E Martë"]
-  onDelete?: () => void;
-};
+dayjs.extend(relativeTime);
+dayjs.locale('sq')
 
 const ClientRotationCard = ({
   fromAddress,
   toAddress,
   time,
-  days = [],
+  days,
+  id,
   onDelete,
-}: RotationProps) => {
+}: PassengerRotation & {onDelete: (id: string) => void}) => {
   const [modalVisible, setModalVisible] = useState(false);
     const rotation = {
         fromAddress,
         toAddress,
         time,
-        days
-    }
+        days,
+        id
+    }    
+    
+    
   return (
     <>
       {/* Card */}
@@ -46,12 +49,12 @@ const ClientRotationCard = ({
         </View>
 
         {/* Time (optional) */}
-        {time && (
+        
           <View className="flex-row items-center mb-3">
             <Clock size={18} color="#f59e0b" />
-            <Text className="ml-2 text-gray-600">{time}</Text>
+            <Text className="ml-2 text-gray-600">{dayjs(time).format('hh-mm A')}</Text>
           </View>
-        )}
+        
 
         {/* Days */}
         {days.length > 0 && (
@@ -97,7 +100,7 @@ const ClientRotationCard = ({
             <TouchableOpacity
               onPress={() => {
                 setModalVisible(false);
-                onDelete?.();
+                onDelete(id);
               }}
               className="flex-row items-center gap-2 bg-red-600 px-4 py-3 rounded-xl mb-3"
             >

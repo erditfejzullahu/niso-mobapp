@@ -303,7 +303,7 @@ const Profile = () => {
           onPress={() => router.push('/client/section/expenses')}
         >
           <ReceiptText color={"#4338ca"} size={20}/>
-          <Text className="ml-3 text-indigo-950 font-pmedium">Pasqyra juaj</Text>
+          <Text className="ml-3 text-indigo-950 font-pmedium">Pasqyra juaj financiare</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

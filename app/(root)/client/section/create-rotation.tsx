@@ -1,24 +1,30 @@
 import HeaderComponent from "@/components/HeaderComponent";
+import api from "@/hooks/useApi";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useQueryClient } from "@tanstack/react-query";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { CalendarDays, Clock, LocationEdit, MapPin, Save } from "lucide-react-native";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import Toast from "react-native-toast-message";
 
 
 const CreateRotationForm = () => {
   const {rotation} = useLocalSearchParams();
   
-  const daysOfWeek = [
-    { label: "E Hënë", value: "monday" },
-    { label: "E Martë", value: "tuesday" },
-    { label: "E Mërkurë", value: "wednesday" },
-    { label: "E Enjte", value: "thursday" },
-    { label: "E Premte", value: "friday" },
-    { label: "E Shtunë", value: "saturday" },
-    { label: "E Diel", value: "sunday" },
-  ];
+  const queryClient = useQueryClient();
+
+  const daysOfWeek = useMemo(() => ([
+    { label: "E Hënë", value: "MONDAY" },
+    { label: "E Martë", value: "TUESDAY" },
+    { label: "E Mërkurë", value: "WEDNESDAY" },
+    { label: "E Enjte", value: "THURSDAY" },
+    { label: "E Premte", value: "FRIDAY" },
+    { label: "E Shtunë", value: "SATURDAY" },
+    { label: "E Diel", value: "SUNDAY" },
+  ]), []);
+
   const [fromAddress, setFromAddress] = useState("");
   const [toAddress, setToAddress] = useState("");
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
@@ -29,7 +35,7 @@ const CreateRotationForm = () => {
     if(rotation){
       try {
         const parsedRotation = JSON.parse(rotation as string)
-        if(parsedRotation.time){
+        if(parsedRotation?.time){
           const [hours, minutes] = parsedRotation.time.split(':').map(Number);
           const newDate = new Date();
           newDate.setHours(hours)
@@ -62,23 +68,47 @@ const CreateRotationForm = () => {
     }, [])
   )
 
-  const toggleDay = (day: string) => {
+  const toggleDay = useCallback((day: string) => {
     setSelectedDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     );
+  }, [setSelectedDays]);
+
+  const handleSave = async () => {
+    if((!fromAddress || fromAddress.length < 3) || (!toAddress || toAddress.length < 3) || (selectedDays.length === 0) || (!time)){
+      Toast.show({
+        type: "error",
+        text1: "Gabim",
+        text2: "Ju lutem mbushini te gjitha fushat"
+      })
+      return;
+    }
+    const newRotation = { fromAddress, toAddress, days: selectedDays, pickupTime: time };
+    try {
+      const res = await api.post('/passengers/create-rotation', newRotation);
+      if(res.data.success){
+        Toast.show({
+          type: "success",
+          text1: "Sukses",
+          text2: "Sapo keni shtuar rotacion me sukses."
+        })
+        setFromAddress("");
+        setToAddress("");
+        setSelectedDays([]);
+        setTime(null);
+        queryClient.invalidateQueries({queryKey: ['default-rotations']});
+      }
+    } catch (error: any) {
+      console.error(error);
+      Toast.show({
+        type: "error",
+        text1: "Gabim",
+        text2: error.response.data.message || "Dicka shkoi gabim. Ju lutem provoni perseri."
+      })
+    }
   };
 
-  const handleSave = () => {
-    const newRotation = { fromAddress, toAddress, days: selectedDays, time };
-    setFromAddress("");
-    setToAddress("");
-    setSelectedDays([]);
-    setTime(null);
-  };
 
-  const handleSaveRotation = () => {
-    
-  }
 
   return (
     <KeyboardAwareScrollView className="p-4 bg-gray-50">
@@ -122,17 +152,18 @@ const CreateRotationForm = () => {
         <View className="flex-row flex-wrap gap-2 mb-3">
           {daysOfWeek.map((day) => (
             <TouchableOpacity
+              activeOpacity={1}
               key={day.value}
               className={`px-3 py-2 rounded-xl border ${
-                selectedDays.includes(day.label)
+                selectedDays.includes(day.value)
                   ? "bg-indigo-600 border-indigo-600"
                   : "bg-indigo-100 border-indigo-300"
               }`}
-              onPress={() => toggleDay(day.label)}
+              onPress={() => toggleDay(day.value)}
             >
               <Text
                 className={`${
-                  selectedDays.includes(day.label) ? "text-white" : "text-gray-700"
+                  selectedDays.includes(day.value) ? "text-white" : "text-gray-700"
                 }`}
               >
                 {day.label}
@@ -143,7 +174,7 @@ const CreateRotationForm = () => {
 
         {/* Time Selection */}
         <View className="mb-3">
-          <Text className="font-semibold text-gray-700 mb-1">Ora (opsionale)</Text>
+          <Text className="font-semibold text-gray-700 mb-1">Ora</Text>
           <TouchableOpacity
             className="flex-row items-center border border-gray-300 rounded-xl px-3 py-2"
             onPress={() => setShowTimePicker(!showTimePicker)}

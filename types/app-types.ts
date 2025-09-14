@@ -289,8 +289,8 @@ export interface PassengerRotation {
   userId: string;
   fromAddress: string;
   toAddress: string;
-  days?: string | null;
-  time?: Date | null;
+  days: RotationDays[];
+  time: Date;
   createdAt: Date;
   updatedAt: Date;
   user: User;
@@ -505,7 +505,15 @@ export interface Message {
   sender: User;
 }
 
-
+export enum RotationDays {
+  MONDAY,
+  TUESDAY,
+  WEDNESDAY,
+  THURSDAY,
+  FRIDAY,
+  SATURDAY,
+  SUNDAY
+}
 
 //passenger home interface
 export interface ActivePassengerRide {

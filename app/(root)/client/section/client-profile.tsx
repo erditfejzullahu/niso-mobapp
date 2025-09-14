@@ -300,7 +300,7 @@ const ClientProfile = () => {
           onPress={() => setFinancialReceiptOpened(true)}
         >
           <ReceiptText color={"#4338ca"} size={20}/>
-          <Text className="ml-3 text-indigo-950 font-pmedium">Pasqyra juaj</Text>
+          <Text className="ml-3 text-indigo-950 font-pmedium">Pasqyra juaj financiare</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -309,6 +309,14 @@ const ClientProfile = () => {
         >
           <Ionicons name="people" size={20} color="#4338ca" />
           <Text className="ml-3 text-indigo-950 font-pmedium">Shoferët e preferuar</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="flex-row items-center py-3 border-b border-gray-100"
+          onPress={() => {}}
+        >
+          <Ionicons name="star" size={20} color="#4338ca" />
+          <Text className="ml-3 text-indigo-950 font-pmedium">Vleresimet tua</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
