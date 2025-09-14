@@ -1,6 +1,17 @@
 // ======================
 // Enums
 // ======================
+
+export const dayTranslations: Record<string, string> = {
+  monday: 'E Hënë',
+  tuesday: 'E Martë',
+  wednesday: 'E Mërkurë',
+  thursday: 'E Enjte',
+  friday: 'E Premte',
+  saturday: 'E Shtunë',
+  sunday: 'E Diel'
+}
+
 export enum Role {
   DRIVER = "DRIVER",
   PASSENGER = "PASSENGER",

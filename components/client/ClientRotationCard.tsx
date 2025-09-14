@@ -1,4 +1,4 @@
-import { PassengerRotation } from "@/types/app-types";
+import { dayTranslations, PassengerRotation } from "@/types/app-types";
 import { router } from "expo-router";
 import { Clock, MapPin, Pencil, Trash2, X } from "lucide-react-native";
 import React, { useState } from "react";
@@ -9,6 +9,8 @@ import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
 dayjs.locale('sq')
+
+
 
 const ClientRotationCard = ({
   fromAddress,
@@ -26,7 +28,10 @@ const ClientRotationCard = ({
         days,
         id
     }    
-    
+
+    const theTime = new Date(time);
+
+  const translatedDays = days.map(item => dayTranslations[item.toString().toLowerCase()])      
     
   return (
     <>
@@ -50,18 +55,18 @@ const ClientRotationCard = ({
 
         {/* Time (optional) */}
         
-          <View className="flex-row items-center mb-3">
-            <Clock size={18} color="#f59e0b" />
-            <Text className="ml-2 text-gray-600">{dayjs(time).format('hh-mm A')}</Text>
-          </View>
+        <View className="flex-row items-center mb-3">
+          <Clock size={18} color="#f59e0b" />
+          <Text className="ml-2 text-gray-600">{theTime.toLocaleTimeString('sq-AL', {hour: "2-digit", hour12: true, minute: "2-digit"})}</Text>
+        </View>
         
 
         {/* Days */}
-        {days.length > 0 && (
+        {translatedDays.length > 0 && (
           <View>
             <Text className="text-gray-700 font-pmedium mb-1">Ditët:</Text>
             <View className="flex-row flex-wrap">
-              {days.map((day, index) => (
+              {translatedDays.map((day, index) => (
                 <View
                   key={index}
                   className="bg-blue-100 px-3 py-1 rounded-xl mr-2 mb-2"
@@ -88,7 +93,7 @@ const ClientRotationCard = ({
             <TouchableOpacity
               onPress={() => {
                 setModalVisible(false);
-                router.push({pathname: "/client/section/create-rotation", params: {rotation: JSON.stringify(rotation)}})
+                router.replace({pathname: "/client/section/create-rotation", params: {rotation: JSON.stringify(rotation)}})
               }}
               className="flex-row items-center gap-2 bg-blue-600 px-4 py-3 rounded-xl mb-3"
             >

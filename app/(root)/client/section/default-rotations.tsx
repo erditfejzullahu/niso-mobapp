@@ -4,37 +4,16 @@ import ErrorState from '@/components/system/ErrorState'
 import LoadingState from '@/components/system/LoadingState'
 import api from '@/hooks/useApi'
 import { PassengerRotation } from '@/types/app-types'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { Plus } from 'lucide-react-native'
 import React from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view'
+import Toast from 'react-native-toast-message'
 
 const DefaultRotations = () => { //psh rotacion tperditshem prej pune shpi prej shpije pun
-  const rotations = [
-    {
-      id: '1',
-      fromAddress: 'Shtëpia, Prishtinë',
-      toAddress: 'Puna, Fushë Kosovë',
-      days: ['E Hënë', 'E Mërkurë', 'E Premte'],
-      time: '08:00',
-    },
-    {
-      id: '2',
-      fromAddress: 'Shtëpia, Prishtinë',
-      toAddress: 'Fitness, Veternik',
-      days: ['E Martë', 'E Enjte'],
-      time: '18:30',
-    },
-    {
-      id: '3',
-      fromAddress: 'Qendra e qytetit, Prishtinë',
-      toAddress: 'Shkolla, Lagjja Dardani',
-      days: ['E Hënë', 'E Martë', 'E Mërkurë', 'E Enjte', 'E Premte'],
-      time: null, // nuk ka orar fiks
-    },
-  ]
+  const queryClient = useQueryClient();
 
   const {data, isLoading, isRefetching, error, refetch} = useQuery({
     queryKey: ['default-rotations'],
@@ -44,11 +23,29 @@ const DefaultRotations = () => { //psh rotacion tperditshem prej pune shpi prej 
     }
   })
 
+  const handleDeleteRotation = async (id: string) => {
+    try {
+      const res = await api.delete(`/passengers/delete-rotation/${id}`);
+      if(res.data.success){
+        Toast.show({
+          type: "success",
+          text1: "Sukses",
+          text2: "Sapo fshite me sukses rotacionin tuaj."
+        })
+        queryClient.invalidateQueries({queryKey: ['default-rotations']});
+      }
+    } catch (error: any) {
+      Toast.show({
+          type: "error",
+          text1: "Gabim",
+          text2: error.response.data.message || "Dicka shkoi gabim, ju lutem provoni perseri."
+        })
+    }
+  }
+
   if(isLoading || isRefetching) return ( <LoadingState /> )
 
-  if((!isLoading || !isRefetching) && error) return (<ErrorState onRetry={refetch} />)
-    console.log(data);
-    
+  if((!isLoading || !isRefetching) && error) return (<ErrorState onRetry={refetch} />)    
 
   return (
     <KeyboardAwareFlatList 
@@ -57,7 +54,7 @@ const DefaultRotations = () => { //psh rotacion tperditshem prej pune shpi prej 
       contentContainerStyle={{ padding: 16, paddingBottom: 80, gap: 16 }}
       data={data}
       renderItem={({item}) => (
-        <ClientRotationCard onDelete={(id) => {}} {...item}/>
+        <ClientRotationCard onDelete={(id) => handleDeleteRotation(id)} {...item}/>
       )}
       ListHeaderComponent={() => (
         <View className='gap-3'>

@@ -30,25 +30,22 @@ const CreateRotationForm = () => {
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [time, setTime] = useState<Date | null>(null);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [rotationId, setRotationId] = useState<string | null>(null)
 
   useEffect(() => {
-    if(rotation){
+    if(rotation){      
       try {
         const parsedRotation = JSON.parse(rotation as string)
         if(parsedRotation?.time){
-          const [hours, minutes] = parsedRotation.time.split(':').map(Number);
-          const newDate = new Date();
-          newDate.setHours(hours)
-          newDate.setMinutes(minutes)
-          newDate.setSeconds(0)
-          newDate.setMilliseconds(0)
-          setTime(newDate)
+          const parsedTime = new Date(parsedRotation.time);
+          setTime(parsedTime)
         }else{
           setTime(null)
         }
         setFromAddress(parsedRotation.fromAddress)
         setToAddress(parsedRotation.toAddress)
         setSelectedDays(parsedRotation.days || [])
+        setRotationId(parsedRotation.id)
       } catch (error) {
         console.error("error parsing, ", error);
       }
@@ -83,14 +80,18 @@ const CreateRotationForm = () => {
       })
       return;
     }
-    const newRotation = { fromAddress, toAddress, days: selectedDays, pickupTime: time };
+    const payload = { fromAddress, toAddress, days: selectedDays, pickupTime: time };
+    
     try {
-      const res = await api.post('/passengers/create-rotation', newRotation);
+      const res = 
+        rotation 
+        ? await api.patch(`/passengers/update-rotation/${rotationId}`, payload)
+        : await api.post('/passengers/create-rotation', payload);
       if(res.data.success){
         Toast.show({
           type: "success",
           text1: "Sukses",
-          text2: "Sapo keni shtuar rotacion me sukses."
+          text2: rotation ? "Sapo keni perditesuar me sukses rotacionin tuaj." : "Sapo keni shtuar rotacion me sukses."
         })
         setFromAddress("");
         setToAddress("");
