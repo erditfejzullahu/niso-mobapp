@@ -242,6 +242,11 @@ export interface ReviewItem {
   comment?: string | null;
   rating: number;
   createdAt: Date;
+  driver: {
+    driverId: string;
+    fullName: string;
+    image: string;
+  }
   ride: {
     price: string;
     distanceKm: string;
@@ -253,13 +258,14 @@ export interface ReviewItem {
 }
 
 export interface DriverReviewsInterface {
-  reviews: ReviewItem[],
+  reviews: ReviewItem[];
   averageRating: string;
   totalReviews: number;
 }
 
-export interface PassengerReviews {
-  reviews: ReviewItem[]
+export interface PassengerReviewsInterface {
+  reviews: ReviewItem[];
+  totalReviews: number;
 }
 
 export interface DriverEarning {

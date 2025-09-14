@@ -3,14 +3,15 @@ import { View, Text, FlatList, TouchableOpacity, RefreshControl } from 'react-na
 import { Ionicons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 import 'dayjs/locale/sq';
-import { router } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
+import { Link, router } from 'expo-router';
+import { ArrowLeft, Star } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/hooks/useApi';
 import { DriverReviewsInterface, ReviewItem } from '@/types/app-types';
 import LoadingState from '@/components/system/LoadingState';
 import ErrorState from '@/components/system/ErrorState';
 import EmptyState from '@/components/system/EmptyState';
+import { toFixedNoRound } from '@/utils/toFixed';
 
 dayjs.locale('sq');
 
@@ -80,7 +81,7 @@ const DriverReviews = () => {
         
         <View className="flex-row justify-between items-center ">
           <Text className="text-xs text-gray-500">Çmimi:</Text>
-          <Text className="text-xs font-pmedium text-indigo-600">{item.ride.price}</Text>
+          <Text className="text-xs font-pmedium text-indigo-600">{toFixedNoRound(item.ride.price, 2)} €</Text>
         </View>
 
         <View className="flex-row justify-between items-center mt-2">
@@ -131,7 +132,13 @@ const DriverReviews = () => {
         >
           <ArrowLeft size={24} color="#374151" />
         </TouchableOpacity>
-        <Text className="text-xl font-psemibold text-indigo-950">Vlerësimet e Udhëtimeve</Text>
+        <View className='flex-1'>
+          <View className='flex-row gap-1'>
+              <Text className="text-xl font-psemibold text-indigo-950">Vlerësimet e Udhëtimeve</Text>
+              <Star color={"#fbbf24"} fill={"#fbbf24"}/>
+          </View>
+          <Text className='text-xs font-pregular text-gray-700'>Ketu shfaqen te gjithe vleresimet e udhetareve ndaj teje. Syno per vlereime te larta, per benefite me te larta. <Link className='text-indigo-600 font-psemibold' href={'/'}>Klikoni ketu per me shume.</Link></Text>
+        </View>
       </View>
 
       <FlatList

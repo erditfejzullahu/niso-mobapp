@@ -94,6 +94,7 @@ export default function Layout() {
       <Tabs.Screen name="create-rotation" options={{href: null}} />
 
       <Tabs.Screen name="favorite-drivers" options={{href: null}} />
+      <Tabs.Screen name="reviews-made" options={{href: null}} />
     </Tabs>
   );
 }

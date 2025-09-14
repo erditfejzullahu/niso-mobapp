@@ -104,7 +104,7 @@ export default function ClientDrawerComponent(props: any) {
     },
     {
       route: "expenses",
-      label: "Shpenzimet tuaja",
+      label: "Financat",
       icon: (color: string, size: number) => (
         <Ionicons name="stats-chart" size={size} color={color} />
       ),

@@ -21,7 +21,7 @@ import Toast from 'react-native-toast-message';
 import LoadingState from '@/components/system/LoadingState';
 import { Controller, useForm } from 'react-hook-form';
 import {z} from "zod"
-import { Check, ReceiptText } from 'lucide-react-native';
+import { Check, ReceiptText, Star, User } from 'lucide-react-native';
 import TextField from '@/components/TextField';
 import FinancialReceipt from '@/components/FinancialReceipt';
 
@@ -248,17 +248,24 @@ const ClientProfile = () => {
         <Text className="text-xl font-psemibold text-indigo-950">{user.fullName}</Text>
         <Text className="text-sm text-gray-500">{user.role === "PASSENGER" && "Pasagjer"}</Text>
 
-        <View className="flex-row items-center mt-1">
+        {/* <View className="flex-row items-center mt-1">
           <Ionicons name="star" size={16} color="#fbbf24" />
           <Text className="ml-1 text-gray-700">4.8</Text>
-        </View>
+        </View> */}
+
+        <TouchableOpacity onPress={() => router.push('/client/section/reviews-made')} className='flex-row items-center gap-1 bg-yellow-600 px-4 py-2 rounded-full mt-2'>
+          <Text className="text-white font-pmedium text-sm">Shiko vleresimet e bera</Text>
+          <Star color={"#fff"} size={16}/>
+        </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => setShowProfileModal(true)}
-          className="mt-3 bg-indigo-600 px-4 py-2 rounded-full"
+          className="mt-2 bg-indigo-600 px-4 py-2 rounded-full flex-row items-center gap-1"
         >
-          <Text className="text-white font-pmedium">Përditëso Profilin</Text>
+          <Text className="text-white font-pmedium text-sm">Përditëso Profilin</Text>
+          <User color={"#fff"} size={16}/>
         </TouchableOpacity>
+
       </View>
 
       {/* Stats Section */}
