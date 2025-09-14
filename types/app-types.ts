@@ -511,6 +511,7 @@ export interface Message {
 export interface ActivePassengerRide {
   driver: {
     fullName: string;
+    driverId: string;
   },
   rideInfo: {
     createdAt: Date;

@@ -23,7 +23,13 @@ const RateNowModals = ({rateModal, setRateModal, rate2Modal, setRate2Modal, ride
             return;
         }
         try {
-            const res = await api.post('');
+            const payload = {
+                driverId: ride.driver.driverId,
+                connectedRideId: ride.id,
+                reviewContent: reviewDescription,
+                rating: selectedRating
+            }
+            const res = await api.post('/reviews/make-review', payload);
             if(res.data.success){
                 setRate2Modal(false);
                 Toast.show({
@@ -40,7 +46,7 @@ const RateNowModals = ({rateModal, setRateModal, rate2Modal, setRate2Modal, ride
                 text2: error.response.data.message || "Dicka shkoi gabim, ju lutem provoni perseri."
             })
         }
-    }, [ride])
+    }, [ride, selectedRating, reviewDescription, setRate2Modal])
 
   return (
     <>
