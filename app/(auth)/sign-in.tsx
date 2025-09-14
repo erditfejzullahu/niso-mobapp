@@ -212,7 +212,7 @@ const NisoLogin = () => {
             </TouchableOpacity>
             <TouchableOpacity className="border border-gray-200 rounded-full p-3 flex-row items-center gap-2">
               <Text className="text-gray-800 font-pregular">Apple</Text>
-              <AntDesign name="apple1" size={24} color="#4f46e5" />
+              <AntDesign name="apple" size={24} color="#4f46e5" />
             </TouchableOpacity>
           </View>
 
