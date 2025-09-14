@@ -514,6 +514,9 @@ const Profile = () => {
                   );
                 }}
               />
+              {errors.city && (
+                <Text className='text-xs font-plight text-red-500 mt-1'>Ju lutem zgjidhni qytet valid.</Text>
+              )}
             </View>
             <View className='mb-3'>
               <Controller 

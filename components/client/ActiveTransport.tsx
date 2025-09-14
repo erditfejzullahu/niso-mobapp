@@ -10,21 +10,10 @@ import { Image, Modal, Text, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
 import Animated from "react-native-reanimated";
 import { usePulseAnimation } from "@/hooks/usePulseAnimation";
+import RateNowModals from "./RateNowModals";
 dayjs.extend(relativeTime);
 dayjs.locale("sq");
 
-type ActiveTransportProps = {
-  driverName: string;
-  passengerName: string;
-  passengerPhoto: string;
-  from: string;
-  to: string;
-  price: number;
-  dateStarted: string;
-  inProgress: boolean;
-  id: number;
-  hasTransport: boolean;
-};
 
 const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePassengerRide | null}) => {
 
@@ -34,20 +23,10 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
   
 
   const [proceedModal, setProceedModal] = useState(false);
-  const [rateNowModal, setRateNowModal] = useState(false);
 
-  const [rateNowImmidiately, setRateNowImmidiately] = useState(false); //modal
-  const [selectedRating, setSelectedRating] = useState<number | null>(null)
 
-  const handleSelectedRatingForDriver = (rating: number) => {
-    setSelectedRating(rating)
-    Toast.show({
-        type: "success",
-        text1: "Vlerësimi shkoi me sukses",
-        text2: "Kujdes: vlerësimi duhet të jetë i sinqert!"
-    })
-    setRateNowImmidiately(false)
-  }
+  const [rateNowModal, setRateNowModal] = useState(false); //modali pare per review
+  const [rateNowImmidiately, setRateNowImmidiately] = useState(false); //modal dyte per review
 
   if(!activeRide) return (
     <View className="bg-white items-center gap-1 rounded-2xl p-4 shadow-md shadow-black/5 border-gray-100 flex-row">
@@ -167,91 +146,7 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
         </View>
       </Modal>
 
-        {/* do you want to rate modal */}
-      <Modal visible={rateNowModal} animationType="slide" transparent>
-        <View className="flex-1 bg-black/40 justify-center items-center">
-          <View className="bg-white rounded-xl p-5 w-11/12">
-            <Text className="text-lg font-psemibold text-indigo-950 mb-3">
-              Dëshironi të vlerësoni shoferin?
-            </Text>
-            <Text className="text-gray-700 text-sm">Ky modal shërben për vlerësimin e shoferit <Text className="font-psemibold text-indigo-600">{activeRide.driver.fullName}</Text></Text>
-            <Text className="text-indigo-600 text-sm mb-3">Për të proceduar në vlerësimin e shoferit shtypni butonin <Text className="font-psemibold">"Procedo"</Text></Text>
-
-            <View className="flex-row justify-between">
-              <TouchableOpacity
-                onPress={() => setRateNowModal(false)}
-                className="px-4 py-1.5 rounded-lg flex-row items-center gap-1 bg-red-600"
-              >
-                <Text className="text-white font-pregular">Mbyll</Text>
-                <X color={"white"} size={18} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => {
-                  setRateNowModal(false);
-                  setRateNowImmidiately(true);
-                }}
-                className="bg-indigo-600 px-4 py-2 rounded-lg flex-row items-center gap-1"
-              >
-                <Text className="text-white font-pregular">Procedo</Text>
-                <Star color={"white"} size={18} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-        {/* rate now modal */}
-      <Modal visible={rateNowImmidiately} animationType="slide" transparent>
-        <View className="flex-1 bg-black/40 justify-center items-center">
-            <View className="bg-white rounded-xl p-5 w-11/12">
-            <Text className="text-lg font-psemibold text-indigo-950 mb-3">
-                Vlerësoni tani shoferin
-            </Text>
-            <Text className="text-gray-700 text-sm text-center leading-none mb-1">
-                Ky modal për vlerësimin e shoferit{" "}
-                <Text className="text-indigo-600">{activeRide.driver.fullName}</Text>{" "}
-                duhet të jap vlerësime të sinqerta në lidhje me sjelljen apo udhëtimin tuaj.
-            </Text>
-            <Text className="font-psemibold text-sm text-center mb-3">
-                (Çdo vlerësim i rrejshëm rezulton në pezullimin e llogarisë tuaj.)
-            </Text>
-
-            {/* Rating Options */}
-            <View className="flex-row justify-between mb-4">
-                {[
-                { icon: Frown, label: "Shumë Keq", value: 1, color: "#DC2626" },
-                { icon: Meh, label: "Keq", value: 2, color: "#F97316" },
-                { icon: Smile, label: "Mirë", value: 3, color: "#EAB308" },
-                { icon: Laugh, label: "Shumë Mirë", value: 4, color: "#10B981" },
-                { icon: Star, label: "Perfekt", value: 5, color: "#3B82F6" },
-                ].map((item) => (
-                <TouchableOpacity
-                    key={item.value}
-                    onPress={() => handleSelectedRatingForDriver(item.value)}
-                    className={`items-center flex-1 ${
-                    selectedRating === item.value ? "opacity-100" : "opacity-60"
-                    }`}
-                >
-                    <item.icon size={32} color={item.color} />
-                    <Text className="text-xs mt-1 text-gray-700">{item.label}</Text>
-                </TouchableOpacity>
-                ))}
-            </View>
-
-            {/* Buttons */}
-            <View className="flex-row justify-between">
-                <TouchableOpacity
-                onPress={() => setRateNowImmidiately(false)}
-                className="px-4 py-1.5 rounded-lg flex-row items-center flex-1 justify-center gap-1 bg-red-600"
-                >
-                <Text className="text-white font-pregular">Mbyll</Text>
-                <X color={"white"} size={18} />
-                </TouchableOpacity>
-            </View>
-            </View>
-        </View>
-    </Modal>
+      <RateNowModals ride={activeRide} rateModal={rateNowModal} setRateModal={setRateNowModal} setRate2Modal={setRateNowImmidiately} rate2Modal={rateNowImmidiately}/>
     </>
   );
 };
