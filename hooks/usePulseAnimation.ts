@@ -26,6 +26,9 @@ export function usePulseAnimation({
         -1, // infinite
         true // reverse
         );
+        return () => {
+            scale.value = minScale
+        }
     }, []);
 
     return animatedStyle;

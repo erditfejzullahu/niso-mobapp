@@ -7,6 +7,7 @@ import { Controller, useForm } from "react-hook-form"
 import { Image, Text, TouchableOpacity, View } from 'react-native'
 import { z } from 'zod'
 import TextField from './TextField'
+import MoreAttachsLeft from './system/MoreAttachsLeft'
 
 
 type contactSupportType = z.infer<typeof contactSupportSchema>;
@@ -16,7 +17,8 @@ const SupportSection = () => {
         resolver: zodResolver(contactSupportSchema),
         defaultValues: useMemo(() => ({
             message: "",
-            imageOrVideo: null
+            attachments: [],
+            subject: ""
         }), []),
         mode: "onChange"
     })
@@ -29,7 +31,7 @@ const SupportSection = () => {
         }
     }
 
-    const pickImage = async (onChange: (value: string) => void) => {
+    const pickImage = async (onChange: (value: string[]) => void) => {
         const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if(status !== "granted"){
             alert("Na vjen keq, na duhen leje të kamerës që kjo të funksionojë!")
@@ -37,19 +39,37 @@ const SupportSection = () => {
 
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images', 'videos'],
-            allowsEditing: true,
+            // allowsEditing: true,
             aspect: [4,3],
-            quality: 0
+            quality: 0,
+            allowsMultipleSelection: true
         })
 
         if(!result.canceled){
-            onChange(result.assets[0].uri)
+            onChange(result.assets.map(item => item.uri))
         }
     }
 
 
   return (
     <View className='gap-4'>
+        <View>
+            <Controller 
+                control={control}
+                name="subject"
+                render={({field}) => (
+                    <TextField 
+                        title='Subjekti juaj'
+                        onChange={field.onChange}
+                        value={field.value}
+                        placeholder='Nje titull mbi rastin...'
+                    />
+                )}
+                />
+                {errors.subject && (
+                    <Text className="text-xs mt-1 text-red-500 font-plight">{errors.subject.message}</Text>   
+                )}
+        </View>
         <View>
             <Controller 
                 control={control}
@@ -70,22 +90,32 @@ const SupportSection = () => {
         <View>
             <Controller 
                 control={control}
-                name="imageOrVideo"
+                name="attachments"
                 render={({field}) => (
                     <>
-                        <Text className='text-gray-700 mb-1 font-pmedium'>Imazh/Video<Text className='text-xs'>(opsional)</Text></Text>
+                        <Text className='text-gray-700 mb-1 font-pmedium'>Imazhe<Text className='text-xs'>(opsionale)</Text></Text>
                         <TouchableOpacity className='flex-row gap-2 rounded-xl py-3 bg-indigo-600 items-center flex-1 justify-center' onPress={() => pickImage(field.onChange)}>
-                            <Text className='text-white text-sm font-pregular'>{field.value ? "Ndryshoni Imazhin/Videon" : "Ngarkoni Imazhin/Videon"}</Text>
+                            <Text className='text-white text-sm font-pregular'>{field.value ? "Ndryshoni Imazhet" : "Ngarkoni Imazhe"}</Text>
                             <Upload color={"white"} size={18}/>
                         </TouchableOpacity>
-                        {field.value && (
+                        {field.value && field.value.length > 0 && (
                             <View className='relative mt-2'>
-                                <TouchableOpacity onPress={() => setValue("imageOrVideo", null)} className='absolute -right-1 -top-1 bg-indigo-600 rounded-full z-50 p-1'><X color={"white"} size={20}/></TouchableOpacity>
-                                <Image 
-                                    source={{uri: field.value}}
-                                    style={{height: 200}}
-                                    className='rounded-xl'
-                                />
+                                <View className='flex-row gap-1'>
+                                {field.value.slice(0,2).map((image, idx) => (
+                                    <View key={idx} className='self-start'>
+                                        <TouchableOpacity onPress={() => setValue("attachments", field.value.filter((_, index) => index !== idx))} className='absolute -right-1 -top-1 bg-indigo-600 rounded-full z-50 p-1'><X color={"white"} size={20}/></TouchableOpacity>
+                                        <Image 
+                                            source={{uri: image}}
+                                            style={{height: 200, minWidth: "50%"}}
+                                            resizeMode='cover'
+                                            className='rounded-xl'
+                                        />
+                                    </View>
+                                ))}
+                                </View>
+                                {field.value.length > 0 && (
+                                    <MoreAttachsLeft length={field.value.length - 2} onPress={() => {}} contStyle={"m-auto"}/>    
+                                )}
                             </View>
                         )}
                     </>
