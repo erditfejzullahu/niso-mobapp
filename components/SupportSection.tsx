@@ -2,12 +2,14 @@ import { contactSupportSchema } from '@/schemas/contactSupportSchema'
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as ImagePicker from "expo-image-picker"
 import { Send, Upload, X } from 'lucide-react-native'
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { Controller, useForm } from "react-hook-form"
 import { Image, Text, TouchableOpacity, View } from 'react-native'
 import { z } from 'zod'
 import TextField from './TextField'
 import MoreAttachsLeft from './system/MoreAttachsLeft'
+import Toast from 'react-native-toast-message'
+import api from '@/hooks/useApi'
 
 
 type contactSupportType = z.infer<typeof contactSupportSchema>;
@@ -23,15 +25,7 @@ const SupportSection = () => {
         mode: "onChange"
     })
 
-    const onSubmit = async (data: contactSupportType) => {
-        try {
-            
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-    const pickImage = async (onChange: (value: string[]) => void) => {
+    const pickImage = useCallback(async (onChange: (value: string[]) => void) => {
         const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if(status !== "granted"){
             alert("Na vjen keq, na duhen leje të kamerës që kjo të funksionojë!")
@@ -48,7 +42,52 @@ const SupportSection = () => {
         if(!result.canceled){
             onChange(result.assets.map(item => item.uri))
         }
-    }
+    }, [reset])
+
+    const submitTicket = useCallback(async (data: contactSupportType) => {
+        try {
+            const formData = new FormData();
+            formData.append('content', data.message);
+            formData.append('subject', data.subject);
+            
+            data.attachments.map(item => {
+                const fileName = item.split('/').pop() || 'id_back.jpg';
+                const fileNameMatch = /\.(\w+)$/.exec(fileName);
+                const idBackType = fileNameMatch ? `image/${fileNameMatch[1]}` : 'image/jpeg';
+
+                formData.append('evidences', {
+                    uri: item,
+                    name: fileName,
+                    type: idBackType
+                } as any);
+            })
+
+            const res = await api.post('/conversations/initiate-support-ticket', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+
+            if(res.data.success){
+                Toast.show({
+                    type: "success",
+                    text1: "Sukses",
+                    text2: "Sapo keni krijuar nje tikete ndihme. Klikoni per ridrejtim.",
+                    onPress: () => {
+                        //TODO: router to specific conversation
+                    }
+                })
+                //TODO: invalidate conversations query.
+            }
+        } catch (error: any) {
+            console.error(error);
+            Toast.show({
+                type: "error",
+                text1: "Gabim",
+                text2: error.response.data.message || "Dicka shkoi gabim ne server"
+            })
+        }
+    }, [reset])
 
 
   return (
@@ -110,6 +149,7 @@ const SupportSection = () => {
                                             resizeMode='cover'
                                             className='rounded-xl'
                                         />
+                                        {/* TODO: ADD IMAGE OPENER FULLSCREEN WITH ITS LENGTH */}
                                     </View>
                                 ))}
                                 </View>
@@ -123,7 +163,7 @@ const SupportSection = () => {
             />
         </View>
         <View>
-            <TouchableOpacity disabled={isSubmitting} className='bg-indigo-950 flex-row gap-2 py-3 flex-1 items-center justify-center rounded-xl'>
+            <TouchableOpacity onPress={handleSubmit(submitTicket)} disabled={isSubmitting} className='bg-indigo-950 flex-row gap-2 py-3 flex-1 items-center justify-center rounded-xl'>
                 <Text className='text-white  text-sm font-pregular'>{isSubmitting ? "Duke u kryer veprimi..." : "Kërkoni ndihmë"}</Text>
                 <Send color={"white"} size={18}/>
             </TouchableOpacity>
