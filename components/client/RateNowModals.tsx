@@ -54,7 +54,7 @@ const RateNowModals = ({rateModal, setRateModal, rate2Modal, setRate2Modal, ride
 
   return (
     <>
-     <Modal visible={rateModal} animationType="slide" transparent>
+     <Modal visible={rateModal} animationType="slide" transparent onRequestClose={() => setRateModal(false)}>
         <View className="flex-1 bg-black/40 justify-center items-center">
           <View className="bg-white rounded-xl p-5 w-11/12">
             <Text className="text-lg font-psemibold text-indigo-950 mb-3">
@@ -88,7 +88,7 @@ const RateNowModals = ({rateModal, setRateModal, rate2Modal, setRate2Modal, ride
       </Modal>
 
         {/* rate now modal */}
-      <Modal visible={rate2Modal} animationType="slide" transparent>
+      <Modal visible={rate2Modal} animationType="slide" transparent onRequestClose={() => setRate2Modal(false)}>
         <View className="flex-1 bg-black/40 justify-center items-center">
             <View className="bg-white rounded-xl p-5 w-11/12">
             <KeyboardAwareScrollView>

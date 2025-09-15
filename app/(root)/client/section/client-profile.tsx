@@ -21,7 +21,7 @@ import Toast from 'react-native-toast-message';
 import LoadingState from '@/components/system/LoadingState';
 import { Controller, useForm } from 'react-hook-form';
 import {z} from "zod"
-import { Check, ReceiptText, Star, User } from 'lucide-react-native';
+import { Check, ReceiptText, Star, User, X } from 'lucide-react-native';
 import TextField from '@/components/TextField';
 import FinancialReceipt from '@/components/FinancialReceipt';
 
@@ -182,7 +182,6 @@ const ClientProfile = () => {
           text1: "Sukses!",
           text2: "Sapo keni ndryshuar fjalekalimin me sukses!"
         })
-        setIsChangingPassword(false);
       }
     } catch (error: any) {
       Toast.show({
@@ -190,6 +189,8 @@ const ClientProfile = () => {
         text1: "Gabim!",
         text2: error.response.data.message
       })
+    } finally {
+      setIsChangingPassword(false);
     }
   }, [resetPasswords])
   
@@ -320,7 +321,7 @@ const ClientProfile = () => {
 
         <TouchableOpacity
           className="flex-row items-center py-3 border-b border-gray-100"
-          onPress={() => {}}
+          onPress={() => router.push('/client/section/reviews-made')}
         >
           <Ionicons name="star" size={20} color="#4338ca" />
           <Text className="ml-3 text-indigo-950 font-pmedium">Vleresimet tua</Text>
@@ -401,7 +402,12 @@ const ClientProfile = () => {
         <View className="flex-1 bg-black/40 justify-center items-center">
           <View className="bg-white rounded-2xl p-5 w-11/12 m-auto ">
           <KeyboardAwareScrollView>
-            <Text className="text-lg font-psemibold text-indigo-950 mb-3">Përditëso Profilin</Text>
+            <View className='flex-row items-center justify-between mb-3'>
+              <Text className="text-lg font-psemibold text-indigo-950">Përditëso Profilin</Text>
+              <TouchableOpacity onPress={() => setShowProfileModal(false)}>
+                <X color={"#4f46e5"}/>
+              </TouchableOpacity>
+            </View>
 
             <View className='mb-3'>
               <Controller 
