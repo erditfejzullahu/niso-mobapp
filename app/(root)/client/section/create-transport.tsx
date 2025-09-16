@@ -2,6 +2,7 @@ import HeaderComponent from '@/components/HeaderComponent';
 import TextField from '@/components/TextField';
 import api from '@/hooks/useApi';
 import { createRideSchema } from '@/schemas/createRideSchema';
+import { toFixedNoRound } from '@/utils/toFixed';
 import { FontAwesome5, FontAwesome6 } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
@@ -22,11 +23,11 @@ const CreateTransport = () => {
   const [urgencyInformationModal, setUrgencyInformationModal] = useState(false)
   const driversActive = useSharedValue(1);
 
-  const {control, reset, formState: {errors, isSubmitting}, handleSubmit} = useForm<z.infer<typeof createRideSchema>>({
+  const {control, watch, reset, formState: {errors, isSubmitting}, handleSubmit} = useForm<z.infer<typeof createRideSchema>>({
     resolver: zodResolver(createRideSchema),
     defaultValues: useMemo(() => ({
       isUrgent: false,
-      price: 0.50,
+      price: "0.50",
       fromAddress: "",
       toAddress: ""
     }), []),
@@ -192,17 +193,33 @@ const CreateTransport = () => {
             name="price"
             render={({field}) => (
               <>
-                <TextField 
-                  titleImage={<><Euro color={"#4f46e5"} size={16}/></>}
-                  title='Cmimi i udhetimit'
-                  placeholder='Shkruani ketu cmimin tuaj te udhetimit...'
-                  value={field.value.toString()}
-                  onChangeText={(e) => {
-                    const toNumber = parseInt(e)
-                    field.onChange(toNumber)
-                  }}
-                  keyboardType="numeric"
-                />
+                <View className='relative'>
+                  <View className='absolute right-3 bottom-3 z-50'>
+                    <Euro color={"#dc2626"} size={22}/>
+                  </View>
+                  <View>
+                    <TextField 
+                      titleImage={<><Euro color={"#4f46e5"} size={16}/></>}
+                      title='Cmimi i udhetimit'
+                      className='pr-10'
+                      placeholder='Shkruani ketu cmimin tuaj te udhetimit...'
+                      value={field.value}
+                      
+                      onChangeText={(e) => {
+                        if(e === "," || e === ".") return;
+                        let cleanedText = e.replace("€", "").replace(",", ".");
+                        
+                        // Prevent multiple decimal points
+                        const decimalCount = (cleanedText.match(/\./g) || []).length;
+                        if (decimalCount > 1) return;
+                        
+                        field.onChange(cleanedText);
+                      }}
+                      keyboardType="numeric"
+                    />
+                  </View>
+                </View>
+                {watch("isUrgent") && <Text className='text-indigo-950 font-pregular text-[8px] mt-1'>Nga zgjedhja e natyres se jashtezakonshme e udhetimit <Text className='text-indigo-600 font-psemibold'>(Udhetim Urgjent)</Text> totali i udhetimit eshte: <Text className='text-red-600 font-psemibold'>{(parseFloat(field.value || "0") + 2).toFixed(2)}€</Text></Text>}
                 <Text className='text-[8px] font-plight text-gray-500 mt-1'>Paraqitni shumen me te cilen deshiron qe shoferi te ju dergoj ne destinacionin e caktuar. Shuma minimale eshte <Text className='text-red-600 font-psemibold'>0.50€</Text> dhe shuma maksimale eshte <Text className='text-red-600 font-psemibold'>200€</Text>. Shikoni tabelen e kalkulimeve. <ArrowUpRight color={"#000"} size={10} /></Text>
               </>
             )}
@@ -316,7 +333,7 @@ const CreateTransport = () => {
                   </Text>
                   <Text className="text-gray-400 text-xs">Ky modal shërben për informacione mbi <Text className='text-gray-600'>"paketat Urgjente dhe Te Zakonshme".</Text></Text>
                 </View>
-                <TouchableOpacity onPress={() => setPriceCalculatorModal(false)}>
+                <TouchableOpacity onPress={() => setUrgencyInformationModal(false)}>
                   <X color={"#4f46e5"}/>
                 </TouchableOpacity>
               </View>
