@@ -1,18 +1,33 @@
 import { View, Text, Modal, TouchableOpacity } from 'react-native'
 import React, { Dispatch, memo, SetStateAction, useCallback, useState } from 'react'
-import { Frown, Laugh, Meh, Smile, Star, X } from 'lucide-react-native';
+import { Frown, Laugh, Meh, Smile, Star, Trash2, X } from 'lucide-react-native';
 import { ActivePassengerRide } from '@/types/app-types';
 import Toast from 'react-native-toast-message';
 import TextField from '../TextField';
 import api from '@/hooks/useApi';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
-const RateNowModals = ({rateModal, setRateModal, rate2Modal, setRate2Modal, ride}: 
-    {rateModal: boolean; setRateModal: Dispatch<SetStateAction<boolean>>; rate2Modal: boolean; ride: ActivePassengerRide; setRate2Modal: Dispatch<SetStateAction<boolean>>}) => {
+const RateNowModals = ({rateModal, setRateModal, rate2Modal, setRate2Modal, ride, editRideModal, setEditRideModal}: 
+    {rateModal: boolean; setRateModal: Dispatch<SetStateAction<boolean>>; editRideModal: boolean; setEditRideModal: Dispatch<SetStateAction<boolean>>; rate2Modal: boolean; ride: ActivePassengerRide; setRate2Modal: Dispatch<SetStateAction<boolean>>}) => {
 
     const [selectedRating, setSelectedRating] = useState<number | null>(null)
     const [reviewDescription, setReviewDescription] = useState("")
 
+    const [areYouSureModal, setAreYouSureModal] = useState(false)
+
+    const handleCancelRide = useCallback(async () => {
+      try {
+        //TODO: endpoint for canceling ride alongside with logic as it follows
+        //when user didnt go to that destincation in that specific time, its ok to cnacel ride. when not ban account or smth.
+      } catch (error: any) {
+        console.error(error);
+        Toast.show({
+          type: "error",
+          text1: "Gabim!",
+          text2: error.response.data.message
+        })
+      }
+    }, [])
 
     const submitReview = useCallback(async () => {
         if(!selectedRating){
@@ -60,8 +75,8 @@ const RateNowModals = ({rateModal, setRateModal, rate2Modal, setRate2Modal, ride
             <Text className="text-lg font-psemibold text-indigo-950 mb-3">
               Dëshironi të vlerësoni shoferin?
             </Text>
-            <Text className="text-gray-700 text-sm">Ky modal shërben për vlerësimin e shoferit <Text className="font-psemibold text-indigo-600">{ride.driver.fullName}</Text></Text>
-            <Text className="text-indigo-600 text-sm mb-3">Për të proceduar në vlerësimin e shoferit shtypni butonin <Text className="font-psemibold">"Procedo"</Text></Text>
+            <Text className="text-gray-700 font-pregular text-sm">Ky modal shërben për vlerësimin e shoferit <Text className="font-psemibold text-indigo-600">{ride.driver.fullName}</Text></Text>
+            <Text className="text-indigo-600 font-pregular text-sm mb-3">Për të proceduar në vlerësimin e shoferit shtypni butonin <Text className="font-psemibold">"Procedo"</Text></Text>
 
             <View className="flex-row justify-between">
               <TouchableOpacity
@@ -95,7 +110,7 @@ const RateNowModals = ({rateModal, setRateModal, rate2Modal, setRate2Modal, ride
                 <Text className="text-lg font-psemibold text-indigo-950 mb-3">
                     Vlerësoni tani shoferin
                 </Text>
-                <Text className="text-gray-700 text-sm text-center leading-none mb-1">
+                <Text className="text-indigo-950 text-sm text-center font-pregular leading-none mb-1">
                     Ky modal për vlerësimin e shoferit{" "}
                     <Text className="text-indigo-600">{ride.driver.fullName}</Text>{" "}
                     duhet të jap vlerësime të sinqerta në lidhje me sjelljen apo udhëtimin tuaj.
@@ -166,6 +181,65 @@ const RateNowModals = ({rateModal, setRateModal, rate2Modal, setRate2Modal, ride
             </View>
         </View>
       </Modal>
+
+      {/* edit ride modal */}
+      
+      <Modal visible={editRideModal} animationType="slide" transparent onRequestClose={() => setEditRideModal(false)}>
+        <View className="flex-1 bg-black/40 justify-center items-center">
+          <View className="bg-white rounded-xl p-5 w-11/12">
+            
+            <View className='flex-row items-center justify-between mb-3'>
+              <Text className="text-lg font-psemibold text-indigo-950">
+                Nderveproni me udhetimin
+              </Text>
+              <TouchableOpacity onPress={() => setEditRideModal(false)}>
+                <X color={"#4f46e5"}/>
+              </TouchableOpacity>
+            </View>
+            <Text className="text-indigo-950 font-pregular text-sm">Ky modal shërben për ndryshimin e statusit te udhetimit me shoferin <Text className="font-psemibold text-indigo-600">{ride.driver.fullName}</Text></Text>
+            
+            <View className='my-3 bg-gray-50 shadow-lg shadow-black/15 border border-gray-200 rounded-lg p-3'>
+              <Text className='text-indigo-950 text-xs font-pregular'><Text className='text-red-600 font-psemibold'>VEMENDJE:</Text> anulimi i udhetimit brenda periudhes kohore ne te cilen pritet qe shoferi te vije, rezulton ne <Text className='text-red-600 font-psemibold underline'>ANULIM TE PAARSYESHEM</Text>, dhe rezulton ne pezullim te perhershem te llogarise suaj.</Text>
+            </View>
+
+            <View className="flex-col">
+              <TouchableOpacity
+                onPress={() => {setEditRideModal(false); setAreYouSureModal(true)}}
+                className="px-4 py-1.5 rounded-lg flex-row items-center justify-center gap-1 bg-red-600"
+              >
+                <Text className="text-white font-pregular">Anulo udhetimin</Text>
+                <Trash2 color={"white"} size={18} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      
+      <Modal visible={areYouSureModal} animationType="slide" transparent onRequestClose={() => setAreYouSureModal(false)}>
+        <View className="flex-1 bg-black/40 justify-center items-center">
+          <View className="bg-white rounded-xl p-5 w-11/12">
+            <View className='flex-row items-center justify-between mb-2'>
+              <Text className="text-lg font-psemibold text-indigo-950">
+                A jeni te sigurte?
+              </Text>
+              <TouchableOpacity>
+                <X color={"#4f46e5"}/>
+              </TouchableOpacity>
+            </View>
+            <View className='my-3 bg-gray-50 shadow-lg shadow-black/15 border border-gray-200 rounded-lg p-3'>
+                <Text className='text-indigo-950 font-pregular text-sm'>Nga ky veprim ju anuloni udhetimin me shoferin {ride.driver.fullName}. Vazhdoni me kujdes.</Text>
+            </View>
+            <TouchableOpacity
+                onPress={() => handleCancelRide()}
+                className="px-4 py-1.5 rounded-lg items-center justify-center gap-1 bg-red-600"
+              >
+                <Text className="text-white font-pregular">Anuloni udhetimin perfundimisht</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* edit ride modal */}
     </>
   )
 }

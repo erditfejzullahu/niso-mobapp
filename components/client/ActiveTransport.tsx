@@ -27,6 +27,7 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
 
   const [rateNowModal, setRateNowModal] = useState(false); //modali pare per review
   const [rateNowImmidiately, setRateNowImmidiately] = useState(false); //modal dyte per review
+  const [longPressModal, setLongPressModal] = useState(false)
 
   if(!activeRide) return (
     <View className="bg-white items-center gap-1 rounded-2xl p-4 shadow-md shadow-black/5 border-gray-100 flex-row">
@@ -39,6 +40,7 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
     <>
     <Animated.View style={animatedStyle}>
       <TouchableOpacity
+        onLongPress={() => setLongPressModal(true)}
         onPress={() => setProceedModal(true)}
         className="bg-white rounded-2xl p-4 shadow-md shadow-black/5 border-gray-100"
       >
@@ -110,8 +112,8 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
             <Text className="text-lg font-psemibold text-indigo-950 mb-3">
               Detajet e transportit aktiv
             </Text>
-            <Text className="text-gray-700 font-pregular text-sm mb-3">
-              Ky transport është {activeRide.status === "DRIVING" ? "aktualisht në proces" : "ende nuk ka filluar"}.  
+            <Text className="text-indigo-950 font-pregular text-sm mb-3">
+              Ky transport {activeRide.status === "DRIVING" ? "është aktualisht në proces" : "ende nuk ka filluar"}.  
               Shoferi <Text className="text-indigo-600 font-psemibold">{activeRide.driver.fullName} </Text>  
               po transporton <Text className="text-indigo-600 font-psemibold">{user.fullName} </Text>  
               nga <Text className="text-red-600 font-psemibold">{activeRide.rideInfo.fromAddress} </Text>  
@@ -146,7 +148,7 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
         </View>
       </Modal>
 
-      <RateNowModals ride={activeRide} rateModal={rateNowModal} setRateModal={setRateNowModal} setRate2Modal={setRateNowImmidiately} rate2Modal={rateNowImmidiately}/>
+      <RateNowModals ride={activeRide} editRideModal={longPressModal} setEditRideModal={setLongPressModal} rateModal={rateNowModal} setRateModal={setRateNowModal} setRate2Modal={setRateNowImmidiately} rate2Modal={rateNowImmidiately}/>
     </>
   );
 };
