@@ -10,10 +10,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import 'dayjs/locale/sq';
-import { useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Image, Modal, RefreshControl, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView, KeyboardAwareScrollViewProps } from 'react-native-keyboard-aware-scroll-view';
 import Animated, { BounceInUp, Easing } from 'react-native-reanimated';
 import * as ImagePicker from "expo-image-picker"
 import * as ImageManipulator from "expo-image-manipulator"
@@ -28,6 +28,10 @@ import FinancialReceipt from '@/components/FinancialReceipt';
 dayjs.locale('sq');
 
 const ClientProfile = () => {
+  const {reason} = useLocalSearchParams(); 
+
+  
+
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -52,6 +56,22 @@ const ClientProfile = () => {
 
   const [isContactingSupport, setIsContactingSupport] = useState(false)
   const [financialReceiptOpened, setFinancialReceiptOpened] = useState(false)
+  const scrollViewRef = useRef<KeyboardAwareScrollView>(null)
+
+  useEffect(() => {
+    if(reason){
+
+      if(reason === "initiateHelp"){
+        setIsContactingSupport(true)
+        if(scrollViewRef.current){
+          setTimeout(() => {
+            scrollViewRef.current?.scrollToEnd(true);
+          }, 100);
+        }
+      }
+    }
+  }, [reason])
+  
 
   
   const {control, reset, handleSubmit, formState: {errors, isSubmitting}} = useForm<z.infer<typeof userDetailsSchema>>({
@@ -200,6 +220,7 @@ const ClientProfile = () => {
     }
   }, [isChangingPassword])
   
+  
 
   useEffect(() => {
     if(data && data.data){
@@ -223,6 +244,7 @@ const ClientProfile = () => {
 
   return (
     <KeyboardAwareScrollView
+      ref={scrollViewRef}
       extraScrollHeight={20}
       className="flex-1 bg-gray-50 p-4" 
       showsVerticalScrollIndicator={false}
