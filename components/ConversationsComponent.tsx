@@ -11,6 +11,7 @@ import EmptyState from './system/EmptyState';
 import api from '@/hooks/useApi';
 import { Conversations } from '@/types/app-types';
 import { MessageSquareLock } from 'lucide-react-native';
+import ConversationItem from './ConversationItem';
 
 const ConversationsComponent = () => {
     const {user} = useAuth();
@@ -37,6 +38,14 @@ const ConversationsComponent = () => {
         enabled: !isClosed
     })
 
+    const handleDeleteConversation = (id: string) => {
+        try {
+            
+        } catch (error) {
+            
+        }
+    }
+
     console.log(data);
     
 
@@ -59,7 +68,7 @@ const ConversationsComponent = () => {
         >
             <>
                 <BottomSheetScrollView contentContainerStyle={styles.bottomSheetContent}>
-                    <TouchableOpacity className='bg-gray-50 flex-row items-center gap-2 shadow-lg shadow-black/10 px-2 py-1.5 border-gray-200 border rounded-lg'>
+                    <TouchableOpacity className='bg-gray-50 mb-3 flex-row items-center gap-2 shadow-lg shadow-black/10 px-2 py-1.5 border-gray-200 border rounded-lg'>
                         <Text className='font-pregular text-sm text-indigo-600'>Te gjithe bisedat</Text>
                         <MessageSquareLock color={"#4f46e5"} size={18}/>
                     </TouchableOpacity>
@@ -72,9 +81,9 @@ const ConversationsComponent = () => {
                     <EmptyState onRetry={refetch} message="Nuk u gjeten njoftime. Nese mendoni qe eshte gabim klikoni me poshte." textStyle="!font-plight !text-sm" />
                   ) : (
                     <View className="w-full gap-2.5">
-                    {/* {data.map((item) => (
-                      
-                    ))} */}
+                    {data.map((item) => (
+                        <ConversationItem user={user} item={item} onDelete={(id) => handleDeleteConversation(id)}/>
+                    ))}
                     </View>
                   ))}
                 </BottomSheetScrollView>

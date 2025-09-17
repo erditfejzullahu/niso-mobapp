@@ -500,10 +500,11 @@ export interface Conversations {
   updatedAt: Date;
   lastMessageAt?: Date | null;
 
-  driver: User;
-  passenger: User;
+  driver?: User | null;
+  passenger?: User | null;
+  support?: User | null;
   rideRequest?: RideRequest | null;
-  messages?: Message[];
+  messages: Message[] | [];
 }
 
 export interface Message {
