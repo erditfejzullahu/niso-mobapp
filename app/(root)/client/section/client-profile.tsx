@@ -343,6 +343,14 @@ const ClientProfile = () => {
 
         <TouchableOpacity
           className="flex-row items-center py-3 border-b border-gray-100"
+          onPress={() => router.push('/client/section/default-rotations')}
+        >
+          <Ionicons name="car" size={20} color="#4338ca" />
+          <Text className="ml-3 text-indigo-950 font-pmedium">Rotacionet tua</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="flex-row items-center py-3 border-b border-gray-100"
           onPress={() => router.push('/client/section/reviews-made')}
         >
           <Ionicons name="star" size={20} color="#4338ca" />

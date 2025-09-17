@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, Image, Modal, FlatList, TextInput, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from 'react-native'
 import React, { useState } from 'react'
-import { Conversations, User } from '@/types/app-types'
+import { Conversations, Message, User } from '@/types/app-types'
 import { CarTaxiFront, Check, CheckCheck, Send, Settings, Trash2, X } from 'lucide-react-native';
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { MaterialIcons } from '@expo/vector-icons';
@@ -34,7 +34,7 @@ const ConversationItem = ({user, item, onDelete}: {user: User, item: Conversatio
     const {data, isLoading, error, refetch, isRefetching} = useQuery({
         queryKey: ['conversation-item', item.id],
         queryFn: async () => {
-            const res = await api.get<Conversations>(`/conversations/get-messages/${item.id}`, {params: pagination})
+            const res = await api.get<Message[]>(`/conversations/get-messages/${item.id}`, {params: pagination})
             return res.data;
         },
         refetchOnWindowFocus: false,
@@ -123,7 +123,7 @@ const ConversationItem = ({user, item, onDelete}: {user: User, item: Conversatio
                         {/* Header */}
                         <View className="flex-row items-center justify-between p-4 border-b border-gray-200">
                             <Animated.View entering={BounceInUp.duration(800)} className="flex-row items-center gap-2">
-                                <Image source={{uri: outputNecessariesTopLeftSide.image}} className="w-10 h-10 rounded-full"/>
+                                <Image source={{uri: outputNecessariesTopLeftSide.image}} className="w-14 h-14 rounded-full"/>
                                 <View>
                                     <Text className="font-psemibold text-lg text-indigo-950">{outputNecessariesTopLeftSide.fullName}</Text>
                                     <Text className={`text-xs font-pregular px-2 py-0.5 rounded-lg ${item.type === "RIDE_RELATED" ? "bg-red-600" : item.type === "SUPPORT" ? "bg-indigo-600" : "bg-cyan-600"} text-white`}>{item.type === "RIDE_RELATED" ? "Lidhur me Udhetimin" : item.type === "SUPPORT" ? "Mbeshtetje Online" : "Bisede me qellime te ndryshme"}</Text>
@@ -140,7 +140,7 @@ const ConversationItem = ({user, item, onDelete}: {user: User, item: Conversatio
                             <ErrorState onRetry={refetch}/>
                         ) : (
                             <FlatList
-                                data={data?.messages}
+                                data={data}
                                 keyExtractor={(msg) => msg.id}
                                 contentContainerStyle={{padding: 12}}
                                 renderItem={({item: msg}) => {

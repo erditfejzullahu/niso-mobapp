@@ -8,7 +8,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { Plus } from 'lucide-react-native'
 import React from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { RefreshControl, Text, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view'
 import Toast from 'react-native-toast-message'
 
@@ -49,6 +49,15 @@ const DefaultRotations = () => { //psh rotacion tperditshem prej pune shpi prej 
 
   return (
     <KeyboardAwareFlatList 
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          colors={['#4f46e5']} // Indigo color for iOS
+          tintColor="#4f46e5" // iOS spinner color
+          progressBackgroundColor="#ffffff" // iOS background
+        />
+      }
       showsVerticalScrollIndicator={false}
       className='bg-gray-50'
       contentContainerStyle={{ padding: 16, paddingBottom: 80, gap: 16 }}
