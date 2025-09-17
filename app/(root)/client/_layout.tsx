@@ -1,5 +1,6 @@
 // app/(drawer)/_layout.jsx
 import ClientDrawerComponent from "@/components/client/ClientDrawerComponent";
+import ConversationsComponent from "@/components/ConversationsComponent";
 import NotificationsComponent from "@/components/NotificationsComponent";
 import TopbarComponent from "@/components/TopbarComponent";
 import { useAuth } from "@/context/AuthContext";
@@ -59,6 +60,7 @@ export default function DrawerLayout() {
         />
       </Drawer>
       <NotificationsComponent />
+      <ConversationsComponent />
     </GestureHandlerRootView>
   );
 }

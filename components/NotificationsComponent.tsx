@@ -24,30 +24,11 @@ dayjs.locale('sq')
 const NotificationsComponent = () => {
   const {user} = useAuth();
   if(!user) return null;
-  const fakeNotifications = [
-    {message: "Tarifa juaj u aprovua ✅", isRead: true},
-    {message: "Keni një udhëtim të ri 📍", isRead: false},
-    {message: "Tarifa juaj u aprovua ✅", isRead: true},
-    {message: "Keni një udhëtim të ri 📍", isRead: false},
-    {message: "Tarifa juaj u aprovua ✅", isRead: true},
-    {message: "Pagesa prej €5.00 u pranua 💳", isRead: false},
-    {message: "Përdoruesi ju dha vlerësim 5⭐", isRead: true},
-    {message: "Përdoruesi ju dha vlerësim 5⭐", isRead: false},
-    {message: "Përdoruesi ju dha vlerësim 5⭐", isRead: true},
-    {message: "Përdoruesi ju dha vlerësim 5⭐", isRead: false},
-    {message: "Përdoruesi ju dha vlerësim 5⭐", isRead: false},
-    {message: "Përdoruesi ju dha vlerësim 5⭐", isRead: true},
-  ];
-
-  
-
   const queryClient = useQueryClient();
 
 
   const bottomSheetRef = useRef<BottomSheetModal>(null)
     const {isClosed, setToggled} = useToggleNotifications();
-    const dateCreated = "2025-08-09T14:22:00Z";
-    const clientPhoto ="https://randomuser.me/api/portraits/men/32.jpg";
 
     if (isClosed) {
         bottomSheetRef.current?.dismiss();
@@ -101,11 +82,6 @@ const NotificationsComponent = () => {
         })
       }
     })
-    
-
-    const handleSheetChange = () => {
-
-    }
 
   return (
     <BottomSheetModalProvider>

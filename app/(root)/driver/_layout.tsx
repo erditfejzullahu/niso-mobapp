@@ -1,4 +1,5 @@
 // app/(drawer)/_layout.jsx
+import ConversationsComponent from "@/components/ConversationsComponent";
 import DriverDrawerComponent from "@/components/DriverDrawerComponent";
 import NotificationsComponent from "@/components/NotificationsComponent";
 import TopbarComponent from "@/components/TopbarComponent";
@@ -59,6 +60,7 @@ export default function DrawerLayout() {
         />
       </Drawer>
       <NotificationsComponent />
+      <ConversationsComponent />
     </GestureHandlerRootView>
   );
 }
