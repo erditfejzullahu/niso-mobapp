@@ -82,7 +82,7 @@ const ConversationsComponent = () => {
                   ) : (
                     <View className="w-full gap-2.5">
                     {data.map((item) => (
-                        <ConversationItem user={user} item={item} onDelete={(id) => handleDeleteConversation(id)}/>
+                        <ConversationItem key={item.id} user={user} item={item} onDelete={(id) => handleDeleteConversation(id)}/>
                     ))}
                     </View>
                   ))}

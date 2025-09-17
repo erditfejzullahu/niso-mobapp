@@ -400,7 +400,7 @@ const NotificationItem = ({ item, onDelete , user}: { item: Notification; onDele
           onPress={handleNotificationItemActions}
           key={item.id} 
           className={`w-[95%] mx-auto flex-row items-center gap-2 ${
-            item.read ? "bg-white" : "bg-indigo-50"
+            item.read ? "bg-white" : "bg-indigo-100"
           } shadow-lg shadow-black/10 rounded-lg p-3 relative`}
         >
           {/* Left Icon */}

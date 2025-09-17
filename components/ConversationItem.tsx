@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, Image } from 'react-native'
 import React, { useCallback, useMemo } from 'react'
 import { Conversations, User } from '@/types/app-types'
-import { CarTaxiFront, Settings, Trash2 } from 'lucide-react-native';
+import { CarTaxiFront, Check, CheckCheck, Settings, Trash2 } from 'lucide-react-native';
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { MaterialIcons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
@@ -28,6 +28,7 @@ const ConversationItem = ({user, item, onDelete}: {user: User, item: Conversatio
 
     const youMessagedLast = user.id === item.messages[0].senderId;
     const isRead = item.messages[0].isRead;
+    
 
     const outputNecessariesTopLeftSide = {
         image: (user.role === "DRIVER") ? (item.passenger?.image || item.support?.image) : (user.role === "PASSENGER") ? (item.driver?.image || item.support?.image) : (item.driver?.image || item.passenger?.image),
@@ -37,11 +38,11 @@ const ConversationItem = ({user, item, onDelete}: {user: User, item: Conversatio
     
   return (
     <>
-        <Swipeable key={item.id} renderRightActions={renderRightActions} containerStyle={{width: "100%", overflow: "visible"}}>
+        <Swipeable renderRightActions={renderRightActions} containerStyle={{width: "100%", overflow: "visible"}}>
             <TouchableOpacity
                 onPress={handleConversationClickAction}
                 className={`w-[95%] mx-auto flex-row items-center gap-2 ${
-                    (!isRead && youMessagedLast) ? "bg-white" : (!isRead && !youMessagedLast) ? "bg-indigo-100" : "bg-indigo-600"
+                    (!isRead && youMessagedLast) ? "bg-white" : (!isRead && !youMessagedLast) ? "bg-indigo-100" : "bg-white"
                 } shadow-lg shadow-black/10 rounded-lg p-3 relative`}
             >
                 {/* Left Icon */}
@@ -51,16 +52,21 @@ const ConversationItem = ({user, item, onDelete}: {user: User, item: Conversatio
                     {item.type === "OTHER" && <Settings color={"#4338ca"} size={16} />}
                 </View>
 
+                <View className='absolute right-2 top-2 z-50'>
+                    {(youMessagedLast && !isRead) && <Check size={16} color={"#4338ca"}/>}
+                    {(youMessagedLast && isRead) && <CheckCheck size={16} color={"#4338ca"} />}
+                </View>
+
                 <Image 
                     source={{uri: outputNecessariesTopLeftSide.image}}
                     className='w-14 h-14 rounded-full'
                 />
 
                 <View className="pb-[14px] flex-1">
-                    <Text className={`font-pmedium ${(!isRead && youMessagedLast) ? "text-indigo-900" : (!isRead && !youMessagedLast) ? "text-indigo-950" : "text-red-500"} text-base`}>
+                    <Text className={`font-pmedium ${(!isRead && youMessagedLast) ? "text-indigo-900" : (!isRead && !youMessagedLast) ? "text-indigo-950" : "text-indigo-900"} text-base`}>
                     {outputNecessariesTopLeftSide.fullName}
                     </Text>
-                    <Text numberOfLines={2} className={`font-plight ${(!isRead && youMessagedLast) ? "text-indigo-800" : (!isRead && !youMessagedLast) ? "text-indigo-900" : "text-reg-500"} text-xs`}>
+                    <Text numberOfLines={2} className={`font-plight ${(!isRead && youMessagedLast) ? "text-indigo-800" : (!isRead && !youMessagedLast) ? "text-indigo-900" : "text-indigo-800"} text-xs`}>
                     {item.messages[0].content}
                     </Text>
                 </View>
