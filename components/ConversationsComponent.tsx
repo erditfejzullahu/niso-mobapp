@@ -72,7 +72,7 @@ const ConversationsComponent = () => {
                         <RefreshCcw color={"#4f46e5"} size={18}/>
                     </TouchableOpacity>
                     <TouchableOpacity className='bg-gray-50 mb-3 flex-row items-center gap-2 shadow-lg shadow-black/10 px-2 py-1.5 border-gray-200 border rounded-lg'>
-                        <Text className='font-pregular text-sm text-indigo-600'>Te gjithe bisedat</Text>
+                        <Text className='font-pregular text-sm text-indigo-600'>Drejtohuni tek bisedat</Text>
                         <MessageSquareLock color={"#4f46e5"} size={18}/>
                     </TouchableOpacity>
                     
@@ -85,7 +85,7 @@ const ConversationsComponent = () => {
                   ) : (
                     <View className="w-full gap-2.5">
                     {data.map((item) => (
-                        <ConversationItem key={item.id} user={user} item={item} onDelete={(id) => handleDeleteConversation(id)}/>
+                        <ConversationItem sheetSection={true} key={item.id} user={user} item={item} onDelete={(id) => handleDeleteConversation(id)}/>
                     ))}
                     </View>
                   ))}

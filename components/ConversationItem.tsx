@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, Image, Modal, FlatList, TextInput, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from 'react-native'
-import React, { useState } from 'react'
+import React, { memo, useState } from 'react'
 import { Conversations, Message, User } from '@/types/app-types'
-import { CarTaxiFront, Check, CheckCheck, Send, Settings, Trash2, X } from 'lucide-react-native';
+import { CarTaxiFront, Check, CheckCheck, Clock, Send, Settings, Trash2, X } from 'lucide-react-native';
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import { MaterialIcons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
@@ -17,9 +17,10 @@ import ErrorState from './system/ErrorState';
 dayjs.extend(relativeTime);
 dayjs.locale('sq')
 
-const ConversationItem = ({user, item, onDelete}: {user: User, item: Conversations, onDelete: (id: string) => void}) => {
-    const [modalVisible, setModalVisible] = useState(false);
-    const [pagination, setPagination] = useState({...paginationDto})
+const ConversationItem = ({user, item, onDelete, sheetSection = false}: {user: User, item: Conversations, onDelete: (id: string) => void, sheetSection: boolean}) => {
+    const [conversationModal, setConversationModal] = useState(false);
+    const [pagination, setPagination] = useState({...paginationDto});
+    const [messageDetailsModal, setMessageDetailsModal] = useState<Message | null>(null)
 
     const renderRightActions = () => (
         <TouchableOpacity
@@ -38,11 +39,15 @@ const ConversationItem = ({user, item, onDelete}: {user: User, item: Conversatio
             return res.data;
         },
         refetchOnWindowFocus: false,
-        enabled: modalVisible
+        enabled: conversationModal
     })
 
     const handleConversationClickAction = () => {
-        setModalVisible(true);
+        if(sheetSection){
+            setConversationModal(true);
+        }else{
+
+        }
     };
 
     const youMessagedLast = user.id === item.messages[0].senderId;
@@ -99,15 +104,15 @@ const ConversationItem = ({user, item, onDelete}: {user: User, item: Conversatio
         </Swipeable>
 
         {/* ✅ Modern Conversation Modal */}
-        <Modal
-            visible={modalVisible}
+        {sheetSection && <Modal
+            visible={conversationModal}
             animationType="slide"
-            onRequestClose={() => setModalVisible(false)}
+            onRequestClose={() => setConversationModal(false)}
             transparent={true}
         >
             <View className="flex-1 bg-black/30 justify-center">
                 <Animated.View entering={BounceInRight.duration(800)}>
-                    <TouchableOpacity onPress={() => setModalVisible(false)} className='ml-auto mr-4 mb-2 z-50'>
+                    <TouchableOpacity onPress={() => setConversationModal(false)} className='ml-auto mr-4 mb-2 z-50'>
                         <Image 
                             source={{uri: outputNecessariesTopLeftSide.image}}
                             className='w-20 h-20 rounded-full'
@@ -129,7 +134,7 @@ const ConversationItem = ({user, item, onDelete}: {user: User, item: Conversatio
                                     <Text className={`text-xs font-pregular px-2 py-0.5 rounded-lg ${item.type === "RIDE_RELATED" ? "bg-red-600" : item.type === "SUPPORT" ? "bg-indigo-600" : "bg-cyan-600"} text-white`}>{item.type === "RIDE_RELATED" ? "Lidhur me Udhetimin" : item.type === "SUPPORT" ? "Mbeshtetje Online" : "Bisede me qellime te ndryshme"}</Text>
                                 </View>
                             </Animated.View>
-                            <TouchableOpacity onPress={() => setModalVisible(false)}>
+                            <TouchableOpacity onPress={() => setConversationModal(false)}>
                                 <X color="#4f46e5" />
                             </TouchableOpacity>
                         </View>
@@ -144,11 +149,11 @@ const ConversationItem = ({user, item, onDelete}: {user: User, item: Conversatio
                                 keyExtractor={(msg) => msg.id}
                                 contentContainerStyle={{padding: 12}}
                                 renderItem={({item: msg}) => {
-                                    console.log(msg);
-                                    
                                     const isMine = msg.senderId === user.id;
+                                    const isMessageRead = msg.isRead && msg.isRead === true;
+                                    const isMessageNotSent = msg.isRead === null;
                                     return (
-                                        <View className={`mb-3 max-w-[75%] ${isMine ? "self-end" : "self-start"}`}>
+                                        <TouchableOpacity onPress={() => setMessageDetailsModal(msg)} className={`mb-3 max-w-[75%] ${isMine ? "self-end" : "self-start"}`}>
                                             <View className={`rounded-2xl px-3 py-2 shadow-sm ${isMine ? "bg-indigo-600" : "bg-gray-200"}`}>
                                                 <Text className={`text-sm font-pregular ${isMine ? "text-white" : "text-indigo-950"}`}>
                                                     {msg.content}
@@ -157,11 +162,12 @@ const ConversationItem = ({user, item, onDelete}: {user: User, item: Conversatio
                                             <View className='flex-row items-center justify-between'>
                                                 <Text className="text-[10px] text-gray-400 mt-0.5">{dayjs(msg.createdAt).fromNow()}</Text>
                                                 <View>
-                                                    {((isMine && !isRead) || (!isMine && !isRead)) && <Check size={16} color={"#4f46e5"}/>}
-                                                    {((isMine && isRead) || (!isMine && isRead)) && <CheckCheck size={16} color={"#4f46e5"} />}
+                                                    {(isMine && !isMessageRead) && <Check size={16} color={"#4f46e5"}/>}
+                                                    {(isMine && isMessageRead) && <CheckCheck size={16} color={"#4f46e5"} />}
+                                                    {(isMine && isMessageNotSent) && <Clock size={12} color={"#4f46e5"}/>}
                                                 </View>
                                             </View>
-                                        </View>
+                                        </TouchableOpacity>
                                     );
                                 }}
                                 ListEmptyComponent={() => (
@@ -190,9 +196,9 @@ const ConversationItem = ({user, item, onDelete}: {user: User, item: Conversatio
                     </View>
                 </KeyboardAvoidingView>
             </View>
-        </Modal>
+        </Modal>}
     </>
   )
 }
 
-export default ConversationItem
+export default memo(ConversationItem)
