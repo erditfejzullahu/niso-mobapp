@@ -1,11 +1,11 @@
 import { View, Text } from 'react-native'
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view'
 import EmptyState from '@/components/system/EmptyState'
 import { useQuery } from '@tanstack/react-query'
 import { paginationDto } from '@/utils/paginationDto'
 import HeaderComponent from '@/components/HeaderComponent'
-import { Conversations } from '@/types/app-types'
+import { Conversations, ConversationsFilterInterface } from '@/types/app-types'
 import api from '@/hooks/useApi'
 import { RefreshControl } from 'react-native'
 import LoadingState from '@/components/system/LoadingState'
@@ -13,11 +13,16 @@ import ErrorState from '@/components/system/ErrorState'
 import ConversationItem from '@/components/ConversationItem'
 import { useAuth } from '@/context/AuthContext'
 import { Redirect } from 'expo-router'
+import ConversationsFilter from '@/components/ConversationsFilter'
 
 const ConversationsPage = () => {
     const {user} = useAuth();
     if(!user) return (<Redirect href={'/sign-in'}/>);
     const [pagination, setPagination] = useState({...paginationDto})
+
+    const [conversationsFilter, setConversationsFilter] = useState<ConversationsFilterInterface>({
+      filterBy: "all-conversations"
+    })
 
     const {data, isLoading, error, isRefetching, refetch} = useQuery({
         queryKey: ['conversations', pagination],
@@ -27,12 +32,19 @@ const ConversationsPage = () => {
         }
     })
 
+    useEffect(() => {
+      console.log(conversationsFilter, ' ????');
+      
+    }, [conversationsFilter])
+    
+
     const headerComp = useMemo(() => (
       <View className='p-4'>
         <HeaderComponent 
             title={'Bisedat tua'}
             subtitle={"Ketu mund te nderveproni me te shoferet(biseda udhetimi apo per arsye te caktuara, kunder oferta etj,) dhe me mbeshtetjen teknike te Niso."}
         />
+        <ConversationsFilter filters={conversationsFilter} setFilters={(newFilters) => setConversationsFilter(newFilters)}/>
       </View>
     ), [])
 
@@ -46,6 +58,7 @@ const ConversationsPage = () => {
   return (
     <View className='flex-1 bg-gray-50'>
         <KeyboardAwareFlatList 
+            className='flex-1'
             refreshControl={
               <RefreshControl
                 refreshing={isRefetching}

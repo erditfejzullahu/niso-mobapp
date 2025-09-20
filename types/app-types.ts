@@ -507,6 +507,10 @@ export interface Conversations {
   messages: Message[] | [];
 }
 
+export interface ConversationsFilterInterface {
+    filterBy: 'available-conversations' | 'try-open-conversations' | 'closed-conversations' | 'all-conversations',
+}
+
 export interface Message {
   id: string;
   conversationId: string;
