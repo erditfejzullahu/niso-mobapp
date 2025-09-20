@@ -95,6 +95,7 @@ export default function Layout() {
 
       <Tabs.Screen name="favorite-drivers" options={{href: null}} />
       <Tabs.Screen name="reviews-made" options={{href: null}} />
+      <Tabs.Screen name="conversations" options={{href: null}}/>
     </Tabs>
   );
 }

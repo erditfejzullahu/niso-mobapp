@@ -12,10 +12,13 @@ import api from '@/hooks/useApi';
 import { Conversations } from '@/types/app-types';
 import { MessageSquareLock, RefreshCcw } from 'lucide-react-native';
 import ConversationItem from './ConversationItem';
+import { useRouter } from 'expo-router';
 
 const ConversationsComponent = () => {
     const {user} = useAuth();
     if(!user) return null;
+
+    const router = useRouter();
 
     const queryClient = useQueryClient();
     const bottomSheetRef = useRef<BottomSheetModal>(null)
@@ -44,10 +47,14 @@ const ConversationsComponent = () => {
         } catch (error) {
             
         }
-    }
+    }    
 
-    console.log(data);
-    
+    const handleRouteToConversations = () => {
+        if(user.role === "PASSENGER"){
+            setToggled(true)
+            router.replace('/client/section/conversations');
+        }
+    }
 
   return (
     <BottomSheetModalProvider>
@@ -71,7 +78,7 @@ const ConversationsComponent = () => {
                     <TouchableOpacity onPress={() => refetch()} className='absolute right-2 top-2 bg-gray-50 shadow-lg shadow-black/10 px-2 py-1.5 rounded-lg border border-gray-200'>
                         <RefreshCcw color={"#4f46e5"} size={18}/>
                     </TouchableOpacity>
-                    <TouchableOpacity className='bg-gray-50 mb-3 flex-row items-center gap-2 shadow-lg shadow-black/10 px-2 py-1.5 border-gray-200 border rounded-lg'>
+                    <TouchableOpacity onPress={handleRouteToConversations} className='bg-gray-50 mb-3 flex-row items-center gap-2 shadow-lg shadow-black/10 px-2 py-1.5 border-gray-200 border rounded-lg'>
                         <Text className='font-pregular text-sm text-indigo-600'>Drejtohuni tek bisedat</Text>
                         <MessageSquareLock color={"#4f46e5"} size={18}/>
                     </TouchableOpacity>
