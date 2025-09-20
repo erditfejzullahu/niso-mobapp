@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity } from 'react-native'
 import React, { useRef } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { BottomSheetModal, BottomSheetModalProvider, BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { BottomSheetModal, BottomSheetModalProvider, BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useToggleMessagesSheet } from '@/store/useToggleMessagesSheet';
 import { StyleSheet } from 'react-native';
 import LoadingState from './system/LoadingState';
@@ -74,6 +74,7 @@ const ConversationsComponent = () => {
           )}
         >
             <>
+            <BottomSheetView style={{flex: 1, minHeight: "100%"}}>
                 <BottomSheetScrollView contentContainerStyle={styles.bottomSheetContent}>
                     <TouchableOpacity onPress={() => refetch()} className='absolute right-2 top-2 bg-gray-50 shadow-lg shadow-black/10 px-2 py-1.5 rounded-lg border border-gray-200'>
                         <RefreshCcw color={"#4f46e5"} size={18}/>
@@ -97,6 +98,7 @@ const ConversationsComponent = () => {
                     </View>
                   ))}
                 </BottomSheetScrollView>
+            </BottomSheetView>
             </>
         </BottomSheetModal>
         </BottomSheetModalProvider>

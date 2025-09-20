@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity, Image, Modal, FlatList, TextInput, Keyboa
 import React, { memo, useState } from 'react'
 import { Conversations, Message, User } from '@/types/app-types'
 import { CarTaxiFront, Check, CheckCheck, Clock, Send, Settings, Trash2, X } from 'lucide-react-native';
-import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { MaterialIcons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -23,13 +23,15 @@ const ConversationItem = ({user, item, onDelete, sheetSection = false}: {user: U
     const [messageDetailsModal, setMessageDetailsModal] = useState<Message | null>(null)
 
     const renderRightActions = () => (
-        <TouchableOpacity
-            onPress={() => onDelete(item.id)} 
-            className="bg-red-600 w-20 justify-center items-center rounded-lg mr-3"
-        >
-            <Trash2 color="#fff" size={20} />
-            <Text className="text-white text-xs font-pmedium mt-1">Fshij</Text>
-        </TouchableOpacity>
+        <View>
+            <TouchableOpacity
+                onPress={() => onDelete(item.id)} 
+                className="bg-red-600 w-20 justify-center items-center rounded-lg mr-3"
+            >
+                <Trash2 color="#fff" size={20} />
+                <Text className="text-white text-xs font-pmedium mt-1">Fshij</Text>
+            </TouchableOpacity>
+        </View>
     );
 
     const {data, isLoading, error, refetch, isRefetching} = useQuery({
@@ -61,7 +63,7 @@ const ConversationItem = ({user, item, onDelete, sheetSection = false}: {user: U
 
     return (
     <>
-        <Swipeable renderRightActions={renderRightActions} containerStyle={{width: "100%", overflow: "visible"}}>
+        <ReanimatedSwipeable friction={2} enableTrackpadTwoFingerGesture rightThreshold={40} renderRightActions={renderRightActions} containerStyle={{width: "100%", overflow: "visible"}}>
             <TouchableOpacity
                 onPress={handleConversationClickAction}
                 className={`w-[95%] mx-auto flex-row items-center gap-2 ${
@@ -101,7 +103,7 @@ const ConversationItem = ({user, item, onDelete, sheetSection = false}: {user: U
                     </Text>
                 </View>
             </TouchableOpacity>
-        </Swipeable>
+        </ReanimatedSwipeable>
 
         {/* ✅ Modern Conversation Modal */}
         {sheetSection && <Modal

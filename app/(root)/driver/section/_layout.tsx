@@ -3,7 +3,8 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Fontisto from '@expo/vector-icons/Fontisto';
 import { Tabs } from "expo-router";
 import { useEffect, useRef } from "react";
-import { Animated, Easing, StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 
 export default function Layout() {
   return (
@@ -32,15 +33,7 @@ export default function Layout() {
         tabBarActiveTintColor: route.name === "active-routes" ? "#4f46e5" : "#4f46e5", // indigo-600
         tabBarInactiveTintColor: "#9ca3af",
         tabBarIcon: ({ color, size, focused }) => {
-          const scaleAnim = useRef(new Animated.Value(1)).current;
-
-          useEffect(() => {
-            Animated.spring(scaleAnim, {
-              toValue: focused ? 1.2 : 1,
-              friction: 4,
-              useNativeDriver: true,
-            }).start();
-          }, [focused]);
+          
 
           let icon;
           switch (route.name) {
@@ -62,7 +55,7 @@ export default function Layout() {
           }
 
           return (
-            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+            <Animated.View>
               {icon}
             </Animated.View>
           );
@@ -95,33 +88,43 @@ export default function Layout() {
   );
 }
 
-// Floating + Button with Bounce Animation
-function FloatingButton({ onPress }: {onPress: any}) {
-  const bounceAnim = useRef(new Animated.Value(1)).current;
+function FloatingButton({ onPress }: { onPress: any }) {
+  const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
 
   useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(bounceAnim, {
-          toValue: 1.1,
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(bounceAnim, {
-          toValue: 1,
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    // Infinite bounce loop
+    translateY.value = withRepeat(
+      withSequence(
+        withTiming(-6, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 800, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1, // infinite
+      false
+    );
+
+    scale.value = withRepeat(
+      withSequence(
+        withTiming(1.05, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      false
+    );
   }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }, { scale: scale.value }],
+  }));
 
   return (
     <View style={styles.floatingButtonContainer}>
-      <Animated.View style={{ transform: [{ scale: bounceAnim }] }}>
-        <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={styles.floatingButton}>
+      <Animated.View style={animatedStyle}>
+        <TouchableOpacity
+          onPress={onPress}
+          activeOpacity={0.8}
+          style={styles.floatingButton}
+        >
           <Ionicons name="add" size={30} color="#fff" />
         </TouchableOpacity>
       </Animated.View>

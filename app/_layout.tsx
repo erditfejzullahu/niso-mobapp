@@ -85,16 +85,16 @@ export default function RootLayout() {
 
   return (
     <>
-    <AuthProvider>
-      <QueryClientProvider client={queryClient}>
-        <GestureHandlerRootView style={{flex: 1}}>
-          <Stack screenOptions={{headerShown: false, gestureEnabled: true}}/>
-        </GestureHandlerRootView>
-      </QueryClientProvider>
-    </AuthProvider>
-    
-    <StatusBar style="dark"/>
-    <Toast config={toastConfig} />
+    <GestureHandlerRootView style={{flex: 1}}>
+      <AuthProvider>
+        <QueryClientProvider client={queryClient}>
+            <Stack screenOptions={{headerShown: false, gestureEnabled: true}}/>
+        </QueryClientProvider>
+      </AuthProvider>
+      
+      <StatusBar style="dark"/>
+      <Toast config={toastConfig} />
+    </GestureHandlerRootView>
     </>
 );
 }

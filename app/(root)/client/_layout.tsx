@@ -28,7 +28,7 @@ export default function DrawerLayout() {
   }, [user, loading])
   
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <>
       <Drawer
         drawerContent={(props) => <ClientDrawerComponent {...props} />}
         screenOptions={{
@@ -61,7 +61,7 @@ export default function DrawerLayout() {
       </Drawer>
       <NotificationsComponent />
       <ConversationsComponent />
-    </GestureHandlerRootView>
+    </>
   );
 }
 
