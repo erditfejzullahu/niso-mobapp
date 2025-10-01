@@ -55,6 +55,7 @@ export default function AddFixedTarif() {
   useFocusEffect(
     useCallback(() => {
       return () => {
+        router.setParams({tarif: undefined})
         setAreaName("")
         setPrice("")
         setDescription("")
@@ -86,6 +87,8 @@ export default function AddFixedTarif() {
       console.error(error.response.status);
       setAreaData(null)
       setShowAreaScroller(false)
+    } finally {
+      
     }
   }
 
@@ -185,6 +188,27 @@ export default function AddFixedTarif() {
       })
     }
   };
+
+
+  const handleStopLocationSearch = () => {
+    (async () => {
+      // Request permission to access location
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setErrorMsg('Permission to access location was denied');
+        Alert.alert('Permission denied', 'Enable location permissions in settings.');
+        return;
+      }
+
+      // Get current location
+      let currentLocation = await Location.getCurrentPositionAsync({});
+
+      setLocation(currentLocation);
+      setRegion({latitude: currentLocation.coords.latitude, longitude: currentLocation.coords.longitude, longitudeDelta: 0.03, latitudeDelta: 0.03})
+    })();
+    
+    router.setParams({tarif: undefined})
+  }
   
   
   const onCityChange = (cityLabel: string) => {
@@ -214,6 +238,10 @@ export default function AddFixedTarif() {
       <View className="flex-1 justify-center items-center bg-gray-50">
         <ActivityIndicator size={'large'}/>
         <Text className="text-lg font-psemibold text-gray-500">Duke marrur lokacionin tuaj...</Text>
+        <TouchableOpacity onPress={handleStopLocationSearch} className="bg-red-700 px-4 py-2 mt-2 rounded-xl flex-row items-center gap-2">
+          <Text className="text-base text-white font-pmedium">Ndalo veprimin</Text>
+          <X color={"#fff"}/>
+        </TouchableOpacity>
       </View>
     )
   }

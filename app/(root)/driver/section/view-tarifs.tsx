@@ -10,10 +10,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Pencil, Trash2 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 export default function ViewTarifs({ navigation }: any) {
+
+  console.log(navigation, "  navigations");
+  
   
   const [searchParam, setSearchParam] = useState("")
   const queryClient = useQueryClient();
@@ -68,8 +71,25 @@ export default function ViewTarifs({ navigation }: any) {
     router.push({pathname: "/(root)/driver/section/add-fixed-tarif", params: {tarif: JSON.stringify(tarif)}})
   };
 
+  if(isLoading || isRefetching) return <View className='h-full bg-gray-50'><LoadingState /></View>;
+  if((!isLoading && !isRefetching) && error) return <View className='h-full bg-gray-50'><ErrorState onRetry={() => searchParam ? setSearchParam("") : refetch()}/></View>
+  
+
   return (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16 }} className="bg-gray-50">
+    <ScrollView 
+      showsVerticalScrollIndicator={false} 
+      contentContainerStyle={{ padding: 16 }} 
+      className="bg-gray-50"
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          colors={['#4f46e5']} // Indigo color for iOS
+          tintColor="#4f46e5" // iOS spinner color
+          progressBackgroundColor="#ffffff" // iOS background
+        />
+      }
+      >
       <View className="mb-4">
         <HeaderComponent title="Tarifat e Ruajtura" subtitle={"Këtu mund të menaxhoni të gjitha tarifat tua të regjistruara."}/>
       </View>
