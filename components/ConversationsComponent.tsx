@@ -12,7 +12,7 @@ import api from '@/hooks/useApi';
 import { AxiosError } from 'axios';
 import { Conversations, Role } from '@/types/app-types';
 import { MessageSquareLock, RefreshCcw } from 'lucide-react-native';
-import ConversationItem from './ConversationItem';
+import ConversationItem from './conversations/ConversationItem';
 import { useRouter } from 'expo-router';
 import { getUserRole } from '@/utils/usefulFunctions';
 import Toast from '@/utils/appToast';
