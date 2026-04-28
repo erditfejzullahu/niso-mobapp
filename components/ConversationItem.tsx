@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, Image, Modal, FlatList, TextInput, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from 'react-native'
-import React, { memo, useState } from 'react'
+import React, { memo, useEffect, useState } from 'react'
 import { Conversations, Message, User } from '@/types/app-types'
 import { CarTaxiFront, Check, CheckCheck, Clock, Send, Settings, Trash2, X } from 'lucide-react-native';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
@@ -8,8 +8,12 @@ import dayjs from 'dayjs';
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/sq";
 import Animated, { BounceInDown, BounceInRight, BounceInUp } from 'react-native-reanimated';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/hooks/useApi';
+import { useSocketEvent } from '@/hooks/useSocketEvent';
+import { useSocketStore } from '@/store/useSocketStore';
+import { CLIENT_SOCKET_EVENTS, SERVER_SOCKET_EVENTS } from '@/types/socket-events';
+import Toast from 'react-native-toast-message';
 import { paginationDto } from '@/utils/paginationDto';
 import EmptyState from './system/EmptyState';
 import LoadingState from './system/LoadingState';
@@ -20,7 +24,9 @@ dayjs.locale('sq')
 const ConversationItem = ({user, item, onDelete, sheetSection = false}: {user: User, item: Conversations, onDelete: (id: string) => void, sheetSection: boolean}) => {
     const [conversationModal, setConversationModal] = useState(false);
     const [pagination, setPagination] = useState({...paginationDto});
-    const [messageDetailsModal, setMessageDetailsModal] = useState<Message | null>(null)
+    const [messageDetailsModal, setMessageDetailsModal] = useState<Message | null>(null);
+    const [draftMessage, setDraftMessage] = useState('');
+    const queryClient = useQueryClient();
 
     const renderRightActions = () => (
         <View>
@@ -43,6 +49,73 @@ const ConversationItem = ({user, item, onDelete, sheetSection = false}: {user: U
         refetchOnWindowFocus: false,
         enabled: conversationModal
     })
+
+    useSocketEvent(
+        SERVER_SOCKET_EVENTS.newMessage,
+        (payload) => {
+            const msg = payload as Message;
+            if (msg?.conversationId !== item.id) return;
+            void refetch();
+            void queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        },
+        conversationModal
+    );
+
+    useSocketEvent(
+        SERVER_SOCKET_EVENTS.errorSendingMessage,
+        () => {
+            Toast.show({
+                type: 'error',
+                text1: 'Mesazhi nuk u dërgua',
+                text2: 'Biseda mund të jetë e mbyllur ose e palejuar për këtë veprim.',
+            });
+            void refetch();
+        },
+        conversationModal
+    );
+
+    const handleSendSocketMessage = () => {
+        const content = draftMessage.trim();
+        if (!content) return;
+
+        if (item.type === 'RIDE_RELATED' || item.isResolved) {
+            Toast.show({
+                type: 'info',
+                text1: 'Nuk mund të dërgohet',
+                text2: item.isResolved
+                    ? 'Biseda është mbyllur.'
+                    : 'Për këtë lloj bisede përdorni rrjedhën e udhëtimit.',
+            });
+            return;
+        }
+
+        const ok = useSocketStore.getState().emit(CLIENT_SOCKET_EVENTS.sendOtherMessage, {
+            passengerId: item.passengerId,
+            driverId: item.driverId,
+            conversationId: item.id,
+            content,
+            mediaUrls: [],
+        });
+
+        if (!ok) {
+            Toast.show({
+                type: 'error',
+                text1: 'Jo e lidhur',
+                text2: 'Provoni përsëri pas një momenti.',
+            });
+            return;
+        }
+
+        setDraftMessage('');
+        setTimeout(() => {
+            void refetch();
+            void queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        }, 400);
+    };
+
+    useEffect(() => {
+        if (!conversationModal) setDraftMessage('');
+    }, [conversationModal]);
 
     const handleConversationClickAction = () => {
         if(sheetSection){
@@ -190,8 +263,13 @@ const ConversationItem = ({user, item, onDelete, sheetSection = false}: {user: U
                                 placeholder="Shkruaj një mesazh..."
                                 className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm font-pregular"
                                 multiline
+                                value={draftMessage}
+                                onChangeText={setDraftMessage}
                             />
-                            <TouchableOpacity className="ml-2 bg-indigo-600 rounded-full p-2">
+                            <TouchableOpacity
+                                className="ml-2 bg-indigo-600 rounded-full p-2"
+                                onPress={handleSendSocketMessage}
+                            >
                                 <Send size={18} color="#fff" />
                             </TouchableOpacity>
                         </Animated.View>

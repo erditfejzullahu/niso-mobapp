@@ -9,7 +9,8 @@ import { useEffect, useRef } from "react";
  */
 export function useSocketEvent(
   event: ServerSocketEventName,
-  handler: (...args: unknown[]) => void
+  handler: (...args: unknown[]) => void,
+  enabled = true
 ) {
   const handlerRef = useRef(handler);
   handlerRef.current = handler;
@@ -17,7 +18,7 @@ export function useSocketEvent(
   const status = useSocketStore((s) => s.status);
 
   useEffect(() => {
-    if (status !== "connected") return;
+    if (!enabled || status !== "connected") return;
 
     const socket = useSocketStore.getState().getSocket();
     if (!socket) return;
@@ -27,5 +28,5 @@ export function useSocketEvent(
     return () => {
       socket.off(event, listener);
     };
-  }, [event, status]);
+  }, [event, status, enabled]);
 }
