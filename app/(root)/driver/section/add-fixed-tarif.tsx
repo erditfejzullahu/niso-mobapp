@@ -206,7 +206,7 @@ export default function AddFixedTarif() {
       setLocation(currentLocation);
       setRegion({latitude: currentLocation.coords.latitude, longitude: currentLocation.coords.longitude, longitudeDelta: 0.03, latitudeDelta: 0.03})
     })();
-    
+
     router.setParams({tarif: undefined})
   }
   
@@ -361,7 +361,7 @@ export default function AddFixedTarif() {
         {/* Submit Button */}
         <TouchableOpacity
           onPress={handleSubmit}
-          className="bg-indigo-600 py-3 rounded-2xl shadow-md shadow-indigo-700/30 mt-6"
+          className="bg-indigo-600 py-3 rounded-2xl shadow-md shadow-indigo-700/30 mt-3"
         >
           <Text className="text-white font-psemibold text-center text-lg">
             {tarif ? "Rifresko Tarifë" : "Ruaj Tarifën"}

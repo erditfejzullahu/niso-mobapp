@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } f
 import { clearStoredCookies, getStoredCookies, setStoredCookies } from "./cookieManagement";
 
 import * as SecureStorage from "expo-secure-store" 
-const API_URL = "http://192.168.1.12:3000";
+const API_URL = "http://192.168.1.22:3000";
 
 // --- Secure Storage Keys ---
 

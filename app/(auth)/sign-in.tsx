@@ -44,7 +44,8 @@ const NisoLogin = () => {
       await login(email, password)
       Toast.show({
         type: "success",
-        text1: "Sapo u identifikuat me sukses në Niso."
+        text1: "Sapo u identifikuat me sukses në Niso.",
+        
       })
     } catch (error: any) {
       if(error.response.data.message[0] === "email must be an email") {

@@ -93,8 +93,8 @@ export default function RootLayout() {
       </AuthProvider>
       
       <StatusBar style="dark"/>
-      <Toast config={toastConfig} />
     </GestureHandlerRootView>
+      <Toast config={toastConfig} visibilityTime={10} autoHide={true}/>
     </>
 );
 }
