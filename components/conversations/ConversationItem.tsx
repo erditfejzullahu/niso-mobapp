@@ -18,11 +18,18 @@ function ConversationItem({ user, item, onDelete, sheetSection = false }: Props)
     const [draftMessage, setDraftMessage] = useState('');
     const participant = useMemo(() => getConversationParticipantDisplay(user, item), [user, item]);
 
-    const { data, isLoading, error, refetch, isRefetching, sendOtherMessage } = useConversationModalThread(
-        item,
-        user,
-        conversationModal
-    );
+    const {
+        messages,
+        isLoading,
+        error,
+        refetch,
+        isRefetching,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        nearTopLoadThresholdPx,
+        sendOtherMessage,
+    } = useConversationModalThread(item, user, conversationModal);
 
     useEffect(() => {
         if (!conversationModal) setDraftMessage('');
@@ -53,11 +60,15 @@ function ConversationItem({ user, item, onDelete, sheetSection = false }: Props)
                     user={user}
                     item={item}
                     participant={participant}
-                    messages={data}
+                    messages={messages}
                     isLoading={isLoading}
                     isRefetching={isRefetching}
                     error={error}
                     refetchMessages={refetch}
+                    fetchNextPage={fetchNextPage}
+                    hasNextPage={hasNextPage ?? false}
+                    isFetchingNextPage={isFetchingNextPage}
+                    nearTopLoadThresholdPx={nearTopLoadThresholdPx}
                     draftMessage={draftMessage}
                     onDraftChange={setDraftMessage}
                     onSend={handleSend}

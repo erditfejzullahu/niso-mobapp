@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
 import {
     View,
     Text,
@@ -9,6 +9,8 @@ import {
     TextInput,
     KeyboardAvoidingView,
     Platform,
+    RefreshControl,
+    ActivityIndicator,
 } from 'react-native';
 import Animated, { BounceInDown, BounceInRight, BounceInUp } from 'react-native-reanimated';
 import { Check, CheckCheck, Clock, Send, X } from 'lucide-react-native';
@@ -36,6 +38,10 @@ type Props = {
     isRefetching: boolean;
     error?: unknown;
     refetchMessages: () => void;
+    fetchNextPage: () => void | Promise<unknown>;
+    hasNextPage: boolean;
+    isFetchingNextPage: boolean;
+    nearTopLoadThresholdPx: number;
     draftMessage: string;
     onDraftChange: (t: string) => void;
     onSend: () => void;
@@ -53,11 +59,50 @@ export default function ConversationSheetModal({
     isRefetching,
     error,
     refetchMessages,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    nearTopLoadThresholdPx: _nearTopLoadThresholdPx,
     draftMessage,
     onDraftChange,
     onSend,
     onPressMessage,
 }: Props) {
+    void _nearTopLoadThresholdPx;
+
+    /** Newest-first for `inverted` FlatList (parent passes oldest → newest). */
+    const listData = useMemo(
+        () => ((messages?.length ?? 0) > 0 ? [...(messages as Message[])].reverse() : []),
+        [messages]
+    );
+
+    /** Ignore spurious `onEndReached` on mount; enable after user scrolls. */
+    const allowOlderPageFromEndReachedRef = useRef(false);
+
+    useLayoutEffect(() => {
+        if (!visible) {
+            allowOlderPageFromEndReachedRef.current = false;
+        }
+    }, [visible]);
+
+    const handleScrollBeginDrag = useCallback(() => {
+        allowOlderPageFromEndReachedRef.current = true;
+    }, []);
+
+    const handleEndReached = useCallback(() => {
+        if (!allowOlderPageFromEndReachedRef.current) return;
+        if (!hasNextPage || isFetchingNextPage || isRefetching) return;
+        void fetchNextPage();
+    }, [hasNextPage, isFetchingNextPage, isRefetching, fetchNextPage]);
+
+    const footer = useMemo(
+        () =>
+            isFetchingNextPage ? (
+                <ActivityIndicator style={{ paddingVertical: 8 }} color="#4f46e5" />
+            ) : null,
+        [isFetchingNextPage]
+    );
+
     return (
         <Modal visible={visible} animationType="slide" onRequestClose={onClose} transparent={true}>
             <View className="flex-1 bg-black/30 justify-center">
@@ -89,15 +134,29 @@ export default function ConversationSheetModal({
                             </TouchableOpacity>
                         </View>
 
-                        {isLoading || isRefetching ? (
+                        {isLoading ? (
                             <LoadingState />
-                        ) : !isLoading && !isRefetching && error ? (
+                        ) : error ? (
                             <ErrorState onRetry={refetchMessages} />
                         ) : (
                             <FlatList
-                                data={messages}
+                                inverted
+                                data={listData}
                                 keyExtractor={(msg) => msg.id}
-                                contentContainerStyle={{ padding: 12 }}
+                                contentContainerStyle={{ padding: 12, flexGrow: 1 }}
+                                onEndReached={handleEndReached}
+                                onEndReachedThreshold={0.25}
+                                onScrollBeginDrag={handleScrollBeginDrag}
+                                ListFooterComponent={footer}
+                                refreshControl={
+                                    <RefreshControl
+                                        refreshing={isRefetching}
+                                        onRefresh={refetchMessages}
+                                        colors={['#4f46e5']}
+                                        tintColor="#4f46e5"
+                                        progressBackgroundColor="#ffffff"
+                                    />
+                                }
                                 renderItem={({ item: msg }) => {
                                     const isMine = msg.senderId === user.id;
                                     const isMessageRead = msg.isRead && msg.isRead === true;

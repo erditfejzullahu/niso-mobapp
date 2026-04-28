@@ -1,19 +1,54 @@
 import { useCallback, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import type { Conversations, Message } from '@/types/app-types';
+import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
+import type { ConversationMessagesPageResponse, Conversations, Message } from '@/types/app-types';
 
 export const conversationItemQueryKey = (conversationId: string) =>
     ['conversation-item', conversationId] as const;
 
 const conversationsListQueryKey = ['conversations'] as const;
 
+export type ConversationMessagesInfiniteData = InfiniteData<ConversationMessagesPageResponse>;
+
+export function flattenConversationMessagePagesArray(
+    pages: ConversationMessagesPageResponse[]
+): Message[] {
+    /** `pages[0]` = latest API page (newest msgs); append older pages after. */
+    return [...pages]
+        .reverse()
+        .flatMap((page) => sortMessagesByCreatedAtAsc(page.messages));
+}
+
+export function flattenInfiniteConversationMessages(
+    data: ConversationMessagesInfiniteData | undefined
+): Message[] {
+    if (!data?.pages.length) return [];
+    return flattenConversationMessagePagesArray(data.pages);
+}
+
 export function conversationDateField(d: Message['createdAt']): Date {
     return d instanceof Date ? d : new Date(d as unknown as string);
 }
 
+export function sortMessagesByCreatedAtAsc(messages: Message[]): Message[] {
+    return [...messages].sort(
+        (a, b) => conversationDateField(a.createdAt).getTime() - conversationDateField(b.createdAt).getTime()
+    );
+}
+
+function latestMessageInList(list: Message[]): Message | undefined {
+    return list.reduce<Message | undefined>((acc, m) => {
+        if (!acc) return m;
+        return conversationDateField(m.createdAt) > conversationDateField(acc.createdAt) ? m : acc;
+    }, undefined);
+}
+
+function messageExistsInPages(pages: ConversationMessagesPageResponse[], id: string): boolean {
+    return pages.some((p) => p.messages.some((m) => m.id === id));
+}
+
 /**
- * Optimistic-send flow: prepend thread + update list preview, then reconcile via socket `newMessage`,
- * or roll back preview on `errorSendingMessage`.
+ * Optimistic-send flow: append to thread (newest at bottom) + list preview, then reconcile via socket
+ * `newMessage`, or roll back preview on `errorSendingMessage`.
  */
 export function useConversationCaches(conversationId: string) {
     const queryClient = useQueryClient();
@@ -23,10 +58,21 @@ export function useConversationCaches(conversationId: string) {
     const applyOptimisticToCaches = useCallback(
         (optimistic: Message) => {
             const lastAt = conversationDateField(optimistic.createdAt);
-            queryClient.setQueryData<Message[]>(conversationItemQueryKey(conversationId), (old) => [
-                optimistic,
-                ...(old ?? []),
-            ]);
+            queryClient.setQueryData<ConversationMessagesInfiniteData>(
+                conversationItemQueryKey(conversationId),
+                (old) => {
+                    if (!old?.pages.length) {
+                        return {
+                            pages: [{ messages: [optimistic], hasMore: false }],
+                            pageParams: [1],
+                        };
+                    }
+                    const pages = old.pages.map((p, i) =>
+                        i === 0 ? { ...p, messages: [optimistic, ...p.messages] } : p
+                    );
+                    return { ...old, pages };
+                }
+            );
             queryClient.setQueryData<Conversations[]>(conversationsListQueryKey, (old) => {
                 if (!old) return old;
                 return old.map((c) =>
@@ -40,17 +86,28 @@ export function useConversationCaches(conversationId: string) {
     const commitServerMessageToCaches = useCallback(
         (serverMsg: Message, replaceOptimisticId: string) => {
             const lastAt = conversationDateField(serverMsg.createdAt);
-            queryClient.setQueryData<Message[]>(conversationItemQueryKey(conversationId), (old) => {
-                const list = old ?? [];
-                const idx = list.findIndex((m) => m.id === replaceOptimisticId);
-                if (idx !== -1) {
-                    const next = [...list];
-                    next[idx] = serverMsg;
-                    return next;
+            queryClient.setQueryData<ConversationMessagesInfiniteData>(
+                conversationItemQueryKey(conversationId),
+                (old) => {
+                    if (!old?.pages.length) {
+                        return {
+                            pages: [{ messages: [serverMsg], hasMore: false }],
+                            pageParams: [1],
+                        };
+                    }
+                    const pages = old.pages.map((p) => ({ ...p, messages: [...p.messages] }));
+                    for (let i = 0; i < pages.length; i++) {
+                        const idx = pages[i].messages.findIndex((m) => m.id === replaceOptimisticId);
+                        if (idx !== -1) {
+                            pages[i].messages[idx] = serverMsg;
+                            return { ...old, pages };
+                        }
+                    }
+                    if (messageExistsInPages(pages, serverMsg.id)) return old;
+                    pages[0].messages = [serverMsg, ...pages[0].messages];
+                    return { ...old, pages };
                 }
-                if (list.some((m) => m.id === serverMsg.id)) return list;
-                return [serverMsg, ...list];
-            });
+            );
             queryClient.setQueryData<Conversations[]>(conversationsListQueryKey, (old) => {
                 if (!old) return old;
                 return old.map((c) =>
@@ -64,11 +121,22 @@ export function useConversationCaches(conversationId: string) {
     const appendTheirMessageToCaches = useCallback(
         (serverMsg: Message) => {
             const lastAt = conversationDateField(serverMsg.createdAt);
-            queryClient.setQueryData<Message[]>(conversationItemQueryKey(conversationId), (old) => {
-                const list = old ?? [];
-                if (list.some((m) => m.id === serverMsg.id)) return list;
-                return [serverMsg, ...list];
-            });
+            queryClient.setQueryData<ConversationMessagesInfiniteData>(
+                conversationItemQueryKey(conversationId),
+                (old) => {
+                    if (!old?.pages.length) {
+                        return {
+                            pages: [{ messages: [serverMsg], hasMore: false }],
+                            pageParams: [1],
+                        };
+                    }
+                    if (messageExistsInPages(old.pages, serverMsg.id)) return old;
+                    const pages = old.pages.map((p, i) =>
+                        i === 0 ? { ...p, messages: [serverMsg, ...p.messages] } : p
+                    );
+                    return { ...old, pages };
+                }
+            );
             queryClient.setQueryData<Conversations[]>(conversationsListQueryKey, (old) => {
                 if (!old) return old;
                 return old.map((c) =>
@@ -82,11 +150,19 @@ export function useConversationCaches(conversationId: string) {
     const removeFailedOptimistic = useCallback(
         (failedId: string) => {
             let top: Message | undefined;
-            queryClient.setQueryData<Message[]>(conversationItemQueryKey(conversationId), (old) => {
-                const list = (old ?? []).filter((m) => m.id !== failedId);
-                top = list[0];
-                return list;
-            });
+            queryClient.setQueryData<ConversationMessagesInfiniteData>(
+                conversationItemQueryKey(conversationId),
+                (old) => {
+                    if (!old?.pages.length) return old;
+                    const pages = old.pages.map((p, i) =>
+                        i === 0
+                            ? { ...p, messages: p.messages.filter((m) => m.id !== failedId) }
+                            : p
+                    );
+                    top = latestMessageInList(flattenConversationMessagePagesArray(pages));
+                    return { ...old, pages };
+                }
+            );
             if (top) {
                 const lastAt = conversationDateField(top.createdAt);
                 queryClient.setQueryData<Conversations[]>(conversationsListQueryKey, (old) => {

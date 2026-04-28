@@ -1,10 +1,9 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, RefreshControl, StyleSheet } from 'react-native'
 import React, { useRef } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BottomSheetModal, BottomSheetModalProvider, BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useToggleMessagesSheet } from '@/store/useToggleMessagesSheet';
-import { StyleSheet } from 'react-native';
 import LoadingState from './system/LoadingState';
 import ErrorState from './system/ErrorState';
 import EmptyState from './system/EmptyState';
@@ -92,7 +91,18 @@ const ConversationsComponent = () => {
         >
             <>
             <BottomSheetView style={{flex: 1, minHeight: "100%"}}>
-                <BottomSheetScrollView contentContainerStyle={styles.bottomSheetContent}>
+                <BottomSheetScrollView
+                    contentContainerStyle={styles.bottomSheetContent}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={isRefetching}
+                            onRefresh={() => refetch()}
+                            colors={['#4f46e5']}
+                            tintColor="#4f46e5"
+                            progressBackgroundColor="#ffffff"
+                        />
+                    }
+                >
                     <TouchableOpacity onPress={() => refetch()} className='absolute right-2 top-2 bg-gray-50 shadow-lg shadow-black/10 px-2 py-1.5 rounded-lg border border-gray-200'>
                         <RefreshCcw color={"#4f46e5"} size={18}/>
                     </TouchableOpacity>
@@ -101,9 +111,9 @@ const ConversationsComponent = () => {
                         <MessageSquareLock color={"#4f46e5"} size={18}/>
                     </TouchableOpacity>
                     
-                  {isLoading || isRefetching ? (
+                  {isLoading ? (
                     <LoadingState />
-                  ) : ((!isLoading && !isRefetching) && error ? (
+                  ) : error ? (
                     <ErrorState onRetry={refetch}/>
                   ) : !data || data.length === 0 ? (
                     <EmptyState onRetry={refetch} message="Nuk u gjeten njoftime. Nese mendoni qe eshte gabim klikoni me poshte." textStyle="!font-plight !text-sm" />
@@ -113,7 +123,7 @@ const ConversationsComponent = () => {
                         <ConversationItem sheetSection={true} key={item.id} user={user} item={item} onDelete={(id) => handleDeleteConversation(id)}/>
                     ))}
                     </View>
-                  ))}
+                  )}
                 </BottomSheetScrollView>
             </BottomSheetView>
             </>
