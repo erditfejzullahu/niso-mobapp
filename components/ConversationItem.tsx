@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, Image, Modal, FlatList, TextInput, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from 'react-native'
-import React, { memo, useEffect, useState } from 'react'
-import { Conversations, Message, User } from '@/types/app-types'
+import React, { memo, useEffect, useRef, useState } from 'react'
+import { Conversations, Message, Role, User } from '@/types/app-types'
 import { CarTaxiFront, Check, CheckCheck, Clock, Send, Settings, Trash2, X } from 'lucide-react-native';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -27,6 +27,97 @@ const ConversationItem = ({user, item, onDelete, sheetSection = false}: {user: U
     const [messageDetailsModal, setMessageDetailsModal] = useState<Message | null>(null);
     const [draftMessage, setDraftMessage] = useState('');
     const queryClient = useQueryClient();
+    /** FIFO: server `newMessage` ack order matches sends. */
+    const pendingOptimisticIdsRef = useRef<string[]>([]);
+
+    const parseMessagePayload = (raw: unknown): Message => {
+        const m = raw as Message & {
+            createdAt?: string | Date;
+            updatedAt?: string | Date;
+        };
+        return {
+            ...m,
+            createdAt:
+                m.createdAt instanceof Date ? m.createdAt : new Date(m.createdAt as string),
+            updatedAt:
+                m.updatedAt instanceof Date ? m.updatedAt : new Date((m.updatedAt ?? m.createdAt) as string),
+        } as Message;
+    };
+
+    const applyOptimisticToCaches = (optimistic: Message) => {
+        const lastAt =
+            optimistic.createdAt instanceof Date
+                ? optimistic.createdAt
+                : new Date(optimistic.createdAt as unknown as string);
+        queryClient.setQueryData<Message[]>(['conversation-item', item.id], (old) => [optimistic, ...(old ?? [])]);
+        queryClient.setQueryData<Conversations[]>(['conversations'], (old) => {
+            if (!old) return old;
+            return old.map((c) =>
+                c.id === item.id ? { ...c, messages: [optimistic], lastMessageAt: lastAt } : c
+            );
+        });
+    };
+
+    const commitServerMessageToCaches = (serverMsg: Message, replaceOptimisticId: string) => {
+        const lastAt =
+            serverMsg.createdAt instanceof Date
+                ? serverMsg.createdAt
+                : new Date(serverMsg.createdAt as unknown as string);
+        queryClient.setQueryData<Message[]>(['conversation-item', item.id], (old) => {
+            const list = old ?? [];
+            const idx = list.findIndex((m) => m.id === replaceOptimisticId);
+            if (idx !== -1) {
+                const next = [...list];
+                next[idx] = serverMsg;
+                return next;
+            }
+            if (list.some((m) => m.id === serverMsg.id)) return list;
+            return [serverMsg, ...list];
+        });
+        queryClient.setQueryData<Conversations[]>(['conversations'], (old) => {
+            if (!old) return old;
+            return old.map((c) =>
+                c.id === item.id ? { ...c, messages: [serverMsg], lastMessageAt: lastAt } : c
+            );
+        });
+    };
+
+    const appendTheirMessageToCaches = (serverMsg: Message) => {
+        const lastAt =
+            serverMsg.createdAt instanceof Date
+                ? serverMsg.createdAt
+                : new Date(serverMsg.createdAt as unknown as string);
+        queryClient.setQueryData<Message[]>(['conversation-item', item.id], (old) => {
+            const list = old ?? [];
+            if (list.some((m) => m.id === serverMsg.id)) return list;
+            return [serverMsg, ...list];
+        });
+        queryClient.setQueryData<Conversations[]>(['conversations'], (old) => {
+            if (!old) return old;
+            return old.map((c) =>
+                c.id === item.id ? { ...c, messages: [serverMsg], lastMessageAt: lastAt } : c
+            );
+        });
+    };
+
+    const removeFailedOptimistic = (failedId: string) => {
+        let top: Message | undefined;
+        queryClient.setQueryData<Message[]>(['conversation-item', item.id], (old) => {
+            const list = (old ?? []).filter((m) => m.id !== failedId);
+            top = list[0];
+            return list;
+        });
+        if (top) {
+            const lastAt =
+                top.createdAt instanceof Date ? top.createdAt : new Date(top.createdAt as unknown as string);
+            queryClient.setQueryData<Conversations[]>(['conversations'], (old) => {
+                if (!old) return old;
+                return old.map((c) =>
+                    c.id === item.id ? { ...c, messages: [top!], lastMessageAt: lastAt } : c
+                );
+            });
+        }
+    };
 
     const renderRightActions = () => (
         <View>
@@ -53,10 +144,18 @@ const ConversationItem = ({user, item, onDelete, sheetSection = false}: {user: U
     useSocketEvent(
         SERVER_SOCKET_EVENTS.newMessage,
         (payload) => {
-            const msg = payload as Message;
-            if (msg?.conversationId !== item.id) return;
-            void refetch();
-            void queryClient.invalidateQueries({ queryKey: ['conversations'] });
+            const msg = parseMessagePayload(payload);
+            if (msg.conversationId !== item.id) return;
+            if (msg.senderId === user.id) {
+                const pendingId = pendingOptimisticIdsRef.current.shift();
+                if (pendingId) {
+                    commitServerMessageToCaches(msg, pendingId);
+                } else {
+                    commitServerMessageToCaches(msg, msg.id);
+                }
+            } else {
+                appendTheirMessageToCaches(msg);
+            }
         },
         conversationModal
     );
@@ -69,7 +168,8 @@ const ConversationItem = ({user, item, onDelete, sheetSection = false}: {user: U
                 text1: 'Mesazhi nuk u dërgua',
                 text2: 'Biseda mund të jetë e mbyllur ose e palejuar për këtë veprim.',
             });
-            void refetch();
+            const failedId = pendingOptimisticIdsRef.current.pop();
+            if (failedId) removeFailedOptimistic(failedId);
         },
         conversationModal
     );
@@ -107,10 +207,24 @@ const ConversationItem = ({user, item, onDelete, sheetSection = false}: {user: U
         }
 
         setDraftMessage('');
-        setTimeout(() => {
-            void refetch();
-            void queryClient.invalidateQueries({ queryKey: ['conversations'] });
-        }, 400);
+        const optimisticId = `optimistic:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+        pendingOptimisticIdsRef.current.push(optimisticId);
+        const now = new Date();
+        const optimistic: Message = {
+            id: optimisticId,
+            conversationId: item.id,
+            senderId: user.id,
+            senderRole: user.role as Role,
+            content,
+            mediaUrls: [],
+            priceOffer: null,
+            isRead: true,
+            createdAt: now,
+            updatedAt: now,
+            conversation: item,
+            sender: user as unknown as Message['sender'],
+        };
+        applyOptimisticToCaches(optimistic);
     };
 
     useEffect(() => {
