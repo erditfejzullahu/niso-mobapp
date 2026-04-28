@@ -1,9 +1,11 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import api from "../hooks/useApi";
 import { User } from "@/types/app-types";
-import * as SecureStore from "expo-secure-store";
 import Toast from "react-native-toast-message";
-import { clearStoredCookies, getStoredCookies, loadUserFromStorage, saveUserToStorage } from "@/hooks/cookieManagement";
+import { ensureSocketAuthToken } from "@/hooks/ensureSocketAuthToken";
+import { clearStoredCookies, loadUserFromStorage, saveUserToStorage } from "@/hooks/cookieManagement";
+import { clearSocketAuthToken } from "@/hooks/socketAuthToken";
+import { useSocketStore } from "@/store/useSocketStore";
 
 interface AuthContextType {
   user: User | null;
@@ -14,8 +16,6 @@ interface AuthContextType {
   signUp: (fullName: string, email: string, password: string, confirmPassword: string, accountType: number, image: string) => Promise<void>;
   updateSession: () => Promise<boolean>;
 }
-
-const USER_STORAGE_KEY = "user_data";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -53,6 +53,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(null);
         setIsAuthenticated(false);
         await clearStoredCookies();
+        await clearSocketAuthToken();
+        useSocketStore.getState().disconnect();
         await saveUserToStorage(null);
       } finally {
         setLoading(false);
@@ -61,6 +63,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     initAuth();
   }, []);
+
+  const socketBootstrapped = useRef(false);
+
+  useEffect(() => {
+    if (loading) return;
+
+    let cancelled = false;
+
+    const syncSocket = async () => {
+      if (!isAuthenticated) {
+        useSocketStore.getState().disconnect();
+        socketBootstrapped.current = false;
+        return;
+      }
+
+      if (!socketBootstrapped.current) {
+        socketBootstrapped.current = true;
+        await ensureSocketAuthToken();
+      }
+
+      if (!cancelled) {
+        await useSocketStore.getState().connect();
+      }
+    };
+
+    void syncSocket();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, loading]);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
@@ -94,7 +127,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setIsAuthenticated(false);
       await saveUserToStorage(null);
-      
+      await clearStoredCookies();
+      await clearSocketAuthToken();
+      useSocketStore.getState().disconnect();
+
       Toast.show({
         type: "success",
         text1: "Logged out",
@@ -116,7 +152,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(userData);
         setIsAuthenticated(true);
         await saveUserToStorage(userData);
-  
+        await useSocketStore.getState().reconnect();
+
         return true;
       }
       console.log("not updated");
@@ -127,8 +164,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setIsAuthenticated(false);
       await clearStoredCookies();
+      await clearSocketAuthToken();
+      useSocketStore.getState().disconnect();
       await saveUserToStorage(null);
-      
+
       return false;
     } finally {
       setLoading(false)
