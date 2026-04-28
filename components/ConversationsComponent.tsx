@@ -9,14 +9,19 @@ import LoadingState from './system/LoadingState';
 import ErrorState from './system/ErrorState';
 import EmptyState from './system/EmptyState';
 import api from '@/hooks/useApi';
-import { Conversations } from '@/types/app-types';
+import { AxiosError } from 'axios';
+import { Conversations, Role } from '@/types/app-types';
 import { MessageSquareLock, RefreshCcw } from 'lucide-react-native';
 import ConversationItem from './ConversationItem';
 import { useRouter } from 'expo-router';
+import { getUserRole } from '@/utils/usefulFunctions';
+import Toast from 'react-native-toast-message';
 
 const ConversationsComponent = () => {
     const {user} = useAuth();
     if(!user) return null;
+
+    const userRole = getUserRole(user);
 
     const router = useRouter();
 
@@ -34,20 +39,32 @@ const ConversationsComponent = () => {
     const {data, error, isLoading, isRefetching, refetch} = useQuery({
         queryKey: ['conversations'],
         queryFn: async () => {
-            const res = await api.get<Conversations[]>('/conversations/get-conversations-passenger')
+            const res = await api.get<Conversations[]>(userRole === Role.PASSENGER ? '/conversations/get-conversations-passenger' : '/conversations/get-active-conversations-driver')
             return res.data;
         },
         refetchOnWindowFocus: false,
         enabled: !isClosed
     })
 
-    const handleDeleteConversation = (id: string) => {
+    const handleDeleteConversation = async (id: string) => {
         try {
-            
+            await api.delete(`/conversations/delete-conversation/${id}`);
+            queryClient.removeQueries({ queryKey: ['conversation-item', id] });
+            await queryClient.invalidateQueries({ queryKey: ['conversations'] });
         } catch (error) {
-            
+            console.error(error);
+            const message =
+                error instanceof AxiosError &&
+                typeof error.response?.data?.message === 'string'
+                    ? error.response.data.message
+                    : 'Nuk u fshi biseda. Provoni perseri.';
+            Toast.show({
+                type: 'error',
+                text1: 'Gabim!',
+                text2: message,
+            });
         }
-    }    
+    }
 
     const handleRouteToConversations = () => {
         if(user.role === "PASSENGER"){
