@@ -1,105 +1,156 @@
-// import polyline from "@mapbox/polyline";
-// import { Camera, LineLayer, MapView, PointAnnotation, ShapeSource } from "@maplibre/maplibre-react-native";
-// import { MapPin } from "lucide-react-native";
-// import React, { useEffect, useState } from "react";
-// import { StyleSheet, View } from "react-native";
+import ActiveRouteDetailHeader from '@/components/active-routes/ActiveRouteDetailHeader';
+import RideDetailActionBar from '@/components/active-routes/RideDetailActionBar';
+import RideRequestInfoSection from '@/components/active-routes/RideRequestInfoSection';
+import ErrorState from '@/components/system/ErrorState';
+import LoadingState from '@/components/system/LoadingState';
+import {
+    RideNotInAvailableListError,
+    useAvailableRideDetail,
+} from '@/hooks/active-routes/useAvailableRideDetail';
+import { formatRidePriceLabel, hasPassengerFixedPrice } from '@/utils/active-routes/rideRequestDisplay';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-// type Coord = [number, number]; // [lng, lat]
-// type OSRMRouteResponse = {
-//   routes: {
-//     geometry: string;
-//     legs: { steps: any[] }[];
-//   }[];
-// };
+const TakeRideConfirmModal = lazy(() => import('@/components/active-routes/TakeRideConfirmModal'));
+const CounterOfferModal = lazy(() => import('@/components/active-routes/CounterOfferModal'));
+const DriverOfferModal = lazy(() => import('@/components/active-routes/DriverOfferModal'));
 
-// const MAP_STYLE = "https://demotiles.maplibre.org/style.json"; // Open source style
-// const OSRM_BASE_URL = "https://router.project-osrm.org"; // Public demo server
-
-// export default function MapScreen() {
-//   const [routeCoords, setRouteCoords] = useState<Coord[]>([]);
-
-//   // Example pickup & destination (New York)
-//   const pickup: Coord = [-73.9857, 40.7484]; // Empire State
-//   const destination: Coord = [-73.9851, 40.7589]; // Times Square
-
-//   useEffect(() => {
-//     fetchRoute(pickup, destination);
-//   }, []);
-
-//   const fetchRoute = async (start: Coord, end: Coord) => {
-//     try {
-//       const coordsString = `${start[0]},${start[1]};${end[0]},${end[1]}`;
-//       const url = `${OSRM_BASE_URL}/route/v1/driving/${coordsString}?overview=full&geometries=polyline&steps=true`;
-
-//       const res = await fetch(url);
-//       const data: OSRMRouteResponse = await res.json();
-
-//       if (data.routes && data.routes.length > 0) {
-//         const decoded = polyline.decode(data.routes[0].geometry) as [number, number][];
-//         // polyline gives [lat, lng], MapLibre expects [lng, lat]
-//         const coordsLngLat: Coord[] = decoded.map(([lat, lng]) => [lng, lat]);
-//         setRouteCoords(coordsLngLat);
-
-//         console.log("Turn-by-turn steps:", data.routes[0].legs[0].steps);
-//       }
-//     } catch (error) {
-//       console.error("Error fetching route", error);
-//     }
-//   };
-
-//   return (
-//     <View style={styles.page}>
-//       <MapView style={styles.map} styleURL={MAP_STYLE}>
-//         <Camera
-//           zoomLevel={14}
-//           centerCoordinate={pickup}
-//         />
-
-//         {/* Pickup Marker */}
-//         <PointAnnotation children={<><MapPin /></>} id="pickup" coordinate={pickup} />
-
-//         {/* Destination Marker */}
-//         <PointAnnotation children={<><MapPin /></>} id="destination" coordinate={destination} />
-
-//         {/* Route Line */}
-//         {routeCoords.length > 0 && (
-//           <ShapeSource
-//             id="routeSource"
-//             shape={{
-//               type: "Feature",
-//               geometry: {
-//                 type: "LineString",
-//                 coordinates: routeCoords,
-//               },
-//             }}
-//           >
-//             <LineLayer
-//               id="routeLine"
-//               style={{
-//                 lineColor: "#3b82f6",
-//                 lineWidth: 4,
-//               }}
-//             />
-//           </ShapeSource>
-//         )}
-//       </MapView>
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   page: { flex: 1 },
-//   map: { flex: 1 },
-// });
-import React from 'react'
-import { Text, View } from 'react-native'
-
-const index = () => {
-  return (
-    <View>
-      <Text>index</Text>
-    </View>
-  )
+function isRideMissingError(e: unknown): boolean {
+    return (
+        e instanceof RideNotInAvailableListError ||
+        (e instanceof Error && e.message === 'RIDE_NOT_IN_AVAILABLE_LIST')
+    );
 }
 
-export default index
+export default function ActiveRouteRideRequestDetailScreen() {
+    const { id } = useLocalSearchParams<{ id: string }>();
+    const rideRequestId = typeof id === 'string' ? id : Array.isArray(id) ? id[0] : undefined;
+
+    const { data: ride, status, error, refetch } = useAvailableRideDetail(rideRequestId);
+
+    const [takeModalOpen, setTakeModalOpen] = useState(false);
+    const [counterModalOpen, setCounterModalOpen] = useState(false);
+    const [offerModalOpen, setOfferModalOpen] = useState(false);
+
+    useEffect(() => {
+        setTakeModalOpen(false);
+        setCounterModalOpen(false);
+        setOfferModalOpen(false);
+    }, [rideRequestId]);
+
+    const onBack = useCallback(() => {
+        router.back();
+    }, []);
+
+    const passengerPriceLabelForCounter = useMemo(() => {
+        if (!ride) return '';
+        return formatRidePriceLabel(ride);
+    }, [ride]);
+
+    const fixedPriceMode = ride ? hasPassengerFixedPrice(ride) : false;
+
+    const openSecondaryModal = useCallback(() => {
+        if (!ride) return;
+        if (hasPassengerFixedPrice(ride)) {
+            setCounterModalOpen(true);
+        } else {
+            setOfferModalOpen(true);
+        }
+    }, [ride]);
+
+    const stubConfirmTakeRide = useCallback(() => {
+        /** TODO: call API to accept / take ride */
+    }, []);
+
+    const stubCounterOffer = useCallback((_amountEuro: string) => {
+        /** TODO: send counter-offer via API when provided */
+    }, []);
+
+    const stubDriverOffer = useCallback((_amountEuro: string) => {
+        /** TODO: send driver price offer via API when provided */
+    }, []);
+
+    if (!rideRequestId) {
+        return (
+            <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-gray-50">
+                <View className="px-4 pt-2 pb-6 flex-1">
+                    <ActiveRouteDetailHeader ride={undefined} onBack={onBack} />
+                    <ErrorState
+                        message="Mungon identifikuesi i kërkesës. Kthehuni tek lista e kërkesave."
+                        retryButtonText="Mbrapa"
+                        onRetry={onBack}
+                    />
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    if (status === 'pending') {
+        return (
+            <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-gray-50 justify-center">
+                <LoadingState />
+            </SafeAreaView>
+        );
+    }
+
+    if (status === 'error' || !ride) {
+        const message = isRideMissingError(error)
+            ? 'Kjo kërkesë nuk është më e disponueshme në udhëtimet aktive — mund të jetë përfunduar nga një shofer tjetër ose të ketë përfunduar afati.'
+            : 'Nuk mund të lexohet kërkesa. Provoni përsëri.';
+
+        return (
+            <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-gray-50">
+                <ScrollView className="flex-1" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                    <ActiveRouteDetailHeader ride={undefined} onBack={onBack} />
+                    <ErrorState message={message} onRetry={refetch} retryButtonText="Rifërko përsëri" />
+                </ScrollView>
+            </SafeAreaView>
+        );
+    }
+
+    return (
+        <>
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 28 }}
+                className="flex-1"
+            >
+                <ActiveRouteDetailHeader ride={ride} onBack={onBack} />
+                <RideRequestInfoSection ride={ride} />
+                <RideDetailActionBar
+                    ride={ride}
+                    onTakeRide={() => setTakeModalOpen(true)}
+                    onCounterOrOffer={openSecondaryModal}
+                />
+            </ScrollView>
+
+            <Suspense fallback={null}>
+                {takeModalOpen ? (
+                    <TakeRideConfirmModal
+                        visible={takeModalOpen}
+                        onClose={() => setTakeModalOpen(false)}
+                        onConfirmTakeRide={stubConfirmTakeRide}
+                    />
+                ) : null}
+                {counterModalOpen ? (
+                    <CounterOfferModal
+                        visible={counterModalOpen && fixedPriceMode}
+                        onClose={() => setCounterModalOpen(false)}
+                        passengerPriceLabel={passengerPriceLabelForCounter}
+                        onSubmitCounterOffer={stubCounterOffer}
+                    />
+                ) : null}
+                {offerModalOpen ? (
+                    <DriverOfferModal
+                        visible={offerModalOpen && !fixedPriceMode}
+                        onClose={() => setOfferModalOpen(false)}
+                        onSubmitDriverOffer={stubDriverOffer}
+                    />
+                ) : null}
+            </Suspense>
+        </>
+    );
+}

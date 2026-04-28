@@ -4,13 +4,13 @@ import "dayjs/locale/sq";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { router } from "expo-router";
 import { AlertTriangle, ArrowRight, Clock, MapPin, MapPinCheck, X } from "lucide-react-native";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Image, Modal, Text, TouchableOpacity, View } from "react-native";
 
 dayjs.extend(relativeTime);
 dayjs.locale('sq')
 
-export default function RideRequestCard({
+export default memo(function RideRequestCard({
   passenger,
   fromAddress,
   toAddress,
@@ -103,4 +103,4 @@ export default function RideRequestCard({
     </Modal>
     </>
   );
-}
+});
