@@ -14,7 +14,6 @@ import EmptyState from '@/components/system/EmptyState';
 import { paginationDto } from '@/utils/paginationDto';
 import { toFixedNoRound } from '@/utils/toFixed';
 import { Image } from 'react-native';
-import Toast from 'react-native-toast-message';
 import PassengerReviewItem from '@/components/client/PassengerReviewItem';
 
 dayjs.locale('sq');

@@ -10,7 +10,7 @@ import Animated, {
   useSharedValue,
   withTiming
 } from 'react-native-reanimated';
-import Toast from 'react-native-toast-message';
+import Toast from '@/utils/appToast';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons, FontAwesome, Ionicons } from '@expo/vector-icons';
 import { KosovoCity } from '@/types/app-types';

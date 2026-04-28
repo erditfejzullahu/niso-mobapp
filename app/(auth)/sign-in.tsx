@@ -15,7 +15,7 @@ import Animated, {
   withSpring,
   withTiming
 } from 'react-native-reanimated';
-import Toast from 'react-native-toast-message';
+import Toast from '@/utils/appToast';
 
 
 const NisoLogin = () => {

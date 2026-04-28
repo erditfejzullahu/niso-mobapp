@@ -1,6 +1,6 @@
 import { View, Text, Image, Modal, TouchableOpacity } from 'react-native'
 import React, { memo, useCallback, useMemo, useState } from 'react'
-import Toast from 'react-native-toast-message'
+import Toast from '@/utils/appToast'
 import { ReviewItem } from '@/types/app-types'
 import api from '@/hooks/useApi'
 import { Ionicons } from '@expo/vector-icons'

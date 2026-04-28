@@ -15,7 +15,7 @@ import { MessageSquareLock, RefreshCcw } from 'lucide-react-native';
 import ConversationItem from './ConversationItem';
 import { useRouter } from 'expo-router';
 import { getUserRole } from '@/utils/usefulFunctions';
-import Toast from 'react-native-toast-message';
+import Toast from '@/utils/appToast';
 
 const ConversationsComponent = () => {
     const {user} = useAuth();

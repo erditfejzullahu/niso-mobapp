@@ -20,7 +20,7 @@ import Animated, {
   withSpring,
   withTiming
 } from 'react-native-reanimated';
-import Toast from 'react-native-toast-message';
+import Toast from '@/utils/appToast';
 import {z} from "zod"
 
 const { width, height } = Dimensions.get('window');

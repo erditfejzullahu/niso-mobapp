@@ -19,7 +19,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import Animated, { BounceInUp, Easing } from 'react-native-reanimated';
 import {z} from 'zod';
 import * as ImagePicker from "expo-image-picker"
-import Toast from 'react-native-toast-message';
+import Toast from '@/utils/appToast';
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImageManipulator from "expo-image-manipulator"
 import { passwordResetSchema } from '@/schemas/passwordResetSchema';

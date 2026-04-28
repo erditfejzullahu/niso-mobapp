@@ -11,7 +11,7 @@ import { router } from "expo-router";
 import { Pencil, Trash2 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import Toast from "react-native-toast-message";
+import Toast from "@/utils/appToast";
 
 export default function ViewTarifs({ navigation }: any) {
 

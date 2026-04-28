@@ -10,7 +10,7 @@ import { Plus } from 'lucide-react-native'
 import React from 'react'
 import { RefreshControl, Text, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view'
-import Toast from 'react-native-toast-message'
+import Toast from '@/utils/appToast'
 
 const DefaultRotations = () => { //psh rotacion tperditshem prej pune shpi prej shpije pun
   const queryClient = useQueryClient();

@@ -10,7 +10,7 @@ import { ArrowDownLeft, CirclePlus, UserStar } from 'lucide-react-native'
 import React, { useState } from 'react'
 import { RefreshControl, Text, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import Toast from 'react-native-toast-message'
+import Toast from '@/utils/appToast'
 
 const FavoriteDrivers = () => {
   

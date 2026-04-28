@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import api from "../hooks/useApi";
 import { User } from "@/types/app-types";
-import Toast from "react-native-toast-message";
+import Toast from "@/utils/appToast";
 import { ensureSocketAuthToken } from "@/hooks/ensureSocketAuthToken";
 import { clearStoredCookies, loadUserFromStorage, saveUserToStorage } from "@/hooks/cookieManagement";
 import { clearSocketAuthToken } from "@/hooks/socketAuthToken";

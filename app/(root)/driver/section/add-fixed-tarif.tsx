@@ -12,7 +12,7 @@ import { ActivityIndicator, Alert, Platform, ScrollView, Text, TextInput, Toucha
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import MapView, { MapPressEvent, Marker, UrlTile } from "react-native-maps";
 import Animated, { Easing, FadeInLeft } from "react-native-reanimated";
-import Toast from "react-native-toast-message";
+import Toast from "@/utils/appToast";
 
 export default function AddFixedTarif() {
 

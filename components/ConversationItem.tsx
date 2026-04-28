@@ -13,7 +13,7 @@ import api from '@/hooks/useApi';
 import { useSocketEvent } from '@/hooks/useSocketEvent';
 import { useSocketStore } from '@/store/useSocketStore';
 import { CLIENT_SOCKET_EVENTS, SERVER_SOCKET_EVENTS } from '@/types/socket-events';
-import Toast from 'react-native-toast-message';
+import Toast from '@/utils/appToast';
 import { paginationDto } from '@/utils/paginationDto';
 import EmptyState from './system/EmptyState';
 import LoadingState from './system/LoadingState';
@@ -80,7 +80,7 @@ const ConversationItem = ({user, item, onDelete, sheetSection = false}: {user: U
 
         if (item.type === 'RIDE_RELATED' || item.isResolved) {
             Toast.show({
-                type: 'info',
+                type: "error",
                 text1: 'Nuk mund të dërgohet',
                 text2: item.isResolved
                     ? 'Biseda është mbyllur.'

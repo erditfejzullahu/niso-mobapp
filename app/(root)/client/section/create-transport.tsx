@@ -14,7 +14,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { View, Text, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
-import Toast from 'react-native-toast-message';
+import Toast from '@/utils/appToast';
 import {z} from "zod"
 
 const CreateTransport = () => {

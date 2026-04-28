@@ -14,7 +14,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Toast from "react-native-toast-message";
+import Toast from "@/utils/appToast";
 import * as ImagePicker from "expo-image-picker"
 import api from "@/hooks/useApi";
 

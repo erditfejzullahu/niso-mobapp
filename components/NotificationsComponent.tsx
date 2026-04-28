@@ -13,7 +13,7 @@ import EmptyState from "./system/EmptyState";
 import { Notification } from "@/types/app-types";
 import { CarTaxiFront, DollarSign, MessageCircleMore, Settings, Trophy } from "lucide-react-native";
 import NotificationItem from "./NotificationItem";
-import Toast from "react-native-toast-message";
+import Toast from "@/utils/appToast";
 import { useAuth } from "@/context/AuthContext";
 
 dayjs.extend(relativeTime);

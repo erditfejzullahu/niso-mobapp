@@ -7,7 +7,6 @@ import { useRouter } from "expo-router";
 import { ArrowRight, Clock, Frown, Laugh, MapPin, MapPinCheck, Meh, Smile, Star, X } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { Image, Modal, Text, TouchableOpacity, View } from "react-native";
-import Toast from "react-native-toast-message";
 import Animated from "react-native-reanimated";
 import { usePulseAnimation } from "@/hooks/usePulseAnimation";
 import RateNowModals from "./RateNowModals";

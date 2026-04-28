@@ -2,7 +2,7 @@ import { View, Text, Modal, TouchableOpacity } from 'react-native'
 import React, { Dispatch, memo, SetStateAction, useCallback, useState } from 'react'
 import { Frown, Laugh, Meh, Smile, Star, Trash2, X } from 'lucide-react-native';
 import { ActivePassengerRide } from '@/types/app-types';
-import Toast from 'react-native-toast-message';
+import Toast from '@/utils/appToast';
 import TextField from '../TextField';
 import api from '@/hooks/useApi';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';

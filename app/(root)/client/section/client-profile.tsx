@@ -17,7 +17,7 @@ import { KeyboardAwareScrollView, KeyboardAwareScrollViewProps } from 'react-nat
 import Animated, { BounceInUp, Easing } from 'react-native-reanimated';
 import * as ImagePicker from "expo-image-picker"
 import * as ImageManipulator from "expo-image-manipulator"
-import Toast from 'react-native-toast-message';
+import Toast from '@/utils/appToast';
 import LoadingState from '@/components/system/LoadingState';
 import { Controller, useForm } from 'react-hook-form';
 import {z} from "zod"
