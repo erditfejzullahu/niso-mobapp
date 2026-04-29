@@ -14,8 +14,8 @@ type Props = {
     visible: boolean;
     onClose: () => void;
     passengerPriceLabel: string;
-    /** Not wired to API — receives the amount the driver entered. */
-    onSubmitCounterOffer: (amountEuro: string) => void;
+    /** Not wired to API — receives the amount and optional message. */
+    onSubmitCounterOffer: (amountEuro: string, message?: string) => void;
 };
 
 const CounterOfferModal = memo(function CounterOfferModal({
@@ -25,13 +25,20 @@ const CounterOfferModal = memo(function CounterOfferModal({
     onSubmitCounterOffer,
 }: Props) {
     const [amount, setAmount] = useState('');
+    const [message, setMessage] = useState('');
 
     const handleSubmit = useCallback(() => {
         const trimmed = amount.trim();
-        onSubmitCounterOffer(trimmed);
+        if (!trimmed) return;
+        const messageTrimmed = message.trim();
+        onSubmitCounterOffer(trimmed, messageTrimmed ? messageTrimmed : undefined);
         setAmount('');
+        setMessage('');
         onClose();
-    }, [amount, onClose, onSubmitCounterOffer]);
+    }, [amount, message, onClose, onSubmitCounterOffer]);
+
+    const amountTrimmed = amount.trim();
+    const canSubmit = amountTrimmed.length > 0;
 
     return (
         <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -64,11 +71,24 @@ const CounterOfferModal = memo(function CounterOfferModal({
                         placeholderTextColor="#9ca3af"
                         className="border border-gray-200 rounded-lg px-3 py-2.5 text-base font-pregular text-gray-900 mb-5"
                     />
+                    <Text className="text-xs text-gray-500 mb-1">Mesazh (opsional)</Text>
+                    <TextInput
+                        value={message}
+                        onChangeText={setMessage}
+                        placeholder="p.sh. Jam afër dhe mund të nisem menjëherë."
+                        placeholderTextColor="#9ca3af"
+                        multiline
+                        className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm font-pregular text-gray-900 mb-5 min-h-[80px]"
+                    />
                     <View className="flex-row justify-end gap-3">
                         <TouchableOpacity onPress={onClose} className="px-4 py-2.5 rounded-lg bg-gray-100">
                             <Text className="text-gray-800 font-pmedium">Anulo</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={handleSubmit} className="px-4 py-2.5 rounded-lg bg-indigo-600">
+                        <TouchableOpacity
+                            onPress={handleSubmit}
+                            disabled={!canSubmit}
+                            className={`px-4 py-2.5 rounded-lg bg-indigo-600 ${!canSubmit ? 'opacity-50' : ''}`}
+                        >
                             <Text className="text-white font-psemibold">Dërgo kontraofertën</Text>
                         </TouchableOpacity>
                     </View>

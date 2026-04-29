@@ -60,11 +60,11 @@ export default function ActiveRouteRideRequestDetailScreen() {
         }
     }, [ride]);
 
-    const stubConfirmTakeRide = useCallback(() => {
-        /** TODO: call API to accept / take ride */
+    const stubNotifyPassengerReady = useCallback((_message?: string) => {
+        /** TODO: call API to notify passenger that the driver is ready (not final ride acceptance). */
     }, []);
 
-    const stubCounterOffer = useCallback((_amountEuro: string) => {
+    const stubCounterOffer = useCallback((_amountEuro: string, _message?: string) => {
         /** TODO: send counter-offer via API when provided */
     }, []);
 
@@ -122,7 +122,7 @@ export default function ActiveRouteRideRequestDetailScreen() {
                 <RideRequestInfoSection ride={ride} />
                 <RideDetailActionBar
                     ride={ride}
-                    onTakeRide={() => setTakeModalOpen(true)}
+                    onNotifyPassengerReady={() => setTakeModalOpen(true)}
                     onCounterOrOffer={openSecondaryModal}
                 />
             </ScrollView>
@@ -132,7 +132,7 @@ export default function ActiveRouteRideRequestDetailScreen() {
                     <TakeRideConfirmModal
                         visible={takeModalOpen}
                         onClose={() => setTakeModalOpen(false)}
-                        onConfirmTakeRide={stubConfirmTakeRide}
+                        onConfirmNotifyPassengerReady={stubNotifyPassengerReady}
                     />
                 ) : null}
                 {counterModalOpen ? (

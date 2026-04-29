@@ -1,16 +1,21 @@
 import { RideRequest } from '@/types/app-types';
 import { hasPassengerFixedPrice } from '@/utils/active-routes/rideRequestDisplay';
-import { Euro, HandCoins, ShieldCheck } from 'lucide-react-native';
+import { Euro, HandCoins, UserCheck } from 'lucide-react-native';
 import React, { memo, useMemo } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 type Props = {
     ride: RideRequest;
-    onTakeRide: () => void;
+    /** Notify the passenger that the driver is ready (not final ride acceptance). */
+    onNotifyPassengerReady: () => void;
     onCounterOrOffer: () => void;
 };
 
-const RideDetailActionBar = memo(function RideDetailActionBar({ ride, onTakeRide, onCounterOrOffer }: Props) {
+const RideDetailActionBar = memo(function RideDetailActionBar({
+    ride,
+    onNotifyPassengerReady,
+    onCounterOrOffer,
+}: Props) {
     const hasFixed = useMemo(() => hasPassengerFixedPrice(ride), [ride]);
 
     const secondaryLabel = hasFixed ? 'Kontraofertë' : 'Bëj ofertë';
@@ -24,16 +29,19 @@ const RideDetailActionBar = memo(function RideDetailActionBar({ ride, onTakeRide
 
     return (
         <View className="mx-4 mb-20">
+            <Text className="text-xs text-gray-600 font-pregular mb-2">
+                E para njofton pasagjerin që jeni gati — nuk është pranim përfundimtar i udhëtimit.
+            </Text>
             <Text className="text-xs text-gray-500 font-pregular mb-3">{secondaryExplanation}</Text>
             <View className="flex-row gap-3">
                 <TouchableOpacity
-                    onPress={onTakeRide}
+                    onPress={onNotifyPassengerReady}
                     className="flex-1 bg-indigo-600 rounded-xl py-3.5 px-3 flex-row items-center justify-center gap-2 shadow shadow-indigo-500/20"
                     accessibilityRole="button"
-                    accessibilityLabel="Prano udhëtimin"
+                    accessibilityLabel="Njofto pasagjerin që je gati"
                 >
-                    <ShieldCheck size={20} color="#fff" />
-                    <Text className="text-white font-psemibold text-sm text-center">Prano udhëtimin</Text>
+                    <UserCheck size={20} color="#fff" />
+                    <Text className="text-white font-psemibold text-sm text-center">Njofto që je gati</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     onPress={onCounterOrOffer}
