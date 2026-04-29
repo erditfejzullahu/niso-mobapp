@@ -1,5 +1,5 @@
-import React, { memo } from 'react';
-import { Alert, View, Text, TouchableOpacity, Image } from 'react-native';
+import React, { memo, useCallback, useRef, useState } from 'react';
+import { Animated, Pressable, View, Text, Image } from 'react-native';
 import { CarTaxiFront, Check, CheckCheck, Settings } from 'lucide-react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
@@ -11,6 +11,7 @@ dayjs.locale('sq');
 import { ConversationType, type Conversations, type User } from '@/types/app-types';
 import { badgeClassForConversationType, conversationTypeLabel } from '@/utils/conversations/conversationLabels';
 import type { ConversationParticipantDisplay } from '@/utils/conversations/participantDisplay';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 
 type Props = {
     user: User;
@@ -21,26 +22,75 @@ type Props = {
 };
 
 const ConversationRowPreview = ({ user, item, participant, onDelete, onOpen }: Props) => {
-    const confirmDelete = () => {
-        Alert.alert('Fshij bisedën?', 'Kjo veprim nuk mund të kthehet mbrapsht.', [
-            { text: 'Anulo', style: 'cancel' },
-            { text: 'Fshij', style: 'destructive', onPress: () => onDelete(item.id) },
-        ]);
-    };
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const opacity = useRef(new Animated.Value(1)).current;
+    const longPressTriggered = useRef(false);
+
+    const animateOpacity = useCallback(
+        (toValue: number) => {
+            Animated.timing(opacity, {
+                toValue,
+                duration: 120,
+                useNativeDriver: true,
+            }).start();
+        },
+        [opacity]
+    );
+
+    const handlePressIn = useCallback(() => {
+        animateOpacity(0.6);
+    }, [animateOpacity]);
+
+    const handlePressOut = useCallback(() => {
+        animateOpacity(1);
+    }, [animateOpacity]);
+
+    const handleLongPress = useCallback(() => {
+        longPressTriggered.current = true;
+        setDeleteModalOpen(true);
+    }, []);
+
+    const handlePress = useCallback(() => {
+        if (longPressTriggered.current) {
+            longPressTriggered.current = false;
+            return;
+        }
+        onOpen();
+    }, [onOpen]);
+
+    const handleCancelDelete = useCallback(() => {
+        setDeleteModalOpen(false);
+    }, []);
+
+    const handleConfirmDelete = useCallback(() => {
+        setDeleteModalOpen(false);
+        onDelete(item.id);
+    }, [item.id, onDelete]);
 
     const youMessagedLast = user.id === item.messages[0]?.senderId;
     const isRead = item.messages[0]?.isRead === true;
     const isUnread = item.messages[0]?.isRead === false;
 
     return (
-        <TouchableOpacity
-            onPress={onOpen}
-            onLongPress={confirmDelete}
-            delayLongPress={350}
-            className={`w-[95%] mx-auto flex-row items-center gap-2 ${
-                isUnread && youMessagedLast ? 'bg-white' : isUnread && !youMessagedLast ? 'bg-indigo-100' : 'bg-white'
-            } shadow-lg shadow-black/10 rounded-lg p-3 relative`}
-        >
+        <>
+            <ConfirmActionModal
+                visible={deleteModalOpen}
+                title="Fshij bisedën?"
+                message="Ky veprim nuk mund të kthehet mbrapsht."
+                cancelText="Anulo"
+                confirmText="Fshij"
+                confirmVariant="destructive"
+                onCancel={handleCancelDelete}
+                onConfirm={handleConfirmDelete}
+            />
+
+            <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} onPress={handlePress} onLongPress={handleLongPress} delayLongPress={350}>
+                <Animated.View
+                    style={{ opacity }}
+                    className={`w-[95%] mx-auto flex-row items-center gap-2 ${
+                        isUnread && youMessagedLast ? 'bg-white' : isUnread && !youMessagedLast ? 'bg-indigo-100' : 'bg-white'
+                    } shadow-lg shadow-black/10 rounded-lg p-3 relative`}
+                >
             <View className="absolute left-2 shadow-lg shadow-black/20 bg-gray-50 rounded-md p-0.5 top-2 z-50">
                 {item.type === ConversationType.RIDE_RELATED && <CarTaxiFront color={'#4338ca'} size={16} />}
                 {item.type === ConversationType.SUPPORT && (
@@ -94,7 +144,9 @@ const ConversationRowPreview = ({ user, item, participant, onDelete, onOpen }: P
                     {dayjs(item.lastMessageAt ?? new Date()).fromNow()}
                 </Text>
             </View>
-        </TouchableOpacity>
+                </Animated.View>
+            </Pressable>
+        </>
     );
 };
 
