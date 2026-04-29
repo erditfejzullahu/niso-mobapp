@@ -3,10 +3,15 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Fontisto from '@expo/vector-icons/Fontisto';
 import { Tabs } from "expo-router";
 import { useEffect, useRef } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Layout() {
+  const insets = useSafeAreaInsets();
+  const TAB_BAR_BASE_HEIGHT = 70;
+  const androidInset = Platform.OS === "android" ? insets.bottom - 15 : 0;
+
   return (
     <Tabs
       screenOptions={({ route }) => ({
@@ -19,7 +24,7 @@ export default function Layout() {
         },
         tabBarStyle: {
           backgroundColor: "#fff",
-          height: 70,
+          height: insets.bottom + 50,
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
           borderTopWidth: 0,
@@ -29,6 +34,9 @@ export default function Layout() {
           shadowRadius: 6,
           elevation: 6,
           position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
         },
         tabBarActiveTintColor: route.name === "active-routes" ? "#4f46e5" : "#4f46e5", // indigo-600
         tabBarInactiveTintColor: "#9ca3af",
