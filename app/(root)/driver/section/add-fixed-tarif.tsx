@@ -251,7 +251,7 @@ export default function AddFixedTarif() {
   return (
     <KeyboardAwareScrollView
       className="bg-gray-50"
-      contentContainerStyle={{ padding: 16, paddingBottom: 80 }}
+      contentContainerStyle={{ padding: 16, paddingBottom: 96 }}
       enableOnAndroid={true}
       extraScrollHeight={Platform.OS === 'ios' ? 20 : 30} // how much to push when focused
       keyboardShouldPersistTaps="handled"

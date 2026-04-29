@@ -589,7 +589,7 @@ const Profile = () => {
 
       <FinancialReceipt user={user} open={financialReceiptOpened} setOpen={setFinancialReceiptOpened}/>
 
-      <View className='pb-[80px]'/>
+      <View className='pb-[96px]'/>
     </KeyboardAwareScrollView>
   );
 };

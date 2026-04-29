@@ -114,7 +114,7 @@ const ActiveRoutes = () => {
         data={data?.data.rides}
         onEndReached={loadMore}
         onEndReachedThreshold={0.1}
-        className='p-4 mb-20'
+        className='p-4 mb-24'
         keyExtractor={(item) => item.id.toString()}
         // contentContainerStyle={{gap: 16}}
         renderItem={({item}) => (
