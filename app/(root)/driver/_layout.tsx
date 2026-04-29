@@ -1,7 +1,7 @@
 // app/(drawer)/_layout.jsx
 import ConversationsComponent from "@/components/ConversationsComponent";
 import DriverDrawerComponent from "@/components/DriverDrawerComponent";
-import NotificationsComponent from "@/components/NotificationsComponent";
+import { NotificationsComponent } from "@/components/notifications";
 import TopbarComponent from "@/components/TopbarComponent";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
