@@ -44,6 +44,16 @@ api.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
+    // Android network failures often come through as "Network Error" without a response.
+    // Logging URL/method helps distinguish wrong host vs cleartext vs timeout.
+    try {
+      const cfg = error.config as any;
+      const method = (cfg?.method || "get").toUpperCase();
+      const url = `${cfg?.baseURL ?? ""}${cfg?.url ?? ""}`;
+      const code = (error as any)?.code;
+      console.log("[api] request failed", { method, url, code, message: error.message });
+    } catch {}
+
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
     if (error.response?.status === 401 && !originalRequest._retry) {

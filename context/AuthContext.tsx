@@ -98,7 +98,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const response = await api.post("/auth/login", { email, password }, { 
+      const normalizedEmail = email.trim().toLowerCase();
+      const response = await api.post("/auth/login", { email: normalizedEmail, password }, { 
         withCredentials: true 
       });
 

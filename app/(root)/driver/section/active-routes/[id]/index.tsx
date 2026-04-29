@@ -128,6 +128,7 @@ export default function ActiveRouteRideRequestDetailScreen() {
             </ScrollView>
 
             <Suspense fallback={null}>
+                {/* kjo osht kur je gati me pranu e mu nisje */}
                 {takeModalOpen ? (
                     <TakeRideConfirmModal
                         visible={takeModalOpen}
@@ -135,6 +136,7 @@ export default function ActiveRouteRideRequestDetailScreen() {
                         onConfirmNotifyPassengerReady={stubNotifyPassengerReady}
                     />
                 ) : null}
+                {/* kjo osht kur ka cmim fiks */}
                 {counterModalOpen ? (
                     <CounterOfferModal
                         visible={counterModalOpen && fixedPriceMode}
@@ -143,6 +145,7 @@ export default function ActiveRouteRideRequestDetailScreen() {
                         onSubmitCounterOffer={stubCounterOffer}
                     />
                 ) : null}
+                {/* kjo osht kur s'ka cmim fiks */}
                 {offerModalOpen ? (
                     <DriverOfferModal
                         visible={offerModalOpen && !fixedPriceMode}

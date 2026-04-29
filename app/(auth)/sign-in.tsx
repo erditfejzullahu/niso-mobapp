@@ -148,6 +148,7 @@ const NisoLogin = () => {
         className="flex-1"
         onScroll={handleScroll}
         scrollEventThrottle={16}
+        keyboardShouldPersistTaps="handled"
       >
         <View className="h-64" />
 
@@ -167,11 +168,17 @@ const NisoLogin = () => {
           <View className="mb-6 border-b border-gray-200">
             <Text className="text-gray-700 mb-1 font-pmedium">Përdoruesi</Text>
             <TextInput
-              className="text-gray-800 h-[35px] font-pregular"
+              className="text-gray-800 font-pregular py-3"
               placeholder="perdoruesi@shembull.com"
               placeholderTextColor="#9CA3AF"
               value={email}
               onChangeText={setEmail}
+              textAlignVertical="center"
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              autoComplete="email"
+              inputMode="email"
             />
           </View>
 
@@ -179,12 +186,16 @@ const NisoLogin = () => {
           <View className="mb-8">
             <Text className="text-gray-700 mb-1 font-pmedium">Fjalëkalimi</Text>
             <TextInput
-              className="border-b border-gray-200 h-[35px] text-gray-800 font-pregular"
+              className="border-b border-gray-200 text-gray-800 font-pregular py-3"
               placeholder="••••••••"
               placeholderTextColor="#9CA3AF"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              textAlignVertical="center"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="password"
             />
           </View>
 

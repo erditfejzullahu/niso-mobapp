@@ -26,9 +26,6 @@ function AppNavigationShell() {
         </AuthProvider>
 
         <StatusBar style="dark" />
-      </GestureHandlerRootView>
-
-      <GestureHandlerRootView style={styles.overlay} pointerEvents="box-none">
         <AppToastHost />
       </GestureHandlerRootView>
     </>
