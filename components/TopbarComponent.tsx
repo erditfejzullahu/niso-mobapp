@@ -3,13 +3,18 @@ import { DrawerNavigationProp, useDrawerStatus } from '@react-navigation/drawer'
 import { ParamListBase } from '@react-navigation/native'
 import { Bell, MessagesSquare } from 'lucide-react-native'
 import React, { useEffect, useState } from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { Pressable, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import AnimatedHamburger from './AnimatedHamburger'
 import { useToggleMessagesSheet } from '@/store/useToggleMessagesSheet'
+import { router } from 'expo-router'
+import { getUserRole } from '@/utils/usefulFunctions'
+import { useAuth } from '@/context/AuthContext'
+import { Role } from '@/types/app-types'
 
 const TopbarComponent = ({navigation}: {navigation: DrawerNavigationProp<ParamListBase>}) => {
     const drawerOpen = useDrawerStatus() === "open";
+    const {user} = useAuth();
     const [open, setOpen] = useState(drawerOpen)
 
     useEffect(() => {
@@ -29,9 +34,9 @@ const TopbarComponent = ({navigation}: {navigation: DrawerNavigationProp<ParamLi
     <SafeAreaView className='bg-gray-50 px-4 max-h-[83px] relative z-50'>
       <View className='absolute top-0 left-0 right-0 h-[83px] bg-white rounded-b-[20px] shadow-md shadow-black/10'/>
         <View className='flex-row items-center justify-between'>
-            <View>
+            <Pressable onPress={() => router.replace(getUserRole(user) === Role.DRIVER ? '/driver/section/active-routes' : '/client/section/client-home')}>
                 <Text className='font-psemibold text-indigo-950 text-3xl -mb-6 pt-2.5'>Niso<Text className='text-indigo-600 font-black text-6xl'>.</Text></Text>
-            </View>
+            </Pressable>
             <View className='flex-row items-center gap-3'>
                 <TouchableOpacity onPress={() => setMessageSheetToggle(false)}>
                   <MessagesSquare color={!messageSheetIsClosed ? "#4f46e5" : "#1e1b4b"} size={22}/>
