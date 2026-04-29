@@ -60,7 +60,7 @@ export function useSendOtherConversationMessage(
                 content,
                 mediaUrls: [],
                 priceOffer: null,
-                isRead: true,
+                isRead: false,
                 createdAt: now,
                 updatedAt: now,
                 conversation,
