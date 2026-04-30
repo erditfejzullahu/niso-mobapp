@@ -4,9 +4,8 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { DrawerContentScrollView } from "@react-navigation/drawer";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, usePathname } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Alert,
   Image,
   StyleSheet,
   Text,
@@ -17,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "@/utils/appToast";
 import * as ImagePicker from "expo-image-picker"
 import api from "@/hooks/useApi";
+import ConfirmActionModal from "@/components/ui/ConfirmActionModal";
 
 interface DrawerItemProps {
   label: string;
@@ -46,23 +46,19 @@ const CustomDrawerItem = ({ label, icon, isActive, onPress }: DrawerItemProps) =
 );
 
 export default function DriverDrawerComponent(props: any) {
-  const {user, updateSession} = useAuth();
-  
-  if(!user) {router.replace('/sign-in'); return;}
-  
+  const { user, updateSession, logout } = useAuth();
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const pathname = usePathname();
-  const {logout} = useAuth();
+
+  useEffect(() => {
+    if (!user) router.replace("/sign-in");
+  }, [user]);
+
+  if (!user) return null;
   
   
   const handleLogout = () => {
-    Alert.alert("Shkycje", "A jeni të sigurt që dëshironi të shkyceni?", [
-      { text: "Mbyll", style: "cancel" },
-      {
-        text: "Shkycuni",
-        style: "destructive",
-        onPress: () => logout(),
-      },
-    ]);
+    setLogoutConfirmOpen(true);
   };
 
   const handleImageUpload = async () => {
@@ -173,6 +169,19 @@ export default function DriverDrawerComponent(props: any) {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <View style={{ flex: 1 }} >
+        <ConfirmActionModal
+          visible={logoutConfirmOpen}
+          title="Shkycje"
+          message="A jeni të sigurt që dëshironi të shkyceni?"
+          cancelText="Mbyll"
+          confirmText="Shkycuni"
+          confirmVariant="destructive"
+          onCancel={() => setLogoutConfirmOpen(false)}
+          onConfirm={async () => {
+            setLogoutConfirmOpen(false);
+            await logout();
+          }}
+        />
         <DrawerContentScrollView
           {...props}
           contentContainerStyle={styles.scrollContent}
@@ -190,8 +199,8 @@ export default function DriverDrawerComponent(props: any) {
             style={styles.profileImage}
           />
             </TouchableOpacity>
-            <Text style={styles.profileName}>John Doe</Text>
-            <Text className="text-white font-pregular text-sm">Shofer</Text>
+            <Text style={styles.profileName}>{user.fullName}</Text>
+            <Text className="text-white font-pregular text-sm">{user.role === "DRIVER" ? "Shofer" : "Klient"}</Text>
           </LinearGradient>
 
           {/* Custom Drawer Items */}

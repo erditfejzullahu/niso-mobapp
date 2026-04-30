@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, RefreshControl, StyleSheet } from 'react-native'
-import React, { useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BottomSheetModal, BottomSheetModalProvider, BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
@@ -18,9 +18,7 @@ import Toast from '@/utils/appToast';
 
 const ConversationsComponent = () => {
     const {user} = useAuth();
-    if(!user) return null;
-
-    const userRole = getUserRole(user);
+    const userRole = user ? getUserRole(user) : null;
 
     const router = useRouter();
 
@@ -29,20 +27,25 @@ const ConversationsComponent = () => {
 
     const {isClosed, setToggled} = useToggleMessagesSheet();
 
-    if(isClosed){
-        bottomSheetRef.current?.dismiss();
-    }else{
-        bottomSheetRef.current?.present();
-    }
+    useEffect(() => {
+        if (!user) return;
+        if (isClosed) bottomSheetRef.current?.dismiss();
+        else bottomSheetRef.current?.present();
+    }, [isClosed, user]);
 
     const {data, error, isLoading, isRefetching, refetch} = useQuery({
         queryKey: ['conversations'],
         queryFn: async () => {
-            const res = await api.get<Conversations[]>(userRole === Role.PASSENGER ? '/conversations/get-conversations-passenger' : '/conversations/get-active-conversations-driver')
+            if (!userRole) return [] as Conversations[];
+            const res = await api.get<Conversations[]>(
+                userRole === Role.PASSENGER
+                    ? '/conversations/get-conversations-passenger'
+                    : '/conversations/get-active-conversations-driver'
+            )
             return res.data;
         },
         refetchOnWindowFocus: false,
-        enabled: !isClosed
+        enabled: !!userRole && !isClosed
     })
 
     const handleDeleteConversation = async (id: string) => {
@@ -66,11 +69,13 @@ const ConversationsComponent = () => {
     }
 
     const handleRouteToConversations = () => {
-        if(user.role === "PASSENGER"){
+        if(user?.role === "PASSENGER"){
             setToggled(true)
             router.replace('/client/section/conversations');
         }
     }
+
+    if(!user) return null;
 
   return (
     <BottomSheetModalProvider>

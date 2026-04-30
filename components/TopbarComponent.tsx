@@ -45,11 +45,15 @@ const TopbarComponent = ({navigation}: {navigation: DrawerNavigationProp<ParamLi
       <View className='flex-row items-center justify-between' style={{ height: BAR_HEIGHT }}>
         <Pressable
           className='flex-row items-center'
-          onPress={() =>
+          onPress={() => {
+            if (!user) {
+              router.replace('/(auth)/sign-in');
+              return;
+            }
             router.replace(
               getUserRole(user) === Role.DRIVER ? '/driver/section/active-routes' : '/client/section/client-home'
-            )
-          }
+            );
+          }}
           hitSlop={10}
         >
           <Text className='font-psemibold pt-2 text-indigo-950 text-3xl leading-none -mb-2'>

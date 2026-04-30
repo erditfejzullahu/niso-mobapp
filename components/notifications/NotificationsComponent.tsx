@@ -2,7 +2,7 @@ import api from '@/hooks/useApi';
 import { useToggleNotifications } from '@/store/useToggleNotifications';
 import { BottomSheetModal, BottomSheetModalProvider, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import React, { memo, useRef } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import LoadingState from '@/components/system/LoadingState';
 import ErrorState from '@/components/system/ErrorState';
@@ -18,17 +18,16 @@ function NotificationsComponent() {
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const { isClosed, setToggled } = useToggleNotifications();
 
-    if (!user) return null;
-
-    if (isClosed) {
-        bottomSheetRef.current?.dismiss();
-    } else {
-        bottomSheetRef.current?.present();
-    }
+    useEffect(() => {
+        if (!user) return;
+        if (isClosed) bottomSheetRef.current?.dismiss();
+        else bottomSheetRef.current?.present();
+    }, [isClosed, user]);
 
     const { data, error, isLoading, isRefetching, refetch } = useQuery({
         queryKey: ['notifications'],
         queryFn: async () => {
+            if (!user) return { data: [] as Notification[] };
             const [getNotifications] = await Promise.all([
                 api.get<Notification[]>('/notifications/get-notifications'),
                 api.patch('/notifications/read-notifications'),
@@ -36,7 +35,7 @@ function NotificationsComponent() {
             return getNotifications;
         },
         refetchOnWindowFocus: false,
-        enabled: !isClosed,
+        enabled: !!user && !isClosed,
     });
 
     const deleteNotification = useMutation({
@@ -72,6 +71,8 @@ function NotificationsComponent() {
             });
         },
     });
+
+    if (!user) return null;
 
     return (
         <BottomSheetModalProvider>

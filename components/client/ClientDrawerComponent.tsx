@@ -8,9 +8,8 @@ import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, usePathname } from "expo-router";
 import { UserStar } from "lucide-react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Alert,
   Image,
   StyleSheet,
   Text,
@@ -19,6 +18,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "@/utils/appToast";
+import ConfirmActionModal from "@/components/ui/ConfirmActionModal";
 
 interface DrawerItemProps {
   label: string;
@@ -48,22 +48,18 @@ const CustomDrawerItem = ({ label, icon, isActive, onPress }: DrawerItemProps) =
 );
 
 export default function ClientDrawerComponent(props: any) {
-  const {user, updateSession} = useAuth();
-
-  if(!user) {router.replace('/sign-in'); return;}
-
+  const { user, updateSession, logout } = useAuth();
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const pathname = usePathname();
-  const {logout} = useAuth();
+
+  useEffect(() => {
+    if (!user) router.replace("/sign-in");
+  }, [user]);
+
+  if (!user) return null;
 
   const handleLogout = () => {
-    Alert.alert("Shkycje", "A jeni të sigurt që dëshironi të shkyceni?", [
-      { text: "Mbyll", style: "cancel" },
-      {
-        text: "Shkycuni",
-        style: "destructive",
-        onPress: () => logout(),
-      },
-    ]);
+    setLogoutConfirmOpen(true);
   };
 
   const drawerItems = [
@@ -175,6 +171,19 @@ export default function ClientDrawerComponent(props: any) {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <View style={{ flex: 1 }} >
+        <ConfirmActionModal
+          visible={logoutConfirmOpen}
+          title="Shkycje"
+          message="A jeni të sigurt që dëshironi të shkyceni?"
+          cancelText="Mbyll"
+          confirmText="Shkycuni"
+          confirmVariant="destructive"
+          onCancel={() => setLogoutConfirmOpen(false)}
+          onConfirm={async () => {
+            setLogoutConfirmOpen(false);
+            await logout();
+          }}
+        />
         <DrawerContentScrollView
           {...props}
           contentContainerStyle={styles.scrollContent}
