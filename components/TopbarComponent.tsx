@@ -11,16 +11,59 @@ import { router } from 'expo-router'
 import { getUserRole } from '@/utils/usefulFunctions'
 import { useAuth } from '@/context/AuthContext'
 import { Role } from '@/types/app-types'
+import api from '@/hooks/useApi'
+import { useSocketEvent } from '@/hooks/useSocketEvent'
+import { SERVER_SOCKET_EVENTS } from '@/types/socket-events'
 
 const TopbarComponent = ({navigation}: {navigation: DrawerNavigationProp<ParamListBase>}) => {
     const drawerOpen = useDrawerStatus() === "open";
     const {user} = useAuth();
     const [open, setOpen] = useState(drawerOpen)
+    const [unreadNotifications, setUnreadNotifications] = useState<number>(0);
+    const [unreadMessages, setUnreadMessages] = useState<number>(0);
     const insets = useSafeAreaInsets();
 
     useEffect(() => {
       setOpen(drawerOpen)
     }, [drawerOpen])
+
+    useEffect(() => {
+      let cancelled = false;
+      const run = async () => {
+        if (!user) {
+          setUnreadNotifications(0);
+          setUnreadMessages(0);
+          return;
+        }
+        try {
+          const [nRes, mRes] = await Promise.all([
+            api.get<{ count: number }>('/notifications/unread-count'),
+            api.get<{ count: number }>('/conversations/unread-count'),
+          ]);
+          if (cancelled) return;
+          setUnreadNotifications(Number(nRes.data?.count ?? 0));
+          setUnreadMessages(Number(mRes.data?.count ?? 0));
+        } catch {
+          // keep previous values if request fails
+        }
+      };
+      void run();
+      return () => {
+        cancelled = true;
+      };
+    }, [user]);
+
+    useSocketEvent(
+      SERVER_SOCKET_EVENTS.unreadNotificationsCounter,
+      (count) => setUnreadNotifications(Number(count ?? 0)),
+      !!user
+    );
+
+    useSocketEvent(
+      SERVER_SOCKET_EVENTS.unreadMessagesCounter,
+      (count) => setUnreadMessages(Number(count ?? 0)),
+      !!user
+    );
 
     const handleToggle = (next: boolean) => {
         setOpen(next);
@@ -33,6 +76,8 @@ const TopbarComponent = ({navigation}: {navigation: DrawerNavigationProp<ParamLi
 
     const BAR_HEIGHT = 56;
     const totalHeight = insets.top + BAR_HEIGHT;
+
+    const formatBadge = (count: number) => (count > 99 ? '99+' : String(count));
     
   return (
     <View className='bg-gray-50 px-4 relative z-50' style={{ paddingTop: insets.top }}>
@@ -64,10 +109,24 @@ const TopbarComponent = ({navigation}: {navigation: DrawerNavigationProp<ParamLi
 
         <View className='flex-row items-center gap-3'>
           <TouchableOpacity onPress={() => setMessageSheetToggle(false)} hitSlop={10}>
-            <MessagesSquare color={!messageSheetIsClosed ? "#4f46e5" : "#1e1b4b"} size={22}/>
+            <View>
+              <MessagesSquare color={!messageSheetIsClosed ? "#4f46e5" : "#1e1b4b"} size={22}/>
+              {unreadMessages > 0 ? (
+                <View className="absolute -top-2 -right-2 min-w-[16px] h-[16px] px-1 rounded-full bg-red-600 items-center justify-center">
+                  <Text className="text-white text-[10px] font-psemibold">{formatBadge(unreadMessages)}</Text>
+                </View>
+              ) : null}
+            </View>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setToggled(false)} hitSlop={10}>
-            <Bell color={!isClosed ? "#4f46e5" : "#1e1b4b"} size={22}/>
+            <View>
+              <Bell color={!isClosed ? "#4f46e5" : "#1e1b4b"} size={22}/>
+              {unreadNotifications > 0 ? (
+                <View className="absolute -top-2 -right-2 min-w-[16px] h-[16px] px-1 rounded-full bg-red-600 items-center justify-center">
+                  <Text className="text-white text-[10px] font-psemibold">{formatBadge(unreadNotifications)}</Text>
+                </View>
+              ) : null}
+            </View>
           </TouchableOpacity>
           <AnimatedHamburger toggled={open} onToggle={handleToggle} color='#1e1b4b'/>
         </View>

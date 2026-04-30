@@ -22,6 +22,10 @@ export const SERVER_SOCKET_EVENTS = {
   getNotifiedWhenRideStarts: "getNotifiedWhenRideStarts",
   notificationCounterUpdater: "notificationCounterUpdater",
   newNotificationListener: "newNotificationListener",
+  unreadMessagesCounter: "unreadMessagesCounter",
+  unreadNotificationsCounter: "unreadNotificationsCounter",
+  passengerNotifiedThatDriverIsReady: "passengerNotifiedThatDriverIsReady"
+
 } as const;
 
 export type ServerSocketEventName =
