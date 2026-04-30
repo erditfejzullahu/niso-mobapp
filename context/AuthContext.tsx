@@ -134,8 +134,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       Toast.show({
         type: "success",
-        text1: "Logged out",
-        text2: "You have been logged out successfully",
+        text1: "Shkyçje",
+        text2: "Jeni shkyçur me sukses.",
       });
     }
   };

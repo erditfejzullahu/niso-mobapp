@@ -7,7 +7,9 @@ import {
     RideNotInAvailableListError,
     useAvailableRideDetail,
 } from '@/hooks/active-routes/useAvailableRideDetail';
+import api from '@/hooks/useApi';
 import { formatRidePriceLabel, hasPassengerFixedPrice } from '@/utils/active-routes/rideRequestDisplay';
+import Toast from '@/utils/appToast';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
@@ -60,9 +62,31 @@ export default function ActiveRouteRideRequestDetailScreen() {
         }
     }, [ride]);
 
-    const stubNotifyPassengerReady = useCallback((_message?: string) => {
-        /** TODO: call API to notify passenger that the driver is ready (not final ride acceptance). */
-    }, []);
+    const stubNotifyPassengerReady = useCallback(async (_message?: string) => {
+        if (!rideRequestId) return;
+        try {
+            const payload = _message ? { message: _message } : {};
+            await api.patch(`/rides/notify-passenger-that-driver-is-ready/${rideRequestId}`, {
+                ...payload,
+            });
+            setTakeModalOpen(false);
+            Toast.show({
+                type: 'success',
+                text1: 'Sukses!',
+                text2: 'Pasagjeri u njoftua që jeni gati.',
+            });
+        } catch (error: any) {
+            const message =
+                typeof error?.response?.data?.message === 'string'
+                    ? error.response.data.message
+                    : 'Nuk u dërgua njoftimi. Provoni përsëri.';
+            Toast.show({
+                type: 'error',
+                text1: 'Gabim!',
+                text2: message,
+            });
+        }
+    }, [rideRequestId]);
 
     const stubCounterOffer = useCallback((_amountEuro: string, _message?: string) => {
         /** TODO: send counter-offer via API when provided */
