@@ -66,16 +66,17 @@ export default function ActiveRouteRideRequestDetailScreen() {
         if (!rideRequestId) return;
         try {
             const payload = _message ? { message: _message } : {};
-            await api.patch(`/rides/notify-passenger-that-driver-is-ready/${rideRequestId}`, {
+            const response = await api.patch(`/rides/notify-passenger-that-driver-is-ready/${rideRequestId}`, {
                 ...payload,
             });
             setTakeModalOpen(false);
             Toast.show({
                 type: 'success',
                 text1: 'Sukses!',
-                text2: 'Pasagjeri u njoftua që jeni gati.',
+                text2: response.data.message ?? 'Pasagjeri u njoftua që jeni gati.',
             });
         } catch (error: any) {
+            console.log(error?.response?.data);
             const message =
                 typeof error?.response?.data?.message === 'string'
                     ? error.response.data.message
