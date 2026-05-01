@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
+import { useQueryClient, type InfiniteData, type QueryClient } from '@tanstack/react-query';
 import type { ConversationMessagesPageResponse, Conversations, Message } from '@/types/app-types';
 
 export const conversationItemQueryKey = (conversationId: string) =>
@@ -8,6 +8,9 @@ export const conversationItemQueryKey = (conversationId: string) =>
 const conversationsListQueryKey = ['conversations'] as const;
 
 export type ConversationMessagesInfiniteData = InfiniteData<ConversationMessagesPageResponse>;
+
+type ConversationsPage = { data: Conversations[]; hasMore: boolean };
+type ConversationsInfiniteData = InfiniteData<ConversationsPage>;
 
 export function flattenConversationMessagePagesArray(
     pages: ConversationMessagesPageResponse[]
@@ -46,6 +49,44 @@ function messageExistsInPages(pages: ConversationMessagesPageResponse[], id: str
     return pages.some((p) => p.messages.some((m) => m.id === id));
 }
 
+function applyConversationPreviewMessage(
+    conversation: Conversations,
+    conversationId: string,
+    message: Message,
+    lastAt: Date
+): Conversations {
+    return conversation.id === conversationId
+        ? { ...conversation, messages: [message], lastMessageAt: lastAt }
+        : conversation;
+}
+
+function setConversationPreviewCaches(
+    queryClient: QueryClient,
+    conversationId: string,
+    message: Message
+) {
+    const lastAt = conversationDateField(message.createdAt);
+
+    queryClient.setQueryData<Conversations[]>(conversationsListQueryKey, (old) => {
+        if (!old) return old;
+        return old.map((c) => applyConversationPreviewMessage(c, conversationId, message, lastAt));
+    });
+
+    queryClient.setQueriesData<ConversationsInfiniteData>(
+        { queryKey: conversationsListQueryKey },
+        (old) => {
+            if (!old?.pages) return old;
+
+            const pages = old.pages.map((page) => ({
+                ...page,
+                data: page.data.map((c) => applyConversationPreviewMessage(c, conversationId, message, lastAt)),
+            }));
+
+            return { ...old, pages };
+        }
+    );
+}
+
 /**
  * Optimistic-send flow: append to thread (newest at bottom) + list preview, then reconcile via socket
  * `newMessage`, or roll back preview on `errorSendingMessage`.
@@ -57,7 +98,6 @@ export function useConversationCaches(conversationId: string) {
 
     const applyOptimisticToCaches = useCallback(
         (optimistic: Message) => {
-            const lastAt = conversationDateField(optimistic.createdAt);
             queryClient.setQueryData<ConversationMessagesInfiniteData>(
                 conversationItemQueryKey(conversationId),
                 (old) => {
@@ -73,19 +113,13 @@ export function useConversationCaches(conversationId: string) {
                     return { ...old, pages };
                 }
             );
-            queryClient.setQueryData<Conversations[]>(conversationsListQueryKey, (old) => {
-                if (!old) return old;
-                return old.map((c) =>
-                    c.id === conversationId ? { ...c, messages: [optimistic], lastMessageAt: lastAt } : c
-                );
-            });
+            setConversationPreviewCaches(queryClient, conversationId, optimistic);
         },
         [conversationId, queryClient]
     );
 
     const commitServerMessageToCaches = useCallback(
         (serverMsg: Message, replaceOptimisticId: string) => {
-            const lastAt = conversationDateField(serverMsg.createdAt);
             queryClient.setQueryData<ConversationMessagesInfiniteData>(
                 conversationItemQueryKey(conversationId),
                 (old) => {
@@ -108,19 +142,13 @@ export function useConversationCaches(conversationId: string) {
                     return { ...old, pages };
                 }
             );
-            queryClient.setQueryData<Conversations[]>(conversationsListQueryKey, (old) => {
-                if (!old) return old;
-                return old.map((c) =>
-                    c.id === conversationId ? { ...c, messages: [serverMsg], lastMessageAt: lastAt } : c
-                );
-            });
+            setConversationPreviewCaches(queryClient, conversationId, serverMsg);
         },
         [conversationId, queryClient]
     );
 
     const appendTheirMessageToCaches = useCallback(
         (serverMsg: Message) => {
-            const lastAt = conversationDateField(serverMsg.createdAt);
             queryClient.setQueryData<ConversationMessagesInfiniteData>(
                 conversationItemQueryKey(conversationId),
                 (old) => {
@@ -137,12 +165,7 @@ export function useConversationCaches(conversationId: string) {
                     return { ...old, pages };
                 }
             );
-            queryClient.setQueryData<Conversations[]>(conversationsListQueryKey, (old) => {
-                if (!old) return old;
-                return old.map((c) =>
-                    c.id === conversationId ? { ...c, messages: [serverMsg], lastMessageAt: lastAt } : c
-                );
-            });
+            setConversationPreviewCaches(queryClient, conversationId, serverMsg);
         },
         [conversationId, queryClient]
     );
@@ -164,13 +187,7 @@ export function useConversationCaches(conversationId: string) {
                 }
             );
             if (top) {
-                const lastAt = conversationDateField(top.createdAt);
-                queryClient.setQueryData<Conversations[]>(conversationsListQueryKey, (old) => {
-                    if (!old) return old;
-                    return old.map((c) =>
-                        c.id === conversationId ? { ...c, messages: [top!], lastMessageAt: lastAt } : c
-                    );
-                });
+                setConversationPreviewCaches(queryClient, conversationId, top);
             }
         },
         [conversationId, queryClient]
