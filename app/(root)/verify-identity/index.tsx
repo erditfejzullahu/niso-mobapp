@@ -36,10 +36,19 @@ const VerifyIdentity = () => {
   const allKosovoCities = Object.values(KosovoCity);
   
   const { user, updateSession, logout } = useAuth();
-  
-  if(user && user.user_verified) {
-    router.replace(user.role === "DRIVER" ? "/driver/section/active-routes" : "/client/section/client-home")
-  }
+
+  useEffect(() => {
+    // If user logs out while on this screen, bounce to sign-in.
+    if (!user) {
+      router.replace('/(auth)/sign-in');
+      return;
+    }
+
+    // If already verified, route into the app.
+    if (user.user_verified) {
+      router.replace(user.role === "DRIVER" ? "/driver/section/active-routes" : "/client/section/client-home");
+    }
+  }, [user]);
   
 
   const backgroundLayer = useAnimatedStyle(() => ({
@@ -435,7 +444,12 @@ const VerifyIdentity = () => {
 
           <View className="mt-8 items-center">
             <Text className="text-gray-600 font-pregular">Deshironi te shkyceni? </Text>
-            <TouchableOpacity onPress={() => logout() }>
+            <TouchableOpacity
+              onPress={async () => {
+                await logout();
+                router.replace('/(auth)/sign-in');
+              }}
+            >
               <Text className="text-indigo-600 font-psemibold">Shkycu</Text>
             </TouchableOpacity>
           </View>
