@@ -64,7 +64,7 @@ export function useConversationCaches(conversationId: string) {
                     if (!old?.pages.length) {
                         return {
                             pages: [{ messages: [optimistic], hasMore: false }],
-                            pageParams: [1],
+                            pageParams: [undefined],
                         };
                     }
                     const pages = old.pages.map((p, i) =>
@@ -92,7 +92,7 @@ export function useConversationCaches(conversationId: string) {
                     if (!old?.pages.length) {
                         return {
                             pages: [{ messages: [serverMsg], hasMore: false }],
-                            pageParams: [1],
+                            pageParams: [undefined],
                         };
                     }
                     const pages = old.pages.map((p) => ({ ...p, messages: [...p.messages] }));
@@ -127,7 +127,7 @@ export function useConversationCaches(conversationId: string) {
                     if (!old?.pages.length) {
                         return {
                             pages: [{ messages: [serverMsg], hasMore: false }],
-                            pageParams: [1],
+                            pageParams: [undefined],
                         };
                     }
                     if (messageExistsInPages(old.pages, serverMsg.id)) return old;

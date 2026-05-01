@@ -201,8 +201,8 @@ export default function ClientDrawerComponent(props: any) {
                 style={styles.profileImage}
               />
             </TouchableOpacity>
-            <Text style={styles.profileName}>John Doe</Text>
-            <Text className="text-white font-pregular text-sm">Shofer</Text>
+            <Text style={styles.profileName}>{user.fullName}</Text>
+            <Text className="text-white font-pregular text-sm">{user.role === "PASSENGER" ? "Pasagjer" : "Shofer"}</Text>
           </LinearGradient>
 
           {/* Custom Drawer Items */}

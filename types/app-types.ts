@@ -527,7 +527,7 @@ export interface Message {
   sender: User;
 }
 
-/** GET /conversations/get-messages — page is newest-first chunks; each `messages` array is `createdAt` desc. */
+/** GET /conversations/get-messages — cursor chunks are newest-first; each `messages` array is `createdAt` desc. */
 export interface ConversationMessagesPageResponse {
   messages: Message[];
   hasMore: boolean;

@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useSocketStore } from '@/store/useSocketStore';
 import { CLIENT_SOCKET_EVENTS } from '@/types/socket-events';
-import { ConversationType, type Conversations, type Message, type Role, type User } from '@/types/app-types';
+import { ConversationType, Role, type Conversations, type Message, type User } from '@/types/app-types';
 import Toast from '@/utils/appToast';
 import type { ConversationCachesApi } from './useConversationCaches';
 

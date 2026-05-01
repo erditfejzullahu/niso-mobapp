@@ -15,16 +15,21 @@ export function useConversationMessagesQuery(conversationId: string, enabled: bo
 
     const query = useInfiniteQuery({
         queryKey: conversationItemQueryKey(conversationId),
-        initialPageParam: 1,
+        initialPageParam: undefined as string | undefined,
         queryFn: async ({ pageParam }) => {
+            const params = new URLSearchParams();
+            params.set('limit', String(limit));
+            if (pageParam) params.set('cursor', pageParam);
+
             const res = await api.get<ConversationMessagesPageResponse>(
-                `/conversations/get-messages/${conversationId}`,
-                { params: { page: pageParam, limit } }
+                `/conversations/get-messages/${conversationId}?${params.toString()}`
             );
             return res.data;
         },
-        getNextPageParam: (lastPage, _allPages, lastPageParam) =>
-            lastPage.hasMore ? Number(lastPageParam) + 1 : undefined,
+        getNextPageParam: (lastPage) =>
+            lastPage.hasMore && lastPage.messages.length > 0
+                ? lastPage.messages[lastPage.messages.length - 1]!.id
+                : undefined,
         enabled,
         refetchOnWindowFocus: false,
     });
