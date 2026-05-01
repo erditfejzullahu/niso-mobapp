@@ -15,4 +15,7 @@ export const registerSchema = z.object({
         .regex(/[A-Z]/, "Fjalekalimi duhet te permbaje te pakten nje shkronje te madhe.")
         .regex(/[0-9]/, "Fjalekalimi duhet te permbaje te pakten nje numer.")
         .regex(/[^a-zA-Z0-9]/, "Fjalekalimi duhet te permbaje te pakten nje simbol."),
+}).refine((data) => data.password === data.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'Fjalekalimi dhe konfirmimi i fjalekalimit nuk perputhen.',
 })

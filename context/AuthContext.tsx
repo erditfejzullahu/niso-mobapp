@@ -203,11 +203,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         withCredentials: true,
       });
 
+      console.log(response.data);
+
       if(response.data.success){
+        Toast.show({
+          type: "success",
+          text1: "Sapo u regjistruat me sukses në Niso. Tani do te ridrejtoheni tek seksioni i verifikimit te identitetit tuaj."
+        })
         await login(email, password);
       }
 
     } catch (error: any) {      
+      console.log(error.response.data);
+      Toast.show({
+        type: "error",
+        text1: "Dicka shkoi gabim në regjistrimin tuaj",
+        text2: error?.response?.data?.message || "Dicka shkoi gabim në regjistrimin tuaj"
+      })
       throw error;
     } finally {
       setLoading(false);

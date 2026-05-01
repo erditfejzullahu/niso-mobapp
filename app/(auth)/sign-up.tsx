@@ -30,8 +30,6 @@ const NisoSignUp = () => {
 
   const [accountType, setAccountType] = useState(0) //0 for CLIENT, 1 for DRIVER
 
-  const [confirmPasswordError, setConfirmPasswordError] = useState('');
-
   const [imageSelected, setImageSelected] = useState("")
 
   const scrollY = useSharedValue(0);
@@ -137,22 +135,29 @@ const NisoSignUp = () => {
       email: "",
       confirmPassword:""
     },
-    mode: "onChange"
+    mode: "onChange",
+    criteriaMode: "all"
   })
 
+  const getErrorMessages = (fieldError?: { message?: unknown; types?: Record<string, unknown> }) => {
+    if (!fieldError) return [];
+
+    const messages = new Set<string>();
+    if (typeof fieldError.message === "string") messages.add(fieldError.message);
+
+    Object.values(fieldError.types ?? {}).forEach((value) => {
+      const values = Array.isArray(value) ? value : [value];
+      values.forEach((item) => {
+        if (typeof item === "string") messages.add(item);
+      });
+    });
+
+    return Array.from(messages);
+  };
+
   const handleSignUp = async (data: z.infer<typeof registerSchema>) => {
-    console.log(data);
     
     let valid = true;
-    // Check password strength
-
-    // Check password match
-    if (data.password !== data.confirmPassword) {
-      setConfirmPasswordError('Fjalëkalimi dhe konfirmimi i fjalekalimit nuk përputhen.');
-      valid = false;
-    } else {
-      setConfirmPasswordError('');
-    }
 
     if((accountType > 1) || (accountType < 0)){
       Toast.show({
@@ -174,20 +179,7 @@ const NisoSignUp = () => {
 
     if (!valid) return;
 
-    try {
-      await signUp(data.fullName, data.email, data.password, data.confirmPassword, accountType, imageSelected)
-
-      Toast.show({
-        type: "success",
-        text1: "Sapo u regjistruat me sukses në Niso. Tani do te ridrejtoheni tek seksioni i verifikimit te identitetit tuaj."
-      })
-    } catch (error: any) {
-      console.error(error.response.data);
-      Toast.show({
-        type: "error",
-        text1: "Dicka shkoi gabim në regjistrimin tuaj"
-      })
-    }
+    await signUp(data.fullName, data.email, data.password, data.confirmPassword, accountType, imageSelected)
   }
 
   return (
@@ -304,6 +296,9 @@ const NisoSignUp = () => {
                 </>
               )}
             />
+            {getErrorMessages(errors.password).map((message) => (
+              <Text key={message} className='text-xs font-plight text-red-500 mt-1'>{message}</Text>
+            ))}
 
           </View>
 
@@ -326,7 +321,9 @@ const NisoSignUp = () => {
                 </>
               )}
             />
-            {confirmPasswordError ? <Text className="text-red-500 mb-8 text-sm mt-1">{confirmPasswordError}</Text> : null}
+            {getErrorMessages(errors.confirmPassword).map((message) => (
+              <Text key={message} className='text-xs font-plight text-red-500 mt-1'>{message}</Text>
+            ))}
           </View>
 
           {/* Sign Up Button */}

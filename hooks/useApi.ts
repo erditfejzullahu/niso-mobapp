@@ -38,6 +38,15 @@ const processQueue = (error: any = null) => {
   failedQueue = [];
 };
 
+const PUBLIC_AUTH_PATHS = [
+  "/auth/login",
+  "/auth/register",
+  // "/auth/update-session",
+];
+
+const isPublicAuthRequest = (url?: string) =>
+  !!url && PUBLIC_AUTH_PATHS.some((path) => url.includes(path));
+
 api.interceptors.response.use(
   async (response: AxiosResponse) => {
     await saveAccessTokenFromResponse(response);
@@ -56,7 +65,11 @@ api.interceptors.response.use(
 
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isPublicAuthRequest(originalRequest.url)
+    ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
