@@ -1,9 +1,14 @@
 import api from '@/hooks/useApi';
 import { useToggleNotifications } from '@/store/useToggleNotifications';
-import { BottomSheetModal, BottomSheetModalProvider, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import React, { memo, useEffect, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import {
+    BottomSheetFlatList,
+    BottomSheetModal,
+    BottomSheetModalProvider,
+} from '@gorhom/bottom-sheet';
+import type { InfiniteData } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { ActivityIndicator, StyleSheet, View, type ListRenderItemInfo } from 'react-native';
 import LoadingState from '@/components/system/LoadingState';
 import ErrorState from '@/components/system/ErrorState';
 import EmptyState from '@/components/system/EmptyState';
@@ -11,6 +16,10 @@ import type { Notification } from '@/types/app-types';
 import NotificationItem from '@/components/notifications/NotificationItem';
 import Toast from '@/utils/appToast';
 import { useAuth } from '@/context/AuthContext';
+
+const PAGE_SIZE = 20;
+
+type NotificationsPage = { data: Notification[]; hasMore: boolean };
 
 function NotificationsComponent() {
     const { user } = useAuth();
@@ -24,19 +33,58 @@ function NotificationsComponent() {
         else bottomSheetRef.current?.present();
     }, [isClosed, user]);
 
-    const { data, error, isLoading, isRefetching, refetch } = useQuery({
+    const {
+        data,
+        error,
+        isLoading,
+        isRefetching,
+        refetch,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useInfiniteQuery({
         queryKey: ['notifications'],
-        queryFn: async () => {
-            if (!user) return { data: [] as Notification[] };
-            const [getNotifications] = await Promise.all([
-                api.get<Notification[]>('/notifications/get-notifications'),
-                api.patch('/notifications/read-notifications'),
-            ]);
-            return getNotifications;
-        },
+        initialPageParam: undefined as string | undefined,
         refetchOnWindowFocus: false,
         enabled: !!user && !isClosed,
+        queryFn: async ({ pageParam }) => {
+            if (!user) return { data: [] as Notification[], hasMore: false };
+            const params = new URLSearchParams();
+            params.set('limit', String(PAGE_SIZE));
+            if (pageParam) params.set('cursor', pageParam);
+
+            if (!pageParam) {
+                const [getRes] = await Promise.allSettled([
+                    api.get<NotificationsPage>(`/notifications/get-notifications?${params.toString()}`),
+                    api.patch('/notifications/read-notifications'),
+                ]);
+                if (getRes.status !== 'fulfilled') {
+                    return { data: [] as Notification[], hasMore: false };
+                }
+                return getRes.value.data;
+            }
+
+            const res = await api.get<NotificationsPage>(
+                `/notifications/get-notifications?${params.toString()}`
+            );
+            return res.data;
+        },
+        getNextPageParam: (lastPage) =>
+            lastPage.hasMore && lastPage.data.length > 0
+                ? lastPage.data[lastPage.data.length - 1]!.id
+                : undefined,
     });
+
+    const flatData = useMemo(
+        () => data?.pages.flatMap((p) => p.data) ?? [],
+        [data]
+    );
+
+    const onEndReached = useCallback(() => {
+        if (hasNextPage && !isFetchingNextPage) {
+            void fetchNextPage();
+        }
+    }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
     const deleteNotification = useMutation({
         mutationFn: async (id: string) => {
@@ -44,19 +92,30 @@ function NotificationsComponent() {
         },
         onMutate: async (id: string) => {
             await queryClient.cancelQueries({ queryKey: ['notifications'] });
-            const previousNotifications = queryClient.getQueryData(['notifications']);
+            const previous = queryClient.getQueryData<InfiniteData<NotificationsPage>>([
+                'notifications',
+            ]);
 
-            queryClient.setQueryData(['notifications'], (old: any) => {
-                return {
-                    ...old,
-                    data: old.data.filter((n: Notification) => n.id !== id),
-                };
-            });
+            queryClient.setQueryData<InfiniteData<NotificationsPage>>(
+                ['notifications'],
+                (old) => {
+                    if (!old) return old;
+                    return {
+                        ...old,
+                        pages: old.pages.map((page) => ({
+                            ...page,
+                            data: page.data.filter((n) => n.id !== id),
+                        })),
+                    };
+                }
+            );
 
-            return { previousNotifications };
+            return { previous };
         },
-        onError: (err: any, id, context) => {
-            queryClient.setQueryData(['notifications'], context?.previousNotifications);
+        onError: (err: any, _id, context) => {
+            if (context?.previous) {
+                queryClient.setQueryData(['notifications'], context.previous);
+            }
             Toast.show({
                 type: 'error',
                 text1: 'Gabim!',
@@ -74,6 +133,15 @@ function NotificationsComponent() {
 
     if (!user) return null;
 
+    const showInitialLoad = isLoading && flatData.length === 0;
+
+    const listFooter =
+        isFetchingNextPage && hasNextPage ? (
+            <View className="py-4 items-center justify-center">
+                <ActivityIndicator size="small" color="#4f46e5" />
+            </View>
+        ) : null;
+
     return (
         <BottomSheetModalProvider>
             <BottomSheetModal
@@ -88,36 +156,47 @@ function NotificationsComponent() {
                     <View style={[style, { backgroundColor: 'rgba(0,0,0,0.5)' }]} onTouchEnd={() => setToggled(true)} />
                 )}
             >
-                <BottomSheetScrollView contentContainerStyle={styles.bottomSheetContent}>
-                    {isLoading || isRefetching ? (
+                {showInitialLoad ? (
+                    <View className="w-full flex-1 pt-2 pb-16 items-center bg-gray-50">
                         <LoadingState />
-                    ) : !isLoading && !isRefetching && error ? (
-                        <ErrorState onRetry={refetch} />
-                    ) : !data || data.data.length === 0 ? (
+                    </View>
+                ) : error && flatData.length === 0 ? (
+                    <View className="w-full flex-1 pt-2 pb-16 items-center bg-gray-50">
+                        <ErrorState onRetry={() => void refetch()} />
+                    </View>
+                ) : flatData.length === 0 ? (
+                    <View className="w-full flex-1 pt-2 pb-16 items-center bg-gray-50">
                         <EmptyState
-                            onRetry={refetch}
+                            onRetry={() => void refetch()}
                             message="Nuk u gjeten njoftime. Nese mendoni qe eshte gabim klikoni me poshte."
                             textStyle="!font-plight !text-sm"
                         />
-                    ) : (
-                        <View className="w-full gap-2.5">
-                            {data.data.map((item) => (
-                                <NotificationItem
-                                    key={item.id}
-                                    item={item}
-                                    onDelete={(id) => deleteNotification.mutate(id)}
-                                    user={user}
-                                />
-                            ))}
-                        </View>
-                    )}
-                </BottomSheetScrollView>
+                    </View>
+                ) : (
+                    <BottomSheetFlatList
+                        data={flatData}
+                        keyExtractor={(item: Notification) => item.id}
+                        renderItem={({ item }: ListRenderItemInfo<Notification>) => (
+                            <NotificationItem
+                                item={item}
+                                onDelete={(id) => deleteNotification.mutate(id)}
+                                user={user}
+                            />
+                        )}
+                        contentContainerStyle={styles.listContent}
+                        onEndReached={onEndReached}
+                        onEndReachedThreshold={0.25}
+                        ListFooterComponent={listFooter}
+                        refreshing={isRefetching && !isFetchingNextPage}
+                        onRefresh={() => void refetch()}
+                    />
+                )}
             </BottomSheetModal>
         </BottomSheetModalProvider>
     );
 }
 
-export default memo(NotificationsComponent);
+export default NotificationsComponent;
 
 const styles = StyleSheet.create({
     bottomSheet: {
@@ -127,14 +206,13 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 5,
     },
-    bottomSheetContent: {
-        flex: 1,
+    listContent: {
         paddingBottom: 60,
         paddingTop: 8,
-        alignItems: 'center',
+        // paddingHorizontal: 16,
         backgroundColor: '#f9fafb',
         borderTopColor: 'rgba(0,0,0,0.05)',
         borderTopWidth: 1,
+        gap: 10,
     },
 });
-
