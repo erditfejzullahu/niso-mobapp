@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
 
 type Props = {
     visible: boolean;
@@ -8,6 +8,7 @@ type Props = {
     cancelText?: string;
     confirmText?: string;
     confirmVariant?: 'default' | 'destructive';
+    isConfirming?: boolean;
     dismissOnBackdropPress?: boolean;
     onCancel: () => void;
     onConfirm: () => void;
@@ -20,6 +21,7 @@ export default function ConfirmActionModal({
     cancelText = 'Anulo',
     confirmText = 'Vazhdo',
     confirmVariant = 'default',
+    isConfirming = false,
     dismissOnBackdropPress = true,
     onCancel,
     onConfirm,
@@ -40,7 +42,7 @@ export default function ConfirmActionModal({
             <View className="flex-1 items-center justify-center px-5">
                 <Pressable
                     className="absolute inset-0 bg-black/50"
-                    onPress={dismissOnBackdropPress ? onCancel : undefined}
+                    onPress={dismissOnBackdropPress && !isConfirming ? onCancel : undefined}
                 />
 
                 <View className="w-full max-w-[420px] rounded-2xl bg-white p-4 shadow-2xl shadow-black/30">
@@ -49,14 +51,23 @@ export default function ConfirmActionModal({
 
                     <View className="flex-row gap-2 mt-4">
                         <Pressable
+                            disabled={isConfirming}
                             onPress={onCancel}
                             className="flex-1 rounded-xl bg-gray-100 active:bg-gray-200 py-2.5 items-center"
                         >
                             <Text className="font-pmedium text-indigo-950">{cancelText}</Text>
                         </Pressable>
 
-                        <Pressable onPress={onConfirm} className={`flex-1 rounded-xl py-2.5 items-center ${confirmClassName}`}>
-                            <Text className="font-pmedium text-white">{confirmText}</Text>
+                        <Pressable
+                            disabled={isConfirming}
+                            onPress={onConfirm}
+                            className={`flex-1 rounded-xl py-2.5 items-center ${confirmClassName} ${isConfirming ? 'opacity-70' : ''}`}
+                        >
+                            {isConfirming ? (
+                                <ActivityIndicator size="small" color="#fff" />
+                            ) : (
+                                <Text className="font-pmedium text-white">{confirmText}</Text>
+                            )}
                         </Pressable>
                     </View>
                 </View>

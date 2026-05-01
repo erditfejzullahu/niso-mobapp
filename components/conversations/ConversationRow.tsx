@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useRef, useState } from 'react';
 import { Animated, Pressable, View, Text, Image } from 'react-native';
-import { CarTaxiFront, Check, CheckCheck, Settings } from 'lucide-react-native';
+import { CarTaxiFront, Check, CheckCheck, MessageCircleOff, Settings } from 'lucide-react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -70,7 +70,7 @@ const ConversationRowPreview = ({ user, item, participant, onDelete, onOpen }: P
     const youMessagedLast = user.id === item.messages[0]?.senderId;
     const isRead = item.messages[0]?.isRead === true;
     const isUnread = item.messages[0]?.isRead === false;
-
+    
     return (
         <>
             <ConfirmActionModal
@@ -88,7 +88,13 @@ const ConversationRowPreview = ({ user, item, participant, onDelete, onOpen }: P
                 <Animated.View
                     style={{ opacity }}
                     className={`w-[95%] mx-auto flex-row items-center gap-2 ${
-                        isUnread && youMessagedLast ? 'bg-white' : isUnread && !youMessagedLast ? 'bg-indigo-100' : 'bg-white'
+                        item.isResolved
+                            ? 'bg-slate-100 border border-slate-200'
+                            : isUnread && youMessagedLast
+                              ? 'bg-white'
+                              : isUnread && !youMessagedLast
+                                ? 'bg-indigo-100'
+                                : 'bg-white'
                     } shadow-lg shadow-black/10 rounded-lg p-3 relative`}
                 >
             <View className="absolute left-2 shadow-lg shadow-black/20 bg-gray-50 rounded-md p-0.5 top-2 z-50">
@@ -100,8 +106,16 @@ const ConversationRowPreview = ({ user, item, participant, onDelete, onOpen }: P
             </View>
 
             <View className="absolute right-2 top-2 z-50">
-                {youMessagedLast && isUnread && <Check size={16} color={'#dc2626'} />}
-                {youMessagedLast && isRead && <CheckCheck size={16} color={'#dc2626'} />}
+                {item.isResolved ? (
+                    <View className="bg-slate-700 rounded-full p-1 shadow-sm shadow-black/20">
+                        <MessageCircleOff size={14} color={'#fff'} />
+                    </View>
+                ) : (
+                    <>
+                        {youMessagedLast && isUnread && <Check size={16} color={'#dc2626'} />}
+                        {youMessagedLast && isRead && <CheckCheck size={16} color={'#dc2626'} />}
+                    </>
+                )}
             </View>
 
             <Image source={{ uri: participant.image }} className="w-14 h-14 rounded-full" />

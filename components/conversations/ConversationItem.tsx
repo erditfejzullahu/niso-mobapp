@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useMemo, useState } from 'react';
-import type { Conversations, Message, User } from '@/types/app-types';
+import type { Conversations, User } from '@/types/app-types';
 import ConversationRowPreview from '@/components/conversations/ConversationRow';
 import ConversationSheetModal from '@/components/conversations/ConversationSheetModal';
 import { useConversationModalThread } from '@/hooks/conversations/useConversationModalThread';
@@ -14,9 +14,10 @@ type Props = {
 
 /** Single conversation preview row (+ optional composer modal). */
 function ConversationItem({ user, item, onDelete, sheetSection = false }: Props) {
+    const [currentItem, setCurrentItem] = useState(item);
     const [conversationModal, setConversationModal] = useState(false);
     const [draftMessage, setDraftMessage] = useState('');
-    const participant = useMemo(() => getConversationParticipantDisplay(user, item), [user, item]);
+    const participant = useMemo(() => getConversationParticipantDisplay(user, currentItem), [user, currentItem]);
 
     const {
         messages,
@@ -29,7 +30,11 @@ function ConversationItem({ user, item, onDelete, sheetSection = false }: Props)
         isFetchingNextPage,
         nearTopLoadThresholdPx,
         sendOtherMessage,
-    } = useConversationModalThread(item, user, conversationModal);
+    } = useConversationModalThread(currentItem, user, conversationModal);
+
+    useEffect(() => {
+        setCurrentItem(item);
+    }, [item]);
 
     useEffect(() => {
         if (!conversationModal) setDraftMessage('');
@@ -47,7 +52,7 @@ function ConversationItem({ user, item, onDelete, sheetSection = false }: Props)
         <>
             <ConversationRowPreview
                 user={user}
-                item={item}
+                item={currentItem}
                 participant={participant}
                 onDelete={onDelete}
                 onOpen={handleConversationClickAction}
@@ -58,7 +63,7 @@ function ConversationItem({ user, item, onDelete, sheetSection = false }: Props)
                     visible={conversationModal}
                     onClose={() => setConversationModal(false)}
                     user={user}
-                    item={item}
+                    item={currentItem}
                     participant={participant}
                     messages={messages}
                     isLoading={isLoading}
@@ -70,8 +75,10 @@ function ConversationItem({ user, item, onDelete, sheetSection = false }: Props)
                     isFetchingNextPage={isFetchingNextPage}
                     nearTopLoadThresholdPx={nearTopLoadThresholdPx}
                     draftMessage={draftMessage}
+                    isResolved={currentItem.isResolved}
                     onDraftChange={setDraftMessage}
                     onSend={handleSend}
+                    onConversationReopened={() => setCurrentItem((prev) => ({ ...prev, isResolved: false }))}
                     onPressMessage={() => {}}
                 />
             )}

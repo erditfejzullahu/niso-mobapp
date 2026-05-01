@@ -19,7 +19,6 @@ export function useSendOtherConversationMessage(
             if (!content) return false;
 
             if (
-                conversation.type === ConversationType.RIDE_RELATED ||
                 conversation.isResolved
             ) {
                 Toast.show({
