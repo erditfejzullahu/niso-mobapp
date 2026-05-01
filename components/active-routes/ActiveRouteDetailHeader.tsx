@@ -20,6 +20,41 @@ const ActiveRouteDetailHeader = memo(function ActiveRouteDetailHeader({ ride, on
         [ride?.createdAt]
     );
 
+    const statusBadge = useMemo(() => {
+        const status = ride?.status;
+        if (!status) return null;
+
+        if (status === 'WAITING') {
+            return {
+                label: 'Në pritje',
+                containerClass: 'bg-emerald-100 border border-emerald-200',
+                textClass: 'text-emerald-700',
+            };
+        }
+
+        if (status === 'COMPLETED') {
+            return {
+                label: 'E përfunduar',
+                containerClass: 'bg-slate-100 border border-slate-200',
+                textClass: 'text-slate-700',
+            };
+        }
+
+        if (status === 'CANCELLED') {
+            return {
+                label: 'E anuluar',
+                containerClass: 'bg-rose-100 border border-rose-200',
+                textClass: 'text-rose-700',
+            };
+        }
+
+        return {
+            label: status,
+            containerClass: 'bg-gray-100 border border-gray-200',
+            textClass: 'text-gray-700',
+        };
+    }, [ride?.status]);
+
     return (
         <View className="bg-white rounded-2xl mx-4 mb-2 px-4 py-3 mt-4 shadow shadow-black/5">
             <View className="flex-row items-center mb-3">
@@ -27,6 +62,11 @@ const ActiveRouteDetailHeader = memo(function ActiveRouteDetailHeader({ ride, on
                     <ArrowLeft size={24} color="#374151" />
                 </TouchableOpacity>
                 <Text className="flex-1 text-lg font-psemibold text-indigo-950 pr-2">Detajet e kërkesës</Text>
+                {statusBadge ? (
+                    <View className={`${statusBadge.containerClass} px-2.5 py-1 rounded-full`}>
+                        <Text className={`${statusBadge.textClass} text-xs font-psemibold`}>{statusBadge.label}</Text>
+                    </View>
+                ) : null}
             </View>
 
             <View className="flex-row items-center">

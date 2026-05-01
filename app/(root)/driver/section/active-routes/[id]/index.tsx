@@ -8,6 +8,7 @@ import {
     useAvailableRideDetail,
 } from '@/hooks/active-routes/useAvailableRideDetail';
 import api from '@/hooks/useApi';
+import { RideRequestStatus } from '@/types/app-types';
 import { formatRidePriceLabel, hasPassengerFixedPrice } from '@/utils/active-routes/rideRequestDisplay';
 import Toast from '@/utils/appToast';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -52,18 +53,35 @@ export default function ActiveRouteRideRequestDetailScreen() {
     }, [ride]);
 
     const fixedPriceMode = ride ? hasPassengerFixedPrice(ride) : false;
+    const canInteract = ride?.status === RideRequestStatus.WAITING;
 
     const openSecondaryModal = useCallback(() => {
         if (!ride) return;
+        if (!canInteract) {
+            Toast.show({
+                type: 'error',
+                text1: 'Gabim!',
+                text2: 'Kjo kërkesë udhëtimi nuk është më në pritje. Ju nuk mund te shprehni gadishmerine per udhetimin.',
+            });
+            return;
+        }
         if (hasPassengerFixedPrice(ride)) {
             setCounterModalOpen(true);
         } else {
             setOfferModalOpen(true);
         }
-    }, [ride]);
+    }, [ride, canInteract]);
 
     const stubNotifyPassengerReady = useCallback(async (_message?: string) => {
         if (!rideRequestId) return;
+        if (!canInteract) {
+            Toast.show({
+                type: 'error',
+                text1: 'Gabim!',
+                text2: 'Kjo kërkesë udhëtimi nuk është më në pritje. Ju nuk mund te shprehni gadishmerine per udhetimin.',
+            });
+            return;
+        }
         try {
             const payload = _message ? { message: _message } : {};
             const response = await api.patch(`/rides/notify-passenger-that-driver-is-ready/${rideRequestId}`, {
@@ -87,7 +105,7 @@ export default function ActiveRouteRideRequestDetailScreen() {
                 text2: message,
             });
         }
-    }, [rideRequestId]);
+    }, [rideRequestId, canInteract]);
 
     const stubCounterOffer = useCallback((_amountEuro: string, _message?: string) => {
         /** TODO: send counter-offer via API when provided */
@@ -147,6 +165,7 @@ export default function ActiveRouteRideRequestDetailScreen() {
                 <RideRequestInfoSection ride={ride} />
                 <RideDetailActionBar
                     ride={ride}
+                    disabled={!canInteract}
                     onNotifyPassengerReady={() => setTakeModalOpen(true)}
                     onCounterOrOffer={openSecondaryModal}
                 />

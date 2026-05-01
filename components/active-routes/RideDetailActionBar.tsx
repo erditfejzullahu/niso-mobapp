@@ -9,12 +9,14 @@ type Props = {
     /** Notify the passenger that the driver is ready (not final ride acceptance). */
     onNotifyPassengerReady: () => void;
     onCounterOrOffer: () => void;
+    disabled?: boolean;
 };
 
 const RideDetailActionBar = memo(function RideDetailActionBar({
     ride,
     onNotifyPassengerReady,
     onCounterOrOffer,
+    disabled = false,
 }: Props) {
     const hasFixed = useMemo(() => hasPassengerFixedPrice(ride), [ride]);
 
@@ -36,7 +38,8 @@ const RideDetailActionBar = memo(function RideDetailActionBar({
             <View className="flex-row gap-3">
                 <TouchableOpacity
                     onPress={onNotifyPassengerReady}
-                    className="flex-1 bg-indigo-600 rounded-xl py-3.5 px-3 flex-row items-center justify-center gap-2 shadow shadow-indigo-500/20"
+                    disabled={disabled}
+                    className={`flex-1 bg-indigo-600 rounded-xl py-3.5 px-3 flex-row items-center justify-center gap-2 shadow shadow-indigo-500/20 ${disabled ? 'opacity-50' : ''}`}
                     accessibilityRole="button"
                     accessibilityLabel="Njofto pasagjerin që je gati"
                 >
@@ -45,7 +48,8 @@ const RideDetailActionBar = memo(function RideDetailActionBar({
                 </TouchableOpacity>
                 <TouchableOpacity
                     onPress={onCounterOrOffer}
-                    className="flex-1 bg-white border border-indigo-200 rounded-xl py-3.5 px-3 flex-row items-center justify-center gap-2 shadow shadow-black/5"
+                    disabled={disabled}
+                    className={`flex-1 bg-white border border-indigo-200 rounded-xl py-3.5 px-3 flex-row items-center justify-center gap-2 shadow shadow-black/5 ${disabled ? 'opacity-50' : ''}`}
                     accessibilityRole="button"
                     accessibilityLabel={secondaryLabel}
                 >

@@ -1,7 +1,7 @@
 import api from '@/hooks/useApi';
 import { RideRequest } from '@/types/app-types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { AxiosResponse } from 'axios';
+import { AxiosError, AxiosResponse } from 'axios';
 import { useMemo } from 'react';
 
 export class RideNotInAvailableListError extends Error {
@@ -32,31 +32,16 @@ function rideFromListingCache(queryClient: ReturnType<typeof useQueryClient>, id
 }
 
 async function fetchAvailableRideById(id: string, signal?: AbortSignal): Promise<RideRequest> {
-    const limit = 50;
-    let page = 1;
-    const maxPages = 40;
-
-    while (page <= maxPages) {
-        const res = await api.get<AvailableRidesBody>('/drivers/available-rides', {
-            params: {
-                sortOrder: 'latest',
-                urgencyType: 'normal',
-                distanceRange: undefined,
-                page,
-                limit,
-            },
-            signal,
-        });
-
-        const { rides, hasMore } = res.data;
-        const found = rides.find((r) => r.id === id);
-        if (found) return found;
-
-        if (!hasMore) break;
-        page += 1;
+    try {
+        const res = await api.get<RideRequest>(`/drivers/available-rides/${id}`, { signal });
+        return res.data;
+    } catch (e) {
+        const err = e as AxiosError;
+        if (err.response?.status === 404) {
+            throw new RideNotInAvailableListError();
+        }
+        throw e;
     }
-
-    throw new RideNotInAvailableListError();
 }
 
 export function useAvailableRideDetail(rideRequestId: string | undefined) {
