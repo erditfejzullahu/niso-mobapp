@@ -111,7 +111,7 @@ export default function ActiveRouteRideRequestDetailScreen() {
         if (!rideRequestId) return;
         try {
             await api.post(`/rides/send-counter-offer-driver/${rideRequestId}`, {
-                priceOffer: parseFloat(amountEuro),
+                priceOffer: amountEuro.replace(',', '.'),
                 content: content ?? undefined,
             });
             Toast.show({

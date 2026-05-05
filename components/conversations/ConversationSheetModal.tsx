@@ -23,6 +23,9 @@ import LoadingState from '@/components/system/LoadingState';
 import ErrorState from '@/components/system/ErrorState';
 import ConversationComposer from '@/components/conversations/ConversationComposer';
 import { badgeClassForConversationType, conversationTypeLabel } from '@/utils/conversations/conversationLabels';
+import PriceOfferBubble from '@/components/conversations/PriceOfferBubble';
+import ConversationCounterOfferSheet from '@/components/conversations/ConversationCounterOfferSheet';
+import { usePriceOfferActions } from '@/hooks/conversations/usePriceOfferActions';
 
 dayjs.extend(relativeTime);
 dayjs.locale('sq');
@@ -74,6 +77,34 @@ export default function ConversationSheetModal({
 }: Props) {
     void _nearTopLoadThresholdPx;
 
+    const {
+        isActioning,
+        counterModalOpen,
+        openCounterModal,
+        closeCounterModal,
+        acceptOffer,
+        declineOffer,
+        sendCounterOffer,
+    } = usePriceOfferActions(item, user, refetchMessages);
+
+    /** The id of the absolute last message — only this one gets action buttons. */
+    const lastMessageId = useMemo(
+        () => (messages && messages.length > 0 ? messages[messages.length - 1].id : null),
+        [messages]
+    );
+
+    /** The price label of the last price-offer message, shown as context in the counter sheet. */
+    const lastOfferLabel = useMemo(() => {
+        if (!messages) return undefined;
+        for (let i = messages.length - 1; i >= 0; i--) {
+            if (messages[i].priceOffer != null) {
+                const n = parseFloat(messages[i].priceOffer!);
+                return isNaN(n) ? messages[i].priceOffer! : `${n.toFixed(2)} €`;
+            }
+        }
+        return undefined;
+    }, [messages]);
+
     /** Newest-first for `inverted` FlatList (parent passes oldest → newest). */
     const listData = useMemo(
         () => ((messages?.length ?? 0) > 0 ? [...(messages as Message[])].reverse() : []),
@@ -105,6 +136,64 @@ export default function ConversationSheetModal({
                 <ActivityIndicator style={{ paddingVertical: 8 }} color="#4f46e5" />
             ) : null,
         [isFetchingNextPage]
+    );
+
+    const renderItem = useCallback(
+        ({ item: msg }: { item: Message }) => {
+            const isMine = msg.senderId === user.id;
+            const isLastMessage = msg.id === lastMessageId;
+
+            if (msg.priceOffer != null) {
+                return (
+                    <PriceOfferBubble
+                        message={msg}
+                        isMine={isMine}
+                        isLastMessage={isLastMessage}
+                        isActioning={isActioning}
+                        onAccept={() => acceptOffer(msg)}
+                        onDecline={declineOffer}
+                        onCounterOffer={openCounterModal}
+                    />
+                );
+            }
+
+            const isMessageRead = msg.isRead === true;
+            const isMessageNotSent = msg.isRead === null;
+
+            return (
+                <TouchableOpacity
+                    onPress={() => onPressMessage?.(msg)}
+                    className={`mb-3 max-w-[75%] ${isMine ? 'self-end' : 'self-start'}`}
+                >
+                    <View
+                        className={`rounded-2xl px-3 py-2 shadow-sm ${isMine ? 'bg-indigo-600' : 'bg-gray-200'}`}
+                    >
+                        <Text
+                            className={`text-sm font-pregular ${isMine ? 'text-white' : 'text-indigo-950'}`}
+                        >
+                            {msg.content}
+                        </Text>
+                    </View>
+                    <View className="flex-row items-center justify-between">
+                        <Text className="text-[10px] text-gray-400 mt-0.5">
+                            {dayjs(msg.createdAt).fromNow()}
+                        </Text>
+                        <View>
+                            {isMine && !isMessageRead && (
+                                <Check size={16} color={'#4f46e5'} />
+                            )}
+                            {isMine && isMessageRead && (
+                                <CheckCheck size={16} color={'#4f46e5'} />
+                            )}
+                            {isMine && isMessageNotSent && (
+                                <Clock size={12} color={'#4f46e5'} />
+                            )}
+                        </View>
+                    </View>
+                </TouchableOpacity>
+            );
+        },
+        [user.id, lastMessageId, isActioning, acceptOffer, declineOffer, openCounterModal, onPressMessage] // eslint-disable-line react-hooks/exhaustive-deps
     );
 
     return (
@@ -162,43 +251,7 @@ export default function ConversationSheetModal({
                                             progressBackgroundColor="#ffffff"
                                         />
                                     }
-                                    renderItem={({ item: msg }) => {
-                                        const isMine = msg.senderId === user.id;
-                                        const isMessageRead = msg.isRead && msg.isRead === true;
-                                        const isMessageNotSent = msg.isRead === null;
-                                        return (
-                                            <TouchableOpacity
-                                                onPress={() => onPressMessage?.(msg)}
-                                                className={`mb-3 max-w-[75%] ${isMine ? 'self-end' : 'self-start'}`}
-                                            >
-                                                <View
-                                                    className={`rounded-2xl px-3 py-2 shadow-sm ${isMine ? 'bg-indigo-600' : 'bg-gray-200'}`}
-                                                >
-                                                    <Text
-                                                        className={`text-sm font-pregular ${isMine ? 'text-white' : 'text-indigo-950'}`}
-                                                    >
-                                                        {msg.content}
-                                                    </Text>
-                                                </View>
-                                                <View className="flex-row items-center justify-between">
-                                                    <Text className="text-[10px] text-gray-400 mt-0.5">
-                                                        {dayjs(msg.createdAt).fromNow()}
-                                                    </Text>
-                                                    <View>
-                                                        {isMine && !isMessageRead && (
-                                                            <Check size={16} color={'#4f46e5'} />
-                                                        )}
-                                                        {isMine && isMessageRead && (
-                                                            <CheckCheck size={16} color={'#4f46e5'} />
-                                                        )}
-                                                        {isMine && isMessageNotSent && (
-                                                            <Clock size={12} color={'#4f46e5'} />
-                                                        )}
-                                                    </View>
-                                                </View>
-                                            </TouchableOpacity>
-                                        );
-                                    }}
+                                    renderItem={renderItem}
                                     ListEmptyComponent={() => (
                                         <EmptyState
                                             containerStyle="!bg-white"
@@ -222,6 +275,14 @@ export default function ConversationSheetModal({
                     </KeyboardAvoidingView>
                 </View>
             </Modal>
+
+            <ConversationCounterOfferSheet
+                visible={counterModalOpen}
+                onClose={closeCounterModal}
+                isActioning={isActioning}
+                currentOfferLabel={lastOfferLabel}
+                onSubmit={sendCounterOffer}
+            />
         </>
     );
 }

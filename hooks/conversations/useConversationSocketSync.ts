@@ -12,7 +12,8 @@ type Args = {
 };
 
 /**
- * Applies server `newMessage` / `errorSendingMessage` to TanStack caches for this conversation.
+ * Applies server `newMessage` / `errorSendingMessage` / price-offer events to TanStack
+ * caches for this conversation.
  */
 export function useConversationSocketSync({ conversationId, currentUserId, modalOpen, caches }: Args) {
     const {
@@ -51,6 +52,29 @@ export function useConversationSocketSync({ conversationId, currentUserId, modal
             });
             const failedId = pendingOptimisticIdsRef.current.pop();
             if (failedId) removeFailedOptimistic(failedId);
+        },
+        modalOpen
+    );
+
+    // Price-offer messages arrive via dedicated events (not newMessage) because
+    // the backend creates them through the REST layer and emits them separately.
+    useSocketEvent(
+        SERVER_SOCKET_EVENTS.driverSendedPriceOffer,
+        (payload) => {
+            const msg = parseSocketMessagePayload(payload);
+            if (msg.conversationId !== conversationId) return;
+            // Always treat as their message — the sender refreshes via refetch.
+            appendTheirMessageToCaches(msg);
+        },
+        modalOpen
+    );
+
+    useSocketEvent(
+        SERVER_SOCKET_EVENTS.passengerSendedPriceOffer,
+        (payload) => {
+            const msg = parseSocketMessagePayload(payload);
+            if (msg.conversationId !== conversationId) return;
+            appendTheirMessageToCaches(msg);
         },
         modalOpen
     );
