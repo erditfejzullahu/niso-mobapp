@@ -593,6 +593,63 @@ export interface CursorPage<T> {
   nextCursor: string | null;
 }
 
+export interface ConnectedRideDetail {
+  id: string;
+  status: ConnectedRideStatus;
+  createdAt: string;
+  updatedAt: string;
+  viewerRole: 'DRIVER' | 'PASSENGER';
+  driver: { id: string; fullName: string; image: string };
+  passenger: { id: string; fullName: string; image: string };
+  rideRequest: {
+    id: string;
+    fromAddress: string;
+    toAddress: string;
+    price: string;
+    distanceKm: string;
+    isUrgent: boolean;
+    status: RideRequestStatus;
+    createdAt: string;
+  };
+  review: { id: string; rating: number; comment: string | null; createdAt: string } | null;
+  conversation: { id: string; isResolved: boolean; type: ConversationType } | null;
+}
+
+export interface RideNotificationsCount {
+  total: number;
+  unread: number;
+}
+
+export interface DriverRideHistoryItem {
+  id: string;
+  fromAddress: string;
+  toAddress: string;
+  price: string;
+  distanceKm: string;
+  isUrgent: boolean;
+  status: RideRequestStatus;
+  createdAt: string;
+  passenger: { id: string; fullName: string; image: string } | null;
+  connectedRide: { id: string; status: ConnectedRideStatus } | null;
+}
+
+export interface DriverConnectedRideHistoryItem {
+  id: string;
+  status: ConnectedRideStatus;
+  createdAt: string;
+  passenger: { id: string; fullName: string; image: string };
+  rideRequest: {
+    id: string;
+    fromAddress: string;
+    toAddress: string;
+    price: string;
+    distanceKm: string;
+    isUrgent: boolean;
+  };
+}
+
+export type DriverActiveRide = DriverConnectedRideHistoryItem | null;
+
 export interface PassengerConnectedRideHistoryItem {
   id: string;
   status: ConnectedRideStatus;

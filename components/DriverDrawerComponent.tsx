@@ -123,6 +123,13 @@ export default function DriverDrawerComponent(props: any) {
       ),
     },
     {
+      route: "my-ride-history",
+      label: "Udhëtimet e mia",
+      icon: (color: string, size: number) => (
+        <Ionicons name="car" size={size} color={color} />
+      ),
+    },
+    {
       route: "regular-clients",
       label: "Klientë të rregullt",
       icon: (color: string, size: number) => (

@@ -89,6 +89,7 @@ export default function Layout() {
 
       <Tabs.Screen name="view-tarifs" options={{href: null}} />
       <Tabs.Screen name="driver-reviews" options={{href: null}} />
+      <Tabs.Screen name="my-ride-history" options={{href: null}} />
     </Tabs>
   );
 }

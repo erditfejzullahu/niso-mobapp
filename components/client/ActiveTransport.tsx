@@ -134,7 +134,7 @@ const ActiveTransports = ({user, activeRide}: {user: User, activeRide: ActivePas
 
               <TouchableOpacity
                 onPress={() => {
-                  router.push(`/(root)/driver/section/active-routes/${activeRide.id}`);
+                  router.push(`/(root)/connected-ride/${activeRide.id}` as any);
                   setProceedModal(false);
                 }}
                 className="bg-indigo-600 px-4 py-2 rounded-lg flex-row items-center gap-1"

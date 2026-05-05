@@ -1,12 +1,12 @@
 import ErrorState from '@/components/system/ErrorState';
 import LoadingState from '@/components/system/LoadingState';
 import EmptyState from '@/components/system/EmptyState';
-import { usePassengerRideHistory } from '@/hooks/my-ride-requests/usePassengerRideHistory';
-import { usePassengerConnectedRideHistory } from '@/hooks/my-ride-requests/usePassengerConnectedRideHistory';
+import { useDriverRideHistory } from '@/hooks/driver-rides/useDriverRideHistory';
+import { useDriverConnectedRideHistory } from '@/hooks/driver-rides/useDriverConnectedRideHistory';
 import {
     ConnectedRideStatus,
-    PassengerConnectedRideHistoryItem,
-    PassengerRideHistoryItem,
+    DriverConnectedRideHistoryItem,
+    DriverRideHistoryItem,
     RideRequestStatus,
 } from '@/types/app-types';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -29,9 +29,9 @@ dayjs.extend(relativeTime);
 
 type Tab = 'requests' | 'rides';
 
-// ─── Active helpers ──────────────────────────────────────────────────────────
+// ─── Active helpers ───────────────────────────────────────────────────────────
 
-function isActiveRequest(item: PassengerRideHistoryItem): boolean {
+function isActiveRequest(item: DriverRideHistoryItem): boolean {
     return (
         item.status === RideRequestStatus.WAITING ||
         item.connectedRide?.status === ConnectedRideStatus.DRIVING ||
@@ -39,19 +39,19 @@ function isActiveRequest(item: PassengerRideHistoryItem): boolean {
     );
 }
 
-function isActiveConnectedRide(item: PassengerConnectedRideHistoryItem): boolean {
+function isActiveConnectedRide(item: DriverConnectedRideHistoryItem): boolean {
     return item.status === ConnectedRideStatus.WAITING || item.status === ConnectedRideStatus.DRIVING;
 }
 
-// ─── Status labels ───────────────────────────────────────────────────────────
+// ─── Status labels ────────────────────────────────────────────────────────────
 
-function getRequestStatusInfo(item: PassengerRideHistoryItem): { label: string; color: string; bg: string } {
+function getRequestStatusInfo(item: DriverRideHistoryItem): { label: string; color: string; bg: string } {
     if (item.connectedRide?.status === ConnectedRideStatus.DRIVING)
         return { label: 'Në rrugë', color: '#16a34a', bg: '#dcfce7' };
     if (item.connectedRide?.status === ConnectedRideStatus.WAITING)
-        return { label: 'Duke pritur shofer', color: '#d97706', bg: '#fef3c7' };
+        return { label: 'Pritur konfirmim', color: '#d97706', bg: '#fef3c7' };
     if (item.status === RideRequestStatus.WAITING)
-        return { label: 'Duke kërkuar', color: '#4f46e5', bg: '#eef2ff' };
+        return { label: 'Në pritje', color: '#4f46e5', bg: '#eef2ff' };
     if (item.status === RideRequestStatus.COMPLETED || item.connectedRide?.status === ConnectedRideStatus.COMPLETED)
         return { label: 'Përfunduar', color: '#6b7280', bg: '#f3f4f6' };
     if (
@@ -65,18 +65,18 @@ function getRequestStatusInfo(item: PassengerRideHistoryItem): { label: string; 
 
 function getConnectedRideStatusInfo(status: ConnectedRideStatus): { label: string; color: string; bg: string } {
     switch (status) {
-        case ConnectedRideStatus.DRIVING:        return { label: 'Në rrugë', color: '#16a34a', bg: '#dcfce7' };
-        case ConnectedRideStatus.WAITING:        return { label: 'Duke pritur', color: '#d97706', bg: '#fef3c7' };
-        case ConnectedRideStatus.COMPLETED:      return { label: 'Përfunduar', color: '#6b7280', bg: '#f3f4f6' };
-        case ConnectedRideStatus.CANCELLED_BY_DRIVER:     return { label: 'Anuluar nga shoferi', color: '#dc2626', bg: '#fee2e2' };
-        case ConnectedRideStatus.CANCELLED_BY_PASSENGER:  return { label: 'Anuluar prej jush', color: '#dc2626', bg: '#fee2e2' };
+        case ConnectedRideStatus.DRIVING:               return { label: 'Në rrugë', color: '#16a34a', bg: '#dcfce7' };
+        case ConnectedRideStatus.WAITING:               return { label: 'Duke pritur', color: '#d97706', bg: '#fef3c7' };
+        case ConnectedRideStatus.COMPLETED:             return { label: 'Përfunduar', color: '#6b7280', bg: '#f3f4f6' };
+        case ConnectedRideStatus.CANCELLED_BY_DRIVER:   return { label: 'Anuluar prej jush', color: '#dc2626', bg: '#fee2e2' };
+        case ConnectedRideStatus.CANCELLED_BY_PASSENGER: return { label: 'Anuluar nga pasagjeri', color: '#dc2626', bg: '#fee2e2' };
         default: return { label: status, color: '#6b7280', bg: '#f3f4f6' };
     }
 }
 
 // ─── Shared card chrome ───────────────────────────────────────────────────────
 
-function CardShell({
+const CardShell = React.memo(function CardShell({
     active,
     statusBg,
     statusColor,
@@ -85,7 +85,7 @@ function CardShell({
     createdAt,
     fromAddress,
     toAddress,
-    driverName,
+    personName,
     price,
     distanceKm,
     onPress,
@@ -99,7 +99,7 @@ function CardShell({
     createdAt: string;
     fromAddress: string;
     toAddress: string;
-    driverName: string | null;
+    personName: string | null;
     price: string;
     distanceKm: string;
     onPress: () => void;
@@ -143,15 +143,15 @@ function CardShell({
 
                 <View style={styles.cardFooter}>
                     <View style={styles.footerLeft}>
-                        {driverName ? (
+                        {personName ? (
                             <View style={styles.personRow}>
                                 <MaterialIcons name="person" size={14} color="#6b7280" />
-                                <Text style={styles.personText} numberOfLines={1}>{driverName}</Text>
+                                <Text style={styles.personText} numberOfLines={1}>{personName}</Text>
                             </View>
                         ) : (
                             <View style={styles.personRow}>
                                 <MaterialIcons name="person-search" size={14} color="#9ca3af" />
-                                <Text style={[styles.personText, { color: '#9ca3af' }]}>Pa shofer</Text>
+                                <Text style={[styles.personText, { color: '#9ca3af' }]}>Pa pasagjer</Text>
                             </View>
                         )}
                     </View>
@@ -163,22 +163,30 @@ function CardShell({
             </TouchableOpacity>
         </Animated.View>
     );
-}
+});
 
 // ─── Section label ────────────────────────────────────────────────────────────
 
-const SectionLabel = ({ label, count }: { label: string; count: number }) => (
-    <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{label}</Text>
-        <View style={styles.sectionCount}>
-            <Text style={styles.sectionCountText}>{count}</Text>
+const SectionLabel = React.memo(function SectionLabel({ label, count }: { label: string; count: number }) {
+    return (
+        <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{label}</Text>
+            <View style={styles.sectionCount}>
+                <Text style={styles.sectionCountText}>{count}</Text>
+            </View>
         </View>
-    </View>
-);
+    );
+});
 
 // ─── List footer ──────────────────────────────────────────────────────────────
 
-const ListFooter = ({ isFetchingNextPage, hasNextPage }: { isFetchingNextPage: boolean; hasNextPage: boolean }) => {
+const ListFooter = React.memo(function ListFooter({
+    isFetchingNextPage,
+    hasNextPage,
+}: {
+    isFetchingNextPage: boolean;
+    hasNextPage: boolean;
+}) {
     if (isFetchingNextPage) {
         return (
             <View style={styles.footer}>
@@ -195,11 +203,11 @@ const ListFooter = ({ isFetchingNextPage, hasNextPage }: { isFetchingNextPage: b
         );
     }
     return null;
-};
+});
 
-// ─── Tab switcher ──────────────────────────────────────────────────────────────
+// ─── Tab switcher ─────────────────────────────────────────────────────────────
 
-const TabSwitcher = ({
+const TabSwitcher = React.memo(function TabSwitcher({
     activeTab,
     onSwitch,
     requestCount,
@@ -209,46 +217,48 @@ const TabSwitcher = ({
     onSwitch: (t: Tab) => void;
     requestCount: number | undefined;
     rideCount: number | undefined;
-}) => (
-    <View style={styles.tabRow}>
-        <TouchableOpacity
-            activeOpacity={0.8}
-            style={[styles.tabBtn, activeTab === 'requests' && styles.tabBtnActive]}
-            onPress={() => onSwitch('requests')}
-        >
-            <Ionicons name="document-text-outline" size={15} color={activeTab === 'requests' ? '#fff' : '#6b7280'} />
-            <Text style={[styles.tabLabel, activeTab === 'requests' && styles.tabLabelActive]}>Kërkesat</Text>
-            {requestCount !== undefined && (
-                <View style={[styles.tabBadge, activeTab === 'requests' && styles.tabBadgeActive]}>
-                    <Text style={[styles.tabBadgeText, activeTab === 'requests' && styles.tabBadgeTextActive]}>
-                        {requestCount}
-                    </Text>
-                </View>
-            )}
-        </TouchableOpacity>
-        <TouchableOpacity
-            activeOpacity={0.8}
-            style={[styles.tabBtn, activeTab === 'rides' && styles.tabBtnActive]}
-            onPress={() => onSwitch('rides')}
-        >
-            <Ionicons name="car-outline" size={15} color={activeTab === 'rides' ? '#fff' : '#6b7280'} />
-            <Text style={[styles.tabLabel, activeTab === 'rides' && styles.tabLabelActive]}>Udhëtimet</Text>
-            {rideCount !== undefined && (
-                <View style={[styles.tabBadge, activeTab === 'rides' && styles.tabBadgeActive]}>
-                    <Text style={[styles.tabBadgeText, activeTab === 'rides' && styles.tabBadgeTextActive]}>
-                        {rideCount}
-                    </Text>
-                </View>
-            )}
-        </TouchableOpacity>
-    </View>
-);
+}) {
+    return (
+        <View style={styles.tabRow}>
+            <TouchableOpacity
+                activeOpacity={0.8}
+                style={[styles.tabBtn, activeTab === 'requests' && styles.tabBtnActive]}
+                onPress={() => onSwitch('requests')}
+            >
+                <Ionicons name="document-text-outline" size={15} color={activeTab === 'requests' ? '#fff' : '#6b7280'} />
+                <Text style={[styles.tabLabel, activeTab === 'requests' && styles.tabLabelActive]}>Kërkesat</Text>
+                {requestCount !== undefined && (
+                    <View style={[styles.tabBadge, activeTab === 'requests' && styles.tabBadgeActive]}>
+                        <Text style={[styles.tabBadgeText, activeTab === 'requests' && styles.tabBadgeTextActive]}>
+                            {requestCount}
+                        </Text>
+                    </View>
+                )}
+            </TouchableOpacity>
+            <TouchableOpacity
+                activeOpacity={0.8}
+                style={[styles.tabBtn, activeTab === 'rides' && styles.tabBtnActive]}
+                onPress={() => onSwitch('rides')}
+            >
+                <Ionicons name="car-outline" size={15} color={activeTab === 'rides' ? '#fff' : '#6b7280'} />
+                <Text style={[styles.tabLabel, activeTab === 'rides' && styles.tabLabelActive]}>Udhëtimet</Text>
+                {rideCount !== undefined && (
+                    <View style={[styles.tabBadge, activeTab === 'rides' && styles.tabBadgeActive]}>
+                        <Text style={[styles.tabBadgeText, activeTab === 'rides' && styles.tabBadgeTextActive]}>
+                            {rideCount}
+                        </Text>
+                    </View>
+                )}
+            </TouchableOpacity>
+        </View>
+    );
+});
 
 // ─── Mixed list item types ────────────────────────────────────────────────────
 
 type SectionHeaderItem = { _type: 'section'; label: string; count: number };
-type RequestListItem = PassengerRideHistoryItem | SectionHeaderItem;
-type RideListItem   = PassengerConnectedRideHistoryItem | SectionHeaderItem;
+type RequestListItem   = DriverRideHistoryItem | SectionHeaderItem;
+type RideListItem      = DriverConnectedRideHistoryItem | SectionHeaderItem;
 
 function isSectionHeader(item: RequestListItem | RideListItem): item is SectionHeaderItem {
     return '_type' in item && item._type === 'section';
@@ -256,13 +266,12 @@ function isSectionHeader(item: RequestListItem | RideListItem): item is SectionH
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
-export default function MyRideRequestsListScreen() {
+export default function DriverRideHistoryScreen() {
     const [activeTab, setActiveTab] = useState<Tab>('requests');
 
-    const requestsQuery = usePassengerRideHistory();
-    const ridesQuery    = usePassengerConnectedRideHistory();
+    const requestsQuery = useDriverRideHistory();
+    const ridesQuery    = useDriverConnectedRideHistory();
 
-    // Flatten all pages into a single item array
     const allRequests = useMemo(
         () => requestsQuery.data?.pages.flatMap((p) => p.items) ?? [],
         [requestsQuery.data],
@@ -272,13 +281,11 @@ export default function MyRideRequestsListScreen() {
         [ridesQuery.data],
     );
 
-    // Split into active / history sections
     const activeRequests  = useMemo(() => allRequests.filter(isActiveRequest), [allRequests]);
     const historyRequests = useMemo(() => allRequests.filter((r) => !isActiveRequest(r)), [allRequests]);
     const activeRides     = useMemo(() => allRides.filter(isActiveConnectedRide), [allRides]);
     const historyRides    = useMemo(() => allRides.filter((r) => !isActiveConnectedRide(r)), [allRides]);
 
-    // Build sectioned list data for requests
     const requestListData = useMemo<RequestListItem[]>(() => {
         const out: RequestListItem[] = [];
         if (activeRequests.length > 0) {
@@ -292,7 +299,6 @@ export default function MyRideRequestsListScreen() {
         return out;
     }, [activeRequests, historyRequests]);
 
-    // Build sectioned list data for connected rides
     const rideListData = useMemo<RideListItem[]>(() => {
         const out: RideListItem[] = [];
         if (activeRides.length > 0) {
@@ -306,7 +312,6 @@ export default function MyRideRequestsListScreen() {
         return out;
     }, [activeRides, historyRides]);
 
-    // ── Render functions ──
     const renderRequestItem = useCallback(({ item, index }: { item: RequestListItem; index: number }) => {
         if (isSectionHeader(item)) return <SectionLabel label={item.label} count={item.count} />;
         const { label, color, bg } = getRequestStatusInfo(item);
@@ -321,10 +326,16 @@ export default function MyRideRequestsListScreen() {
                 createdAt={item.createdAt}
                 fromAddress={item.fromAddress}
                 toAddress={item.toAddress}
-                driverName={item.driver?.fullName ?? null}
+                personName={item.passenger?.fullName ?? null}
                 price={item.price}
                 distanceKm={item.distanceKm}
-                onPress={() => router.push(`/(root)/client/section/my-ride-requests/${item.id}`)}
+                onPress={() => {
+                    if (item.connectedRide?.id) {
+                        router.push(`/(root)/connected-ride/${item.connectedRide.id}` as any);
+                    } else {
+                        router.push(`/(root)/driver/section/active-routes/${item.id}` as any);
+                    }
+                }}
             />
         );
     }, []);
@@ -343,7 +354,7 @@ export default function MyRideRequestsListScreen() {
                 createdAt={item.createdAt}
                 fromAddress={item.rideRequest.fromAddress}
                 toAddress={item.rideRequest.toAddress}
-                driverName={item.driver.fullName}
+                personName={item.passenger.fullName}
                 price={item.rideRequest.price}
                 distanceKm={item.rideRequest.distanceKm}
                 onPress={() => router.push(`/(root)/connected-ride/${item.id}` as any)}
@@ -363,22 +374,19 @@ export default function MyRideRequestsListScreen() {
 
     const handleTabSwitch = useCallback((t: Tab) => setActiveTab(t), []);
 
-    // ── Current tab state ──
     const currentQuery = activeTab === 'requests' ? requestsQuery : ridesQuery;
-    const isEmpty = activeTab === 'requests'
-        ? allRequests.length === 0
-        : allRides.length === 0;
+    const isEmpty = activeTab === 'requests' ? allRequests.length === 0 : allRides.length === 0;
 
     return (
-        <View className='flex-1 bg-gray-50'>
+        <View className="flex-1 bg-gray-50">
             {/* Header */}
-            <View style={styles.header} className='mt-4'>
+            <View style={styles.header} className="mt-4">
                 <TouchableOpacity style={styles.backButton} onPress={() => router.back()} activeOpacity={0.7}>
                     <Ionicons name="chevron-back" size={22} color="#1e1b4b" />
                 </TouchableOpacity>
                 <View style={styles.headerTitles}>
                     <Text style={styles.headerTitle}>Udhëtimet e mia</Text>
-                    <Text style={styles.headerSubtitle}>Të gjitha kërkesat dhe udhëtimet e lidhura</Text>
+                    <Text style={styles.headerSubtitle}>Kërkesat dhe udhëtimet ku keni marrë pjesë</Text>
                 </View>
                 <TouchableOpacity style={styles.refreshBtn} onPress={() => currentQuery.refetch()} activeOpacity={0.7}>
                     <Ionicons name="refresh" size={20} color="#4f46e5" />
@@ -407,7 +415,7 @@ export default function MyRideRequestsListScreen() {
                     icon={activeTab === 'requests' ? 'document-outline' : 'car-outline'}
                     message={
                         activeTab === 'requests'
-                            ? 'Nuk keni asnjë kërkesë udhëtimi deri tani.'
+                            ? 'Nuk keni asnjë kërkesë udhëtimi të pranuar deri tani.'
                             : 'Nuk keni asnjë udhëtim të lidhur deri tani.'
                     }
                     onRetry={() => currentQuery.refetch()}
@@ -483,8 +491,6 @@ export default function MyRideRequestsListScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-    safeArea: { flex: 1, backgroundColor: '#f9fafb' },
-
     header: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -651,7 +657,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         gap: 8,
         paddingVertical: 16,
-        marginBottom: 32
+        marginBottom: 32,
     },
     footerText: { fontSize: 13, fontFamily: 'pregular', color: '#6b7280' },
     footerEndText: { fontSize: 12, fontFamily: 'pregular', color: '#d1d5db' },
