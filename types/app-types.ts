@@ -588,3 +588,47 @@ export interface PassengersHomeResponse {
 }
 //passenger home interface
 
+export interface CursorPage<T> {
+  items: T[];
+  nextCursor: string | null;
+}
+
+export interface PassengerConnectedRideHistoryItem {
+  id: string;
+  status: ConnectedRideStatus;
+  createdAt: string;
+  driver: {
+    id: string;
+    fullName: string;
+    image: string;
+  };
+  rideRequest: {
+    id: string;
+    fromAddress: string;
+    toAddress: string;
+    price: string;
+    distanceKm: string;
+    isUrgent: boolean;
+  };
+}
+
+export interface PassengerRideHistoryItem {
+  id: string;
+  fromAddress: string;
+  toAddress: string;
+  price: string;
+  distanceKm: string;
+  isUrgent: boolean;
+  status: RideRequestStatus;
+  createdAt: string;
+  driver: {
+    id: string;
+    fullName: string;
+    image: string;
+  } | null;
+  connectedRide: {
+    id: string;
+    status: ConnectedRideStatus;
+  } | null;
+}
+

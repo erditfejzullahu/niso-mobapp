@@ -92,6 +92,13 @@ export default function ClientDrawerComponent(props: any) {
       )
     },
     {
+      route: "my-ride-requests",
+      label: "Kërkesat e mia",
+      icon: (color: string, size: number) => (
+        <Ionicons name="car" size={size} color={color} />
+      )
+    },
+    {
       route: "favorite-drivers",
       label: "Shoferët e preferuar",
       icon: (color: string, size: number) => (
