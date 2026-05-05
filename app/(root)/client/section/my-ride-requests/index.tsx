@@ -24,7 +24,6 @@ import {
     View,
 } from 'react-native';
 import Animated, { FadeInDown, FadeInRight, FadeInLeft } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 dayjs.extend(relativeTime);
 
@@ -371,9 +370,9 @@ export default function MyRideRequestsListScreen() {
         : allRides.length === 0;
 
     return (
-        <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
+        <View className='flex-1 bg-gray-50'>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={styles.header} className='mt-4'>
                 <TouchableOpacity style={styles.backButton} onPress={() => router.back()} activeOpacity={0.7}>
                     <Ionicons name="chevron-back" size={22} color="#1e1b4b" />
                 </TouchableOpacity>
@@ -477,7 +476,7 @@ export default function MyRideRequestsListScreen() {
                     />
                 </Animated.View>
             )}
-        </SafeAreaView>
+        </View>
     );
 }
 
