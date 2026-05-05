@@ -107,13 +107,39 @@ export default function ActiveRouteRideRequestDetailScreen() {
         }
     }, [rideRequestId, canInteract]);
 
-    const stubCounterOffer = useCallback((_amountEuro: string, _message?: string) => {
-        /** TODO: send counter-offer via API when provided */
-    }, []);
+    const sendPriceOfferToPassenger = useCallback(async (amountEuro: string, content?: string) => {
+        if (!rideRequestId) return;
+        try {
+            await api.post(`/rides/send-counter-offer-driver/${rideRequestId}`, {
+                priceOffer: parseFloat(amountEuro),
+                content: content ?? undefined,
+            });
+            Toast.show({
+                type: 'success',
+                text1: 'Sukses!',
+                text2: 'Oferta juaj u dërgua tek pasagjeri.',
+            });
+        } catch (error: any) {
+            console.log(error?.response?.data);
+            const message =
+                typeof error?.response?.data?.message === 'string'
+                    ? error.response.data.message
+                    : 'Nuk u dërgua oferta. Provoni përsëri.';
+            Toast.show({
+                type: 'error',
+                text1: 'Gabim!',
+                text2: message,
+            });
+        }
+    }, [rideRequestId]);
 
-    const stubDriverOffer = useCallback((_amountEuro: string) => {
-        /** TODO: send driver price offer via API when provided */
-    }, []);
+    const handleCounterOffer = useCallback((amountEuro: string, message?: string) => {
+        sendPriceOfferToPassenger(amountEuro, message);
+    }, [sendPriceOfferToPassenger]);
+
+    const handleDriverOffer = useCallback((amountEuro: string) => {
+        sendPriceOfferToPassenger(amountEuro);
+    }, [sendPriceOfferToPassenger]);
 
     if (!rideRequestId) {
         return (
@@ -186,7 +212,7 @@ export default function ActiveRouteRideRequestDetailScreen() {
                         visible={counterModalOpen && fixedPriceMode}
                         onClose={() => setCounterModalOpen(false)}
                         passengerPriceLabel={passengerPriceLabelForCounter}
-                        onSubmitCounterOffer={stubCounterOffer}
+                        onSubmitCounterOffer={handleCounterOffer}
                     />
                 ) : null}
                 {/* kjo osht kur s'ka cmim fiks */}
@@ -194,7 +220,7 @@ export default function ActiveRouteRideRequestDetailScreen() {
                     <DriverOfferModal
                         visible={offerModalOpen && !fixedPriceMode}
                         onClose={() => setOfferModalOpen(false)}
-                        onSubmitDriverOffer={stubDriverOffer}
+                        onSubmitDriverOffer={handleDriverOffer}
                     />
                 ) : null}
             </Suspense>
