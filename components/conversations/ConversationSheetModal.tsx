@@ -10,6 +10,7 @@ import {
     Platform,
     RefreshControl,
     ActivityIndicator,
+    StyleSheet,
 } from 'react-native';
 import Animated, { BounceInRight, BounceInUp } from 'react-native-reanimated';
 import { Check, CheckCheck, Clock, X } from 'lucide-react-native';
@@ -23,6 +24,7 @@ import LoadingState from '@/components/system/LoadingState';
 import ErrorState from '@/components/system/ErrorState';
 import ConversationComposer from '@/components/conversations/ConversationComposer';
 import { badgeClassForConversationType, conversationTypeLabel } from '@/utils/conversations/conversationLabels';
+import { AlertTriangle } from 'lucide-react-native';
 import PriceOfferBubble from '@/components/conversations/PriceOfferBubble';
 import ConversationCounterOfferSheet from '@/components/conversations/ConversationCounterOfferSheet';
 import { usePriceOfferActions } from '@/hooks/conversations/usePriceOfferActions';
@@ -87,6 +89,9 @@ export default function ConversationSheetModal({
         sendCounterOffer,
     } = usePriceOfferActions(item, user, refetchMessages);
 
+    /** Ride request is active when the conversation still has a rideRequestId linked. */
+    const isRideActive = Boolean(item.rideRequestId);
+
     /** The id of the absolute last message — only this one gets action buttons. */
     const lastMessageId = useMemo(
         () => (messages && messages.length > 0 ? messages[messages.length - 1].id : null),
@@ -149,6 +154,7 @@ export default function ConversationSheetModal({
                         message={msg}
                         isMine={isMine}
                         isLastMessage={isLastMessage}
+                        isRideActive={isRideActive}
                         isActioning={isActioning}
                         onAccept={() => acceptOffer(msg)}
                         onDecline={declineOffer}
@@ -193,7 +199,7 @@ export default function ConversationSheetModal({
                 </TouchableOpacity>
             );
         },
-        [user.id, lastMessageId, isActioning, acceptOffer, declineOffer, openCounterModal, onPressMessage] // eslint-disable-line react-hooks/exhaustive-deps
+        [user.id, lastMessageId, isRideActive, isActioning, acceptOffer, declineOffer, openCounterModal, onPressMessage] // eslint-disable-line react-hooks/exhaustive-deps
     );
 
     return (
@@ -286,3 +292,23 @@ export default function ConversationSheetModal({
         </>
     );
 }
+
+const styles = StyleSheet.create({
+    rideInactiveBanner: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: 8,
+        backgroundColor: '#fffbeb',
+        borderBottomWidth: 1,
+        borderBottomColor: '#fde68a',
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+    },
+    rideInactiveBannerText: {
+        flex: 1,
+        fontSize: 12,
+        color: '#92400e',
+        fontFamily: 'Poppins-Regular',
+        lineHeight: 17,
+    },
+});

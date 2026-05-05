@@ -1,6 +1,6 @@
 import api from '@/hooks/useApi';
 import type { RideRequest } from '@/types/app-types';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
 export class RideRequestNotFoundError extends Error {
@@ -36,5 +36,17 @@ export function usePassengerRideRequestDetail(rideRequestId: string | undefined)
         queryFn: ({ signal }) => fetchPassengerRideRequestById(rideRequestId!, signal),
         staleTime: 30_000,
         retry: 1,
+    });
+}
+
+export function useDeletePassengerRideRequest(rideRequestId: string | undefined) {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async () => {
+            await api.delete(`/rides/passenger-ride-request/${rideRequestId}`);
+        },
+        onSuccess: () => {
+            queryClient.removeQueries({ queryKey: ['passengerRideRequest', rideRequestId] });
+        },
     });
 }

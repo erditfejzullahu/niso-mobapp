@@ -1,5 +1,5 @@
-import { RideRequest } from '@/types/app-types';
-import { AlertTriangle, ArrowLeft, Clock } from 'lucide-react-native';
+import { RideRequest, RideRequestStatus } from '@/types/app-types';
+import { AlertTriangle, ArrowLeft, Clock, Trash2 } from 'lucide-react-native';
 import React, { memo, useMemo } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import dayjs from 'dayjs';
@@ -12,9 +12,11 @@ dayjs.locale('sq');
 type Props = {
     ride?: RideRequest | null;
     onBack: () => void;
+    onDelete?: () => void;
 };
 
-const PassengerRideRequestHeader = memo(function PassengerRideRequestHeader({ ride, onBack }: Props) {
+const PassengerRideRequestHeader = memo(function PassengerRideRequestHeader({ ride, onBack, onDelete }: Props) {
+    const canDelete = ride?.status === RideRequestStatus.WAITING;
     const relativeCreated = useMemo(
         () => (ride?.createdAt ? dayjs(ride.createdAt).fromNow() : ''),
         [ride?.createdAt],
@@ -64,6 +66,16 @@ const PassengerRideRequestHeader = memo(function PassengerRideRequestHeader({ ri
                     <ArrowLeft size={24} color="#374151" />
                 </TouchableOpacity>
                 <Text className="flex-1 text-lg font-psemibold text-indigo-950 pr-2">Kërkesa juaj e udhëtimit</Text>
+                {canDelete && onDelete ? (
+                    <TouchableOpacity
+                        onPress={onDelete}
+                        className="p-1.5 mr-2 rounded-lg bg-red-50"
+                        accessibilityRole="button"
+                        accessibilityLabel="Fshi kërkesën"
+                    >
+                        <Trash2 size={18} color="#dc2626" />
+                    </TouchableOpacity>
+                ) : null}
                 {statusBadge ? (
                     <View className={`${statusBadge.containerClass} px-2.5 py-1 rounded-full`}>
                         <Text className={`${statusBadge.textClass} text-xs font-psemibold`}>{statusBadge.label}</Text>
@@ -76,7 +88,7 @@ const PassengerRideRequestHeader = memo(function PassengerRideRequestHeader({ ri
                     <Image source={{ uri: ride.driver.image }} className="w-14 h-14 rounded-full mr-3" />
                 ) : (
                     <View className="w-14 h-14 rounded-full mr-3 bg-indigo-100 items-center justify-center">
-                        <Text className="text-indigo-700 font-pmedium text-xs">Pa shofer</Text>
+                        <Text className="text-indigo-700 font-pmedium text-xs text-center">Pa shofer</Text>
                     </View>
                 )}
                 <View className="flex-1">
