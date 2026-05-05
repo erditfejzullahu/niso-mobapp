@@ -459,8 +459,13 @@ export interface NotificationMetadatas {
   modalAction?: boolean;
   notificationSender?: User | null;
   navigateAction?: {
-    connectedRide?: string | null,
-    rideRequest?: string | null
+    /** Canonical id-based keys (preferred): */
+    connectedRideId?: string | null;
+    rideRequestId?: string | null;
+    conversationId?: string | null;
+    /** Legacy keys kept for backwards-compatibility with old notifications. */
+    connectedRide?: string | { id?: string } | null;
+    rideRequest?: string | { id?: string } | null;
   }
 }
 

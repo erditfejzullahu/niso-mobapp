@@ -1,12 +1,19 @@
-import React, { memo, useCallback, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { InteractionManager } from 'react-native';
 import type { Notification, User as UserType } from '@/types/app-types';
 import { useRouter } from 'expo-router';
 import { useToggleNotifications } from '@/store/useToggleNotifications';
 import { useNotificationMetadata } from '@/hooks/notifications/useNotificationMetadata';
 import { useNotificationRideData } from '@/hooks/notifications/useNotificationRideData';
 import { getNotificationActionButtonText, getNotificationContext } from '@/utils/notifications/notificationCopy';
+import {
+    getConnectedRideIdFromMetadata,
+    getConversationIdFromMetadata,
+    getRideRequestIdFromMetadata,
+} from '@/utils/notifications/navigateAction';
 import NotificationRow from '@/components/notifications/NotificationRow';
 import NotificationDetailsModal from '@/components/notifications/NotificationDetailsModal';
+import NotificationConversationSheet from './NotificationConversationSheet';
 
 type Props = {
     item: Notification;
@@ -14,20 +21,26 @@ type Props = {
     user: UserType;
 };
 
+/** Slightly longer than RN `Modal` slide animation; keeps us safe from dual-Modal stacking. */
+const MODAL_DISMISS_DELAY_MS = 320;
+
 function NotificationItem({ item, onDelete, user }: Props) {
     const router = useRouter();
     const [openModal, setOpenModal] = useState(false);
+    const [openConversationSheet, setOpenConversationSheet] = useState(false);
     const { setToggled } = useToggleNotifications();
+    const pendingOpenSheetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const metadata = useNotificationMetadata(item);
 
-    const connectedRideId = metadata?.navigateAction?.connectedRide ?? null;
-    const connectedRideRequestId = metadata?.navigateAction?.rideRequest ?? null;
+    const connectedRideId = useMemo(() => getConnectedRideIdFromMetadata(metadata), [metadata]);
+    const rideRequestId = useMemo(() => getRideRequestIdFromMetadata(metadata), [metadata]);
+    const conversationId = useMemo(() => getConversationIdFromMetadata(metadata), [metadata]);
 
     const { connectedRideQuery, rideRequestQuery } = useNotificationRideData({
         notificationId: item.id,
         connectedRideId,
-        rideRequestId: connectedRideRequestId,
+        rideRequestId,
         enabled: openModal,
     });
 
@@ -40,7 +53,6 @@ function NotificationItem({ item, onDelete, user }: Props) {
 
     const handleNotificationItemActions = useCallback(() => {
         if (metadata?.modalAction) setOpenModal(true);
-        // navigateAction is intentionally handled by the main action button for now.
     }, [metadata?.modalAction]);
 
     const notificationContext = useMemo(() => getNotificationContext(item.type), [item.type]);
@@ -53,6 +65,39 @@ function NotificationItem({ item, onDelete, user }: Props) {
         });
     }, [connectedRideQuery.data?.status, item.type, rideRequestQuery.data?.status]);
 
+    /** Two action buttons render only when both a ride request AND a conversation exist. */
+    const secondaryActionText = useMemo(() => {
+        if (item.type !== 'RIDE_UPDATE') return null;
+        if (!conversationId) return null;
+        return 'Hap Bisedën';
+    }, [conversationId, item.type]);
+
+    const navigateToRideRequest = useCallback(() => {
+        if (!rideRequestId) return;
+        if (user.role === 'DRIVER') {
+            router.push(`/driver/section/active-routes/${rideRequestId}`);
+        } else {
+            router.push(`/client/section/my-ride-requests/${rideRequestId}`);
+        }
+    }, [rideRequestId, router, user.role]);
+
+    /**
+     * Opens the conversation sheet AFTER the details modal has finished its slide-out
+     * animation. Stacking two RN `Modal`s during a transition can leave the screen
+     * with a transparent overlay that swallows touches.
+     */
+    const scheduleOpenConversationSheet = useCallback(() => {
+        if (pendingOpenSheetTimerRef.current) {
+            clearTimeout(pendingOpenSheetTimerRef.current);
+        }
+        pendingOpenSheetTimerRef.current = setTimeout(() => {
+            InteractionManager.runAfterInteractions(() => {
+                setOpenConversationSheet(true);
+                pendingOpenSheetTimerRef.current = null;
+            });
+        }, MODAL_DISMISS_DELAY_MS);
+    }, []);
+
     const handleActionPress = useCallback(() => {
         switch (item.type) {
             case 'SYSTEM_ALERT':
@@ -60,10 +105,18 @@ function NotificationItem({ item, onDelete, user }: Props) {
                 else router.push('/client/section/client-profile');
                 break;
             case 'MESSAGE':
-                // TODO: navigate to chat (needs route + sender id mapping)
+                if (conversationId) {
+                    setOpenModal(false);
+                    scheduleOpenConversationSheet();
+                    return;
+                }
                 break;
             case 'RIDE_UPDATE':
-                // TODO: navigate to ride details / request details when routes are implemented
+                if (rideRequestId) {
+                    setOpenModal(false);
+                    navigateToRideRequest();
+                    return;
+                }
                 break;
             case 'PAYMENT':
             case 'PROMOTIONAL':
@@ -73,11 +126,37 @@ function NotificationItem({ item, onDelete, user }: Props) {
 
         setOpenModal(false);
         setToggled(true);
-    }, [item.type, router, setToggled, user.role]);
+    }, [conversationId, item.type, navigateToRideRequest, rideRequestId, router, scheduleOpenConversationSheet, setToggled, user.role]);
+
+    const handleSecondaryActionPress = useCallback(() => {
+        if (!conversationId) return;
+        setOpenModal(false);
+        scheduleOpenConversationSheet();
+    }, [conversationId, scheduleOpenConversationSheet]);
+
+    const handleCloseConversationSheet = useCallback(() => {
+        setOpenConversationSheet(false);
+    }, []);
+
+    /** Defensive: close the conversation sheet + clear pending timers on unmount. */
+    useEffect(() => {
+        return () => {
+            if (pendingOpenSheetTimerRef.current) {
+                clearTimeout(pendingOpenSheetTimerRef.current);
+                pendingOpenSheetTimerRef.current = null;
+            }
+            setOpenConversationSheet(false);
+        };
+    }, []);
 
     return (
         <>
-            <NotificationRow item={item} senderImageUri={senderImageUri} onPress={handleNotificationItemActions} onDelete={handleDelete} />
+            <NotificationRow
+                item={item}
+                senderImageUri={senderImageUri}
+                onPress={handleNotificationItemActions}
+                onDelete={handleDelete}
+            />
 
             <NotificationDetailsModal
                 visible={openModal}
@@ -87,8 +166,10 @@ function NotificationItem({ item, onDelete, user }: Props) {
                 notificationContext={notificationContext}
                 actionButtonText={actionButtonText}
                 onActionPress={handleActionPress}
+                secondaryActionText={secondaryActionText}
+                onSecondaryActionPress={secondaryActionText ? handleSecondaryActionPress : undefined}
                 connectedRideId={connectedRideId}
-                rideRequestId={connectedRideRequestId}
+                rideRequestId={rideRequestId}
                 connectedRide={{
                     data: connectedRideQuery.data,
                     isLoading: connectedRideQuery.isLoading,
@@ -104,9 +185,19 @@ function NotificationItem({ item, onDelete, user }: Props) {
                     refetch: rideRequestQuery.refetch,
                 }}
             />
+
+            {conversationId ? (
+                <NotificationConversationSheet
+                    user={user}
+                    conversationId={conversationId}
+                    visible={openConversationSheet}
+                    onClose={handleCloseConversationSheet}
+                    /** Pre-fetch while the details modal is open so the sheet has data the moment we mount it. */
+                    prefetch={openModal && Boolean(secondaryActionText)}
+                />
+            ) : null}
         </>
     );
 }
 
 export default memo(NotificationItem);
-

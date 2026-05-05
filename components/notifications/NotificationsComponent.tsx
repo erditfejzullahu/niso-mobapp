@@ -80,6 +80,8 @@ function NotificationsComponent() {
         [data]
     );
 
+    console.log(flatData);
+
     const onEndReached = useCallback(() => {
         if (hasNextPage && !isFetchingNextPage) {
             void fetchNextPage();

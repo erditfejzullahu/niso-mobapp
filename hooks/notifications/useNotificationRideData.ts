@@ -27,7 +27,7 @@ export function useNotificationRideData(args: {
         queryKey: ['notifRideRequest', notificationId],
         queryFn: async () => {
             const res = await api.get<NotificationRideRequest>(
-                `/notification/get-notification-ride-request/${notificationId}`,
+                `/notifications/get-notification-ride-request/${notificationId}`,
             );
             return res.data;
         },

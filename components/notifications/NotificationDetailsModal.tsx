@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Image, Modal, Text, TouchableOpacity, View } from 'react-native';
-import { CarTaxiFront, DollarSign, MessageCircleMore, Settings, Trophy, X } from 'lucide-react-native';
+import { CarTaxiFront, DollarSign, MessageCircleMore, MessageSquare, Settings, Trophy, X } from 'lucide-react-native';
 import type { Notification } from '@/types/app-types';
 import RideInfoSection from '@/components/notifications/RideInfoSection';
 
@@ -15,6 +15,10 @@ type Props = {
     actionButtonText: string;
 
     onActionPress: () => void;
+
+    /** Optional secondary action — usually rendered for opening a related conversation. */
+    secondaryActionText?: string | null;
+    onSecondaryActionPress?: () => void;
 
     connectedRideId?: string | null;
     rideRequestId?: string | null;
@@ -31,6 +35,8 @@ function NotificationDetailsModal(props: Props) {
         notificationContext,
         actionButtonText,
         onActionPress,
+        secondaryActionText,
+        onSecondaryActionPress,
         connectedRideId,
         rideRequestId,
         connectedRide,
@@ -80,15 +86,26 @@ function NotificationDetailsModal(props: Props) {
                         <Text className="font-pregular text-sm text-indigo-600">{notificationContext}</Text>
                     </View>
 
-                    <View className="flex-row justify-end gap-3">
+                    <View className="flex-row justify-end gap-2 flex-wrap">
                         <TouchableOpacity onPress={onClose} className="px-4 py-2 rounded-xl bg-gray-200">
                             <Text className="text-indigo-900 font-pmedium">Mbyll</Text>
                         </TouchableOpacity>
+                        {secondaryActionText && onSecondaryActionPress ? (
+                            <TouchableOpacity
+                                onPress={onSecondaryActionPress}
+                                className="px-4 py-2 rounded-xl bg-white border border-indigo-200 flex-row items-center gap-1.5"
+                                accessibilityRole="button"
+                                accessibilityLabel={secondaryActionText}
+                            >
+                                <MessageSquare size={16} color="#4338ca" />
+                                <Text className="text-indigo-700 font-pmedium">{secondaryActionText}</Text>
+                            </TouchableOpacity>
+                        ) : null}
                         <TouchableOpacity
-                            onPress={() => {
-                                onActionPress();
-                            }}
+                            onPress={onActionPress}
                             className="px-4 py-2 rounded-xl bg-indigo-600"
+                            accessibilityRole="button"
+                            accessibilityLabel={actionButtonText}
                         >
                             <Text className="text-white font-pmedium">{actionButtonText}</Text>
                         </TouchableOpacity>
